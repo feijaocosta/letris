@@ -42,9 +42,6 @@ export function GameStats({ score, level, wordsFound, linesCleared, nextPiece, f
 
       {/* Área com scroll para o resto do conteúdo */}
       <div className="flex-1 overflow-y-auto space-y-3 lg:space-y-4 mt-3 lg:mt-4">
-        {/* Palavras Válidas */}
-        <WordList level={level} foundWords={foundWordsList} />
-
         {/* Próxima Peça */}
         {nextPiece && (
           <Card className="p-3 lg:p-4">
@@ -72,6 +69,10 @@ export function GameStats({ score, level, wordsFound, linesCleared, nextPiece, f
             </div>
           </Card>
         )}
+
+        {/* Palavras Válidas */}
+        <WordList level={level} foundWords={foundWordsList} />
+
 
         {/* Controles */}
         <Card className="p-3 lg:p-4">

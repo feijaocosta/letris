@@ -13,7 +13,7 @@ interface Cell {
 }
 
 const GRID_WIDTH = 10;
-const GRID_HEIGHT = 20;
+const GRID_HEIGHT = 18;
 const INITIAL_FALL_SPEED = 1000; // milliseconds
 
 export function LetrisGame() {
@@ -39,6 +39,8 @@ export function LetrisGame() {
   const [foundWordsList, setFoundWordsList] = useState<string[]>([]);
   const [linesClearedNotification, setLinesClearedNotification] = useState<number>(0);
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(1);
   
   const gameLoopRef = useRef<NodeJS.Timeout>();
   const wordHighlightRef = useRef<NodeJS.Timeout>();
@@ -71,6 +73,8 @@ export function LetrisGame() {
     setFoundWordsList([]);
     setLinesClearedNotification(0);
     setLinesToClear([]);
+    setShowLevelUp(false);
+    setNewLevel(1);
   };
 
   const checkAndRemoveWords = useCallback((currentGrid: Cell[][]) => {
@@ -343,29 +347,42 @@ export function LetrisGame() {
     
     // Check if player has found enough words to advance to next level
     if (foundWordsList.length >= requiredWords) {
-      const newLevel = level + 1;
-      setLevel(newLevel);
+      const nextLevel = level + 1;
       
-      // Clear the board and reset found words for the new level
-      const clearedGrid = Array(GRID_HEIGHT).fill(null).map(() => 
-        Array(GRID_WIDTH).fill(null).map(() => ({ 
-          letter: null, 
-          isActive: false, 
-          isHighlighted: false 
-        }))
-      );
-      setGrid(clearedGrid);
-      setFoundWordsList([]);
-      setWordsFound(0);
-      
-      // Reset any current piece and spawn new one
-      setCurrentPiece(null);
-      setTimeout(() => {
-        setCurrentPiece(createRandomPiece(newLevel));
-        setNextPiece(createRandomPiece(newLevel));
-      }, 100);
+      // Pause the game and show level up screen
+      setIsPaused(true);
+      setShowLevelUp(true);
+      setNewLevel(nextLevel);
     }
   }, [foundWordsList.length, level]);
+  
+  // Function to continue to next level
+  const continueToNextLevel = () => {
+    setLevel(newLevel);
+    
+    // Clear the board and reset found words for the new level
+    const clearedGrid = Array(GRID_HEIGHT).fill(null).map(() => 
+      Array(GRID_WIDTH).fill(null).map(() => ({ 
+        letter: null, 
+        isActive: false, 
+        isHighlighted: false 
+      }))
+    );
+    setGrid(clearedGrid);
+    setFoundWordsList([]);
+    setWordsFound(0);
+    
+    // Reset any current piece and spawn new one
+    setCurrentPiece(null);
+    setTimeout(() => {
+      setCurrentPiece(createRandomPiece(newLevel));
+      setNextPiece(createRandomPiece(newLevel));
+    }, 100);
+    
+    // Hide level up screen and resume game
+    setShowLevelUp(false);
+    setIsPaused(false);
+  };
 
   // Cleanup timeouts
   useEffect(() => {
@@ -651,6 +668,61 @@ export function LetrisGame() {
           )}
         </div>
       </div>
+      
+      {/* Level Up Modal */}
+      {showLevelUp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 max-w-md mx-4 text-center border-2 border-blue-200 shadow-2xl">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-3xl font-bold text-blue-800 mb-2">Parabéns!</h2>
+              <h3 className="text-xl font-semibold text-purple-700 mb-4">
+                Nível {newLevel} Desbloqueado!
+              </h3>
+            </div>
+            
+            <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-gray-800 mb-2">Novo Pool de Letras:</h4>
+              <p className="text-sm text-gray-700 mb-3">
+                {newLevel <= 3 && "Pool 1: Letras Básicas (10 letras disponíveis)"}
+                {newLevel > 3 && newLevel <= 6 && "Pool 2: Letras Intermediárias (15 letras disponíveis)"}
+                {newLevel > 6 && newLevel <= 9 && "Pool 3: Letras Avançadas (20 letras disponíveis)"}
+                {newLevel > 9 && "Pool 4: Letras Complexas (25 letras disponíveis)"}
+              </p>
+              
+              <div className="flex flex-wrap gap-1 justify-center">
+                {getAvailableLettersForLevel(newLevel).slice(0, 10).map(letter => (
+                  <span 
+                    key={letter} 
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded font-bold text-sm"
+                  >
+                    {letter}
+                  </span>
+                ))}
+                {getAvailableLettersForLevel(newLevel).length > 10 && (
+                  <span className="text-gray-500 text-sm">+{getAvailableLettersForLevel(newLevel).length - 10} mais</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <div className="text-sm text-gray-600 mb-2">
+                Palavras necessárias para o próximo nível: <span className="font-bold">{getRequiredWordsForLevel(newLevel)}</span>
+              </div>
+              <div className="text-sm text-gray-600">
+                Score atual: <span className="font-bold text-blue-600">{score.toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={continueToNextLevel}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transform transition-all duration-200 hover:scale-105"
+            >
+              Continuar para o Nível {newLevel}! 🚀
+            </Button>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
