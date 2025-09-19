@@ -66,6 +66,28 @@
   --color-purple-800: #6b21a8;
   --color-purple-900: #581c87;
   
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffafe;
+  --color-cyan-200: #a5f3fc;
+  --color-cyan-300: #67e8f9;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  --color-cyan-700: #0e7490;
+  --color-cyan-800: #155e75;
+  --color-cyan-900: #164e63;
+  
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  
   --color-background: var(--color-white);
   --color-foreground: var(--color-gray-900);
   --color-card: var(--color-white);
@@ -159,6 +181,10 @@
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
 
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+}
+
 .from-blue-50 {
   --tw-gradient-from: var(--color-blue-50);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
@@ -175,6 +201,43 @@
 
 .to-purple-600 {
   --tw-gradient-to: var(--color-purple-600);
+}
+
+.from-cyan-400 {
+  --tw-gradient-from: var(--color-cyan-400);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(34, 211, 238, 0));
+}
+
+.from-cyan-500 {
+  --tw-gradient-from: var(--color-cyan-500);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(6, 182, 212, 0));
+}
+
+.to-blue-500 {
+  --tw-gradient-to: var(--color-blue-500);
+}
+
+.to-blue-600 {
+  --tw-gradient-to: var(--color-blue-600);
+}
+
+.via-blue-500 {
+  --tw-gradient-to: var(--color-blue-500);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--color-blue-500), var(--tw-gradient-to, rgba(59, 130, 246, 0));
+}
+
+.via-blue-900 {
+  --tw-gradient-to: var(--color-blue-900);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--color-blue-900), var(--tw-gradient-to, rgba(30, 64, 175, 0));
+}
+
+.from-slate-900 {
+  --tw-gradient-from: var(--color-slate-900);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(15, 23, 42, 0));
+}
+
+.to-purple-900 {
+  --tw-gradient-to: var(--color-purple-900);
 }
 
 .hover\:from-blue-600:hover {

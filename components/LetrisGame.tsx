@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameBoard } from './GameBoard';
 import { GameStats } from './GameStats';
 import { createRandomPiece, canPlacePiece, rotatePiece, TetrisPiece } from './TetrisPieces';
-import { findWords, removeWords, highlightWords, FoundWord, getRequiredWordsForLevel, getAvailableLettersForLevel, getValidWordsForLevel } from './WordDetector';
+import { findWords, removeWords, highlightWords, FoundWord } from './WordDetector';
+import { ScoreSystem } from './ScoreSystem';
+import { WordLibrary } from './WordLibrary';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 
@@ -13,7 +15,7 @@ interface Cell {
 }
 
 const GRID_WIDTH = 10;
-const GRID_HEIGHT = 18;
+const GRID_HEIGHT = 20;
 const INITIAL_FALL_SPEED = 1000; // milliseconds
 
 export function LetrisGame() {
@@ -41,6 +43,8 @@ export function LetrisGame() {
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(1);
+  const [showHelp, setShowHelp] = useState(false);
+  const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
   
   const gameLoopRef = useRef<NodeJS.Timeout>();
   const wordHighlightRef = useRef<NodeJS.Timeout>();
@@ -75,6 +79,8 @@ export function LetrisGame() {
     setLinesToClear([]);
     setShowLevelUp(false);
     setNewLevel(1);
+    setShowHelp(false);
+    setGameStartTime(Date.now());
   };
 
   const checkAndRemoveWords = useCallback((currentGrid: Cell[][]) => {
@@ -100,12 +106,15 @@ export function LetrisGame() {
       // Remove words after a short delay
       wordHighlightRef.current = setTimeout(() => {
         const clearedGrid = removeWords(currentGrid, words);
-        setScore(prev => prev + words.length * 100 * level);
+        
+        // Usar o sistema de pontuação
+        const scoreCalc = ScoreSystem.calculateWordPoints(words.length, level);
+        setScore(prev => prev + scoreCalc.points);
         setWordsFound(prev => prev + words.length);
         setFoundWords([]);
         
         // Apply gravity after removing words
-        applyGravity(clearedGrid);
+        applyGravityAndCheckLines(clearedGrid);
       }, 1000);
     }
   }, [level]);
@@ -126,16 +135,16 @@ export function LetrisGame() {
       );
     });
     
-    const linesCleared = linesToRemove.length;
+    const linesCount = linesToRemove.length;
     
-    // Award points for line clears (traditional Tetris scoring)
-    const lineBonus = [0, 40, 100, 300, 1200][Math.min(linesCleared, 4)] * level;
-    setScore(prev => prev + lineBonus);
-    setLinesCleared(prev => prev + linesCleared);
+    // Usar o sistema de pontuação
+    const scoreCalc = ScoreSystem.calculateLinePoints(linesCount, level);
+    setScore(prev => prev + scoreCalc.points);
+    setLinesCleared(prev => prev + linesCount);
     setLinesToClear([]);
     
     // Show notification
-    setLinesClearedNotification(linesCleared);
+    setLinesClearedNotification(linesCount);
     setTimeout(() => setLinesClearedNotification(0), 2000);
     
     setGrid(newGrid);
@@ -204,29 +213,32 @@ export function LetrisGame() {
     });
   }, [highlightCompleteLines, checkAndRemoveWords]);
 
-  const applyGravity = useCallback((currentGrid: Cell[][]) => {
-    setGrid(prevGrid => {
-      const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
+  const applyGravityAndCheckLines = useCallback((currentGrid: Cell[][]) => {
+    const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
+    
+    // Apply gravity column by column
+    for (let col = 0; col < GRID_WIDTH; col++) {
+      let writeIndex = GRID_HEIGHT - 1;
       
-      // Apply gravity column by column
-      for (let col = 0; col < GRID_WIDTH; col++) {
-        let writeIndex = GRID_HEIGHT - 1;
-        
-        // Start from bottom and move up
-        for (let row = GRID_HEIGHT - 1; row >= 0; row--) {
-          if (newGrid[row][col].letter !== null) {
-            if (writeIndex !== row) {
-              newGrid[writeIndex][col] = { ...newGrid[row][col] };
-              newGrid[row][col] = { letter: null, isActive: false, isHighlighted: false };
-            }
-            writeIndex--;
+      // Start from bottom and move up
+      for (let row = GRID_HEIGHT - 1; row >= 0; row--) {
+        if (newGrid[row][col].letter !== null) {
+          if (writeIndex !== row) {
+            newGrid[writeIndex][col] = { ...newGrid[row][col] };
+            newGrid[row][col] = { letter: null, isActive: false, isHighlighted: false };
           }
+          writeIndex--;
         }
       }
-      
-      return newGrid;
-    });
-  }, []);
+    }
+    
+    setGrid(newGrid);
+    
+    // Check for complete lines after applying gravity (with delay to avoid immediate re-execution)
+    setTimeout(() => {
+      highlightCompleteLines(newGrid);
+    }, 100);
+  }, [highlightCompleteLines]);
 
   const spawnNewPiece = useCallback(() => {
     if (nextPiece) {
@@ -286,9 +298,13 @@ export function LetrisGame() {
   // Game loop
   useEffect(() => {
     if (!isPaused && !isGameOver && currentPiece) {
+      const currentTime = Date.now();
+      const gameTime = currentTime - gameStartTime;
+      const fallSpeed = ScoreSystem.calculateFallSpeed(level, gameTime);
+      
       gameLoopRef.current = setTimeout(() => {
         movePiece(0, 1);
-      }, Math.max(100, INITIAL_FALL_SPEED - (level - 1) * 100));
+      }, fallSpeed);
     }
     
     return () => {
@@ -296,7 +312,7 @@ export function LetrisGame() {
         clearTimeout(gameLoopRef.current);
       }
     };
-  }, [currentPiece, isPaused, isGameOver, level, movePiece]);
+  }, [currentPiece, isPaused, isGameOver, level, movePiece, gameStartTime]);
 
   // Spawn first piece
   useEffect(() => {
@@ -334,6 +350,10 @@ export function LetrisGame() {
         case 'p':
           setIsPaused(prev => !prev);
           break;
+        case 'h':
+          setShowHelp(true);
+          setIsPaused(true);
+          break;
       }
     };
 
@@ -343,7 +363,7 @@ export function LetrisGame() {
 
   // Level up based on words found using the new system
   useEffect(() => {
-    const requiredWords = getRequiredWordsForLevel(level);
+    const requiredWords = WordLibrary.getRequiredWordsForLevel(level);
     
     // Check if player has found enough words to advance to next level
     if (foundWordsList.length >= requiredWords) {
@@ -397,276 +417,247 @@ export function LetrisGame() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Layout Desktop */}
-      <div className="hidden lg:flex h-screen">
-        {/* Área do tabuleiro - sempre fixa */}
-        <div className="flex flex-col items-center flex-1 p-4 overflow-auto">
-          <h1 className="mb-4 text-center">LETRIS - Nível {level}</h1>
-          <div className="text-center text-sm text-gray-600 mb-3">
-            {level <= 3 && "Pool 1: Letras Básicas (10 letras)"}
-            {level > 3 && level <= 6 && "Pool 2: Letras Intermediárias (15 letras)"}
-            {level > 6 && level <= 9 && "Pool 3: Letras Avançadas (20 letras)"}
-            {level > 9 && "Pool 4: Letras Complexas (25 letras)"}
-          </div>
-          <GameBoard grid={grid} activePiece={currentPiece} linesToClear={linesToClear} />
-          
-          {foundWords.length > 0 && (
-            <Card className="mt-3 p-3 max-w-md">
-              <h3 className="mb-2 text-sm">Palavras Encontradas:</h3>
-              <div className="flex flex-wrap gap-2">
-                {foundWords.map((word, index) => (
-                  <span key={index} className="bg-yellow-200 px-2 py-1 rounded text-xs font-bold">
-                    {word.word}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          )}
-          
-          {linesClearedNotification > 0 && (
-            <Card className="mt-3 p-3 max-w-md bg-green-100 border-green-300">
-              <h3 className="mb-2 text-sm text-green-800">Linha Completa!</h3>
-              <div className="text-green-700 text-sm">
-                {linesClearedNotification === 1 && "1 linha eliminada!"}
-                {linesClearedNotification === 2 && "2 linhas eliminadas! Duplo!"}
-                {linesClearedNotification === 3 && "3 linhas eliminadas! Triplo!"}
-                {linesClearedNotification === 4 && "4 linhas eliminadas! TETRIS!"}
-              </div>
-            </Card>
-          )}
-          
-          {(isPaused || isGameOver) && (
-            <Card className="mt-3 p-4 text-center">
-              {isGameOver ? (
-                <div>
-                  <h2 className="mb-4">Game Over!</h2>
-                  <p className="mb-2">Score Final: {score.toLocaleString()}</p>
-                  <p className="mb-4">Palavras encontradas: {foundWordsList.length}</p>
-                  <Button onClick={startNewGame}>Novo Jogo</Button>
-                </div>
-              ) : (
-                <div>
-                  <h2 className="mb-2">Pausado</h2>
-                  <p>Pressione P para continuar</p>
-                </div>
-              )}
-            </Card>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center p-4">
+      {/* Container Principal 9:16 */}
+      <div className="w-full max-w-sm aspect-[9/16] bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         
-        {/* Área da sidebar - com scroll próprio */}
-        <div className="flex-shrink-0 w-80 p-6 bg-white border-l border-gray-200">
-          <GameStats 
-            score={score}
-            level={level}
-            wordsFound={wordsFound}
-            linesCleared={linesCleared}
-            nextPiece={nextPiece}
-            foundWordsList={foundWordsList}
-          />
-        </div>
-      </div>
-
-      {/* Layout Mobile */}
-      <div className="lg:hidden flex flex-col min-h-screen">
-        {/* Header compacto */}
-        <div className="bg-white border-b border-gray-200 p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-lg font-bold">LETRIS - Nível {level}</h1>
-              <p className="text-xs text-gray-600">Score: {score.toLocaleString()}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-600">Palavras: {foundWordsList.length}</p>
-              <p className="text-xs text-gray-600">
-                {level <= 3 && "Pool 1: Básicas"}
-                {level > 3 && level <= 6 && "Pool 2: Intermediárias"}
-                {level > 6 && level <= 9 && "Pool 3: Avançadas"}
-                {level > 9 && "Pool 4: Complexas"}
-              </p>
-            </div>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-2 text-center relative">
+          <h1 className="text-white font-bold text-lg mb-2">LETRIS</h1>
+          
+          {/* Compact Stats Row */}
+          <div className="flex justify-center gap-3 text-xs text-cyan-100">
+            <div>Nível <span className="text-white font-bold">{level}</span></div>
+            <div>•</div>
+            <div>Score <span className="text-white font-bold">{score.toLocaleString()}</span></div>
+            <div>•</div>
+            <div>Linhas <span className="text-white font-bold">{linesCleared}</span></div>
+            <div>•</div>
+            <div>Palavras <span className="text-white font-bold">{foundWordsList.length}</span></div>
           </div>
+          
+          {/* Help Button */}
+          <button
+            onClick={() => {
+              setShowHelp(true);
+              setIsPaused(true);
+            }}
+            className="absolute right-2 top-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+          >
+            ?
+          </button>
         </div>
 
-        {/* Área principal do jogo */}
-        <div className="flex-1 flex flex-col p-4">
-          <div className="flex justify-center mb-4">
+        {/* Main Game Area */}
+        <div className="flex-1 flex p-3 gap-3 min-h-0">
+          
+          {/* Game Board */}
+          <div className="flex-1 flex flex-col items-center">
             <GameBoard grid={grid} activePiece={currentPiece} linesToClear={linesToClear} />
-          </div>
-
-          {/* Controles Touch para Mobile */}
-          <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
-            <div className="grid grid-cols-4 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onTouchStart={() => movePiece(-1, 0)}
-                className="h-12 text-xs"
-              >
-                ← Esq
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onTouchStart={rotatePieceHandler}
-                className="h-12 text-xs"
-              >
-                ↻ Gira
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onTouchStart={() => movePiece(1, 0)}
-                className="h-12 text-xs"
-              >
-                Dir →
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onTouchStart={() => setIsPaused(prev => !prev)}
-                className="h-12 text-xs"
-              >
-                ⏸ Pausa
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onTouchStart={() => movePiece(0, 1)}
-                className="h-12 text-xs"
-              >
-                ↓ Acelera
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onTouchStart={dropPiece}
-                className="h-12 text-xs"
-              >
-                ⬇ Solta
-              </Button>
-            </div>
-          </div>
-
-          {/* Stats compactas para mobile */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {/* Próxima peça */}
-            {nextPiece && (
-              <Card className="p-3">
-                <h4 className="mb-2 text-sm">Próxima</h4>
-                <div className="grid gap-0 w-fit">
-                  {nextPiece.shape.map((row, rowIndex) => (
-                    <div key={rowIndex} className="flex">
-                      {row.map((cell, colIndex) => (
-                        <div
-                          key={`${rowIndex}-${colIndex}`}
-                          className={`
-                            w-6 h-6 border border-gray-300 flex items-center justify-center text-xs font-bold
-                            ${cell ? 'bg-blue-200 border-blue-400' : 'bg-transparent border-transparent'}
-                          `}
-                        >
-                          {cell && nextPiece.letters[rowIndex][colIndex] && (
-                            <span className="font-bold text-gray-800">
-                              {nextPiece.letters[rowIndex][colIndex]}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+            
+            {/* Game Status Messages */}
+            {foundWords.length > 0 && (
+              <div className="mt-2 p-2 bg-yellow-400 bg-opacity-90 rounded text-xs text-center">
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {foundWords.map((word, index) => (
+                    <span key={index} className="bg-yellow-600 text-white px-1 py-0.5 rounded font-bold text-xs">
+                      {word.word}
+                    </span>
                   ))}
                 </div>
-              </Card>
+              </div>
+            )}
+            
+            {linesClearedNotification > 0 && (
+              <div className="mt-2 p-2 bg-green-400 bg-opacity-90 rounded text-xs text-center text-green-900 font-bold">
+                {linesClearedNotification === 1 && "Linha!"}
+                {linesClearedNotification === 2 && "Duplo!"}
+                {linesClearedNotification === 3 && "Triplo!"}
+                {linesClearedNotification === 4 && "TETRIS!"}
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="w-20 flex flex-col gap-2">
+            
+            {/* Level Progress */}
+            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
+              <div className="text-center mb-1">META</div>
+              <div className="text-center mb-1">
+                <span className="text-white font-bold">{foundWordsList.length}</span>
+                <span className="text-xs mx-1">/</span>
+                <span className="text-cyan-300">{WordLibrary.getRequiredWordsForLevel(level)}</span>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="bg-slate-600 rounded-full h-1">
+                <div 
+                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-1 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${Math.min(100, (foundWordsList.length / WordLibrary.getRequiredWordsForLevel(level)) * 100)}%` 
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Next Piece */}
+            {nextPiece && (
+              <div className="bg-slate-800 bg-opacity-70 rounded p-2">
+                <div className="text-xs text-cyan-300 text-center mb-1">NEXT</div>
+                <div className="flex justify-center">
+                  <div className="grid gap-0 w-fit">
+                    {nextPiece.shape.map((row, rowIndex) => (
+                      <div key={rowIndex} className="flex">
+                        {row.map((cell, colIndex) => (
+                          <div
+                            key={`${rowIndex}-${colIndex}`}
+                            className={`
+                              w-3 h-3 border border-gray-600 flex items-center justify-center text-xs font-bold
+                              ${cell ? 'bg-blue-400 border-blue-300' : 'bg-transparent border-transparent'}
+                            `}
+                          >
+                            {cell && nextPiece.letters[rowIndex][colIndex] && (
+                              <span className="text-white text-xs">
+                                {nextPiece.letters[rowIndex][colIndex]}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
 
-            {/* Pool de letras */}
-            <Card className="p-3">
-              <h4 className="mb-2 text-sm">Pool de Letras</h4>
-              <div className="flex flex-wrap gap-1">
-                {getAvailableLettersForLevel(level).slice(0, 8).map(letter => (
+            {/* Pool Info */}
+            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
+              <div className="text-center mb-1">POOL</div>
+              <div className="text-center text-xs mb-1">
+                {WordLibrary.getPoolNameForLevel(level)}
+              </div>
+              <div className="flex flex-wrap gap-px justify-center">
+                {WordLibrary.getAvailableLettersForLevel(level).slice(0, 6).map(letter => (
                   <span 
                     key={letter} 
-                    className="bg-blue-100 text-blue-800 px-1 py-0.5 rounded text-xs font-bold"
+                    className="bg-blue-600 text-white text-xs px-1 rounded"
                   >
                     {letter}
                   </span>
                 ))}
               </div>
-            </Card>
-          </div>
-
-          {/* Palavras em formato compacto */}
-          <Card className="p-3">
-            <h4 className="mb-2 text-sm">
-              Palavras ({foundWordsList.length}/{getRequiredWordsForLevel(level)} necessárias)
-            </h4>
-            <div className="grid grid-cols-5 gap-1 text-xs">
-              {getValidWordsForLevel(level).map(word => {
-                const isFound = foundWordsList.includes(word);
-                return (
-                  <div 
-                    key={word}
-                    className={`
-                      px-1 py-0.5 rounded transition-colors text-center
-                      ${isFound 
-                        ? 'bg-green-100 text-green-800 line-through font-bold' 
-                        : 'bg-gray-100 text-gray-700'
-                      }
-                    `}
-                  >
-                    {word}
-                  </div>
-                );
-              })}
             </div>
-          </Card>
 
-          {/* Notificações */}
-          {foundWords.length > 0 && (
-            <Card className="mt-4 p-3 bg-yellow-50 border-yellow-200">
-              <h4 className="mb-2 text-sm text-yellow-800">Palavras Encontradas:</h4>
-              <div className="flex flex-wrap gap-1">
-                {foundWords.map((word, index) => (
-                  <span key={index} className="bg-yellow-200 px-2 py-1 rounded text-xs font-bold">
-                    {word.word}
-                  </span>
-                ))}
+            {/* Words List */}
+            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">
+              <div className="text-center mb-1">PALAVRAS</div>
+              <div className="text-center mb-1 text-xs">
+                {foundWordsList.length}/{WordLibrary.getRequiredWordsForLevel(level)}
               </div>
-            </Card>
-          )}
-          
-          {linesClearedNotification > 0 && (
-            <Card className="mt-4 p-3 bg-green-100 border-green-300">
-              <h4 className="mb-2 text-sm text-green-800">Linha Completa!</h4>
-              <div className="text-green-700 text-sm">
-                {linesClearedNotification === 1 && "1 linha eliminada!"}
-                {linesClearedNotification === 2 && "2 linhas eliminadas! Duplo!"}
-                {linesClearedNotification === 3 && "3 linhas eliminadas! Triplo!"}
-                {linesClearedNotification === 4 && "4 linhas eliminadas! TETRIS!"}
+              <div className="grid grid-cols-1 gap-px text-xs">
+                {WordLibrary.getValidWordsForLevel(level).slice(0, 12).map(word => {
+                  const isFound = foundWordsList.includes(word);
+                  return (
+                    <div 
+                      key={word}
+                      className={`
+                        px-1 py-0.5 rounded text-center transition-colors text-xs
+                        ${isFound 
+                          ? 'bg-green-600 text-white line-through font-bold' 
+                          : 'bg-slate-700 text-gray-300'
+                        }
+                      `}
+                    >
+                      {word}
+                    </div>
+                  );
+                })}
               </div>
-            </Card>
-          )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="p-3 bg-slate-900 bg-opacity-70 flex-shrink-0">
           
-          {(isPaused || isGameOver) && (
-            <Card className="mt-4 p-4 text-center bg-white">
+          {/* Single Row Controls */}
+          <div className="grid grid-cols-6 gap-1 mb-2">
+            <button
+              onTouchStart={() => movePiece(-1, 0)}
+              onClick={() => movePiece(-1, 0)}
+              className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
+            >
+              ←
+            </button>
+            <button
+              onTouchStart={rotatePieceHandler}
+              onClick={rotatePieceHandler}
+              className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
+            >
+              ↻
+            </button>
+            <button
+              onTouchStart={() => movePiece(1, 0)}
+              onClick={() => movePiece(1, 0)}
+              className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
+            >
+              →
+            </button>
+            <button
+              onTouchStart={() => movePiece(0, 1)}
+              onClick={() => movePiece(0, 1)}
+              className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
+            >
+              ↓
+            </button>
+            <button
+              onTouchStart={dropPiece}
+              onClick={dropPiece}
+              className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded text-xs font-bold active:bg-blue-700"
+            >
+              ⬇
+            </button>
+            <button
+              onTouchStart={() => setIsPaused(prev => !prev)}
+              onClick={() => setIsPaused(prev => !prev)}
+              className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
+            >
+              {isPaused ? "▶" : "⏸"}
+            </button>
+          </div>
+          
+          {/* Controls hint */}
+          <div className="text-center text-xs text-slate-400">
+            Toque no ? para ver todos os controles
+          </div>
+        </div>
+
+        {/* Game Over / Pause Overlay */}
+        {(isPaused || isGameOver) && (
+          <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+            <div className="bg-slate-800 p-6 rounded-lg text-center text-white max-w-xs mx-4">
               {isGameOver ? (
                 <div>
-                  <h3 className="mb-3">Game Over!</h3>
-                  <p className="mb-2 text-sm">Score Final: {score.toLocaleString()}</p>
-                  <p className="mb-4 text-sm">Palavras encontradas: {foundWordsList.length}</p>
-                  <Button onClick={startNewGame} className="w-full">Novo Jogo</Button>
+                  <h2 className="text-xl font-bold mb-4 text-red-400">Game Over!</h2>
+                  <p className="mb-2">Score Final: {score.toLocaleString()}</p>
+                  <p className="mb-4">Palavras: {foundWordsList.length}</p>
+                  <Button 
+                    onClick={startNewGame}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Novo Jogo
+                  </Button>
                 </div>
               ) : (
                 <div>
-                  <h3 className="mb-2">Pausado</h3>
-                  <p className="text-sm">Toque em "Pausa" para continuar</p>
+                  <h2 className="text-xl font-bold mb-2 text-yellow-400">Pausado</h2>
+                  <p className="mb-4">Pressione P ou toque no botão para continuar</p>
                 </div>
               )}
-            </Card>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Level Up Modal */}
@@ -691,7 +682,7 @@ export function LetrisGame() {
               </p>
               
               <div className="flex flex-wrap gap-1 justify-center">
-                {getAvailableLettersForLevel(newLevel).slice(0, 10).map(letter => (
+                {WordLibrary.getAvailableLettersForLevel(newLevel).slice(0, 10).map(letter => (
                   <span 
                     key={letter} 
                     className="bg-blue-100 text-blue-800 px-2 py-1 rounded font-bold text-sm"
@@ -699,15 +690,15 @@ export function LetrisGame() {
                     {letter}
                   </span>
                 ))}
-                {getAvailableLettersForLevel(newLevel).length > 10 && (
-                  <span className="text-gray-500 text-sm">+{getAvailableLettersForLevel(newLevel).length - 10} mais</span>
+                {WordLibrary.getAvailableLettersForLevel(newLevel).length > 10 && (
+                  <span className="text-gray-500 text-sm">+{WordLibrary.getAvailableLettersForLevel(newLevel).length - 10} mais</span>
                 )}
               </div>
             </div>
             
             <div className="mb-6">
               <div className="text-sm text-gray-600 mb-2">
-                Palavras necessárias para o próximo nível: <span className="font-bold">{getRequiredWordsForLevel(newLevel)}</span>
+                Palavras necessárias para o próximo nível: <span className="font-bold">{WordLibrary.getRequiredWordsForLevel(newLevel)}</span>
               </div>
               <div className="text-sm text-gray-600">
                 Score atual: <span className="font-bold text-blue-600">{score.toLocaleString()}</span>
@@ -719,6 +710,52 @@ export function LetrisGame() {
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transform transition-all duration-200 hover:scale-105"
             >
               Continuar para o Nível {newLevel}! 🚀
+            </Button>
+          </Card>
+        </div>
+      )}
+      
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 max-w-md mx-4 text-center border-2 border-blue-200 shadow-2xl">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">❓</div>
+              <h2 className="text-3xl font-bold text-blue-800 mb-2">Como Jogar</h2>
+              <h3 className="text-xl font-semibold text-purple-700 mb-4">
+                LETRIS
+              </h3>
+            </div>
+            
+            <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-6 text-left">
+              <h4 className="font-semibold text-gray-800 mb-2">Objetivo:</h4>
+              <p className="text-sm text-gray-700 mb-3">
+                Forme palavras em português (horizontal e vertical) com as letras que caem. 
+                Palavras válidas são eliminadas automaticamente. Complete linhas para ganhar pontos bônus!
+              </p>
+              
+              <h4 className="font-semibold text-gray-800 mb-2">Controles:</h4>
+              <div className="text-sm text-gray-700 mb-3 grid grid-cols-2 gap-1">
+                <div><span className="font-bold">A/←</span> Esquerda</div>
+                <div><span className="font-bold">D/→</span> Direita</div>
+                <div><span className="font-bold">S/↓</span> Acelera</div>
+                <div><span className="font-bold">W/↑</span> Rotaciona</div>
+                <div><span className="font-bold">Espaço</span> Drop</div>
+                <div><span className="font-bold">P</span> Pause</div>
+              </div>
+              
+              <h4 className="font-semibold text-gray-800 mb-2">Progressão:</h4>
+              <p className="text-sm text-gray-700">
+                Encontre <span className="font-bold text-blue-600">{WordLibrary.getRequiredWordsForLevel(level)} palavras</span> 
+                {" "}para avançar ao próximo nível. Cada nível tem um pool de letras diferente.
+              </p>
+            </div>
+            
+            <Button 
+              onClick={() => setShowHelp(false)}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transform transition-all duration-200 hover:scale-105"
+            >
+              Continuar Jogando! 🎮
             </Button>
           </Card>
         </div>

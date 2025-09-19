@@ -1,65 +1,68 @@
-// Formas das peças do Tetris
-export const TETRIS_SHAPES = {
-  I: [
-    [true, true, true, true]
-  ],
-  O: [
-    [true, true],
-    [true, true]
-  ],
-  T: [
-    [false, true, false],
-    [true, true, true]
-  ],
-  S: [
-    [false, true, true],
-    [true, true, false]
-  ],
-  Z: [
-    [true, true, false],
-    [false, true, true]
-  ],
-  J: [
-    [true, false, false],
-    [true, true, true]
-  ],
-  L: [
-    [false, false, true],
-    [true, true, true]
-  ]
-};
-
-import { getAvailableLettersForLevel } from './WordDetector';
+import { WordLibrary } from './WordLibrary';
 
 export interface TetrisPiece {
   shape: boolean[][];
   letters: string[][];
   x: number;
   y: number;
-  type: keyof typeof TETRIS_SHAPES;
 }
 
-function getRandomLetterForLevel(level: number): string {
-  const availableLetters = getAvailableLettersForLevel(level);
-  return availableLetters[Math.floor(Math.random() * availableLetters.length)];
+// Formas das peças do Tetris
+const TETRIS_SHAPES = [
+  // I-piece (linha)
+  [
+    [true, true, true, true]
+  ],
+  // O-piece (quadrado)
+  [
+    [true, true],
+    [true, true]
+  ],
+  // T-piece
+  [
+    [false, true, false],
+    [true, true, true]
+  ],
+  // S-piece
+  [
+    [false, true, true],
+    [true, true, false]
+  ],
+  // Z-piece
+  [
+    [true, true, false],
+    [false, true, true]
+  ],
+  // J-piece
+  [
+    [true, false, false],
+    [true, true, true]
+  ],
+  // L-piece
+  [
+    [false, false, true],
+    [true, true, true]
+  ]
+];
+
+function getRandomLetter(level: number): string {
+  return WordLibrary.getRandomLetterForLevel(level);
 }
 
 export function createRandomPiece(level: number = 1): TetrisPiece {
-  const shapeKeys = Object.keys(TETRIS_SHAPES) as Array<keyof typeof TETRIS_SHAPES>;
-  const randomShapeKey = shapeKeys[Math.floor(Math.random() * shapeKeys.length)];
-  const shape = TETRIS_SHAPES[randomShapeKey];
+  const randomIndex = Math.floor(Math.random() * TETRIS_SHAPES.length);
+  const shape = TETRIS_SHAPES[randomIndex];
   
   // Create letters for each block in the shape
   const letters = shape.map(row => 
-    row.map(cell => cell ? getRandomLetterForLevel(level) : '')
+    row.map(cell => cell ? getRandomLetter(level) : '')
   );
   
   return {
     shape,
     letters,
-    x: Math.floor(10 / 2) - Math.floor(shape[0].length / 2), // Center horizontally
-    y: 0,
-    type: randomShapeKey
+    x: Math.floor((10 - shape[0].length) / 2), // Center horizontally on a 10-wide grid
+    y: 0
   };
 }
 

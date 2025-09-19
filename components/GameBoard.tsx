@@ -43,12 +43,12 @@ export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardPro
       <div
         key={`${rowIndex}-${colIndex}`}
         className={`
-          w-8 h-8 lg:w-8 lg:h-8 border border-gray-300 flex items-center justify-center text-sm font-bold
+          w-6 h-6 border border-gray-300 flex items-center justify-center text-xs font-bold
           ${isActive ? 'bg-blue-200 border-blue-400' : ''}
           ${isHighlighted ? 'bg-yellow-200 border-yellow-400' : ''}
           ${isLineToClear ? 'bg-yellow-300 border-yellow-500 animate-pulse' : ''}
           ${letter && !isActive && !isHighlighted && !isLineToClear ? 'bg-gray-100' : ''}
-          ${!letter && !isActive && !isLineToClear ? 'bg-white' : ''}
+          ${!letter && !isActive && !isLineToClear ? 'bg-slate-800 bg-opacity-50' : ''}
         `}
       >
         {letter && (
@@ -61,7 +61,7 @@ export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardPro
   };
 
   return (
-    <div className="inline-block border-2 border-gray-600 bg-gray-50 p-1 lg:p-2">
+    <div className="inline-block border-2 border-slate-600 bg-slate-900 bg-opacity-70 p-1 rounded">
       <div className="grid grid-cols-10 gap-0">
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))
