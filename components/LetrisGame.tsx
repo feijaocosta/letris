@@ -7,6 +7,7 @@ import { ScoreSystem } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import useDebouncedCallback from '../hooks/useDebouncedCallback';
 
 interface Cell {
   letter: string | null;
@@ -416,6 +417,45 @@ export function LetrisGame() {
     };
   }, []);
 
+  //Install app
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Previne que o mini-infobar padrão apareça
+      e.preventDefault();
+      // Armazena o evento para que possa ser acionado mais tarde
+      setDeferredPrompt(e);
+      // Mostra sua própria UI para convidar o usuário a instalar
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      // Esconde o botão de instalação
+      setShowInstallPrompt(false);
+      // Mostra o prompt de instalação nativo
+      deferredPrompt.prompt();
+      // Espera pela resposta do usuário ao prompt
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('Usuário aceitou o prompt de instalação do PWA');
+        } else {
+          console.log('Usuário recusou o prompt de instalação do PWA');
+        }
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center p-4">
       {/* Container Principal 9:16 */}
@@ -744,6 +784,37 @@ export function LetrisGame() {
           </Card>
         </div>
       )}
+      {showInstallPrompt && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#333',
+          color: 'white',
+          padding: '15px',
+          borderRadius: '8px',
+          zIndex: 1000,
+          textAlign: 'center'
+        }}>
+          <p>Instale o Letris para uma experiência de jogo completa!</p>
+          <button
+            onClick={handleInstallClick}
+            style={{
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginTop: '10px'
+            }}
+          >
+            Instalar Jogo
+          </button>
+        </div>
+      )}
     </div>
   );
+
 }

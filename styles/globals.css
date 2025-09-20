@@ -268,3 +268,8 @@
   --tw-scale-y: 1.05;
   transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0)) skewX(var(--tw-skew-x, 0)) skewY(var(--tw-skew-y, 0)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1));
 }
+
+/* Buttons */
+button, a, input[type="button"], input[type="submit"] {
+  touch-action: manipulation;
+}
