@@ -7,7 +7,6 @@ import { ScoreSystem } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import useDebouncedCallback from '../hooks/useDebouncedCallback';
 
 interface Cell {
   letter: string | null;
@@ -608,43 +607,37 @@ export function LetrisGame() {
           {/* Single Row Controls */}
           <div className="grid grid-cols-6 gap-1 mb-2">
             <button
-              onTouchStart={() => movePiece(-1, 0)}
-              onClick={() => movePiece(-1, 0)}
+              onPointerDown={() => movePiece(-1, 0)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ←
             </button>
             <button
-              onTouchStart={rotatePieceHandler}
-              onClick={rotatePieceHandler}
+              onPointerDown={rotatePieceHandler}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↻
             </button>
             <button
-              onTouchStart={() => movePiece(1, 0)}
-              onClick={() => movePiece(1, 0)}
+              onPointerDown={() => movePiece(1, 0)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               →
             </button>
             <button
-              onTouchStart={() => movePiece(0, 1)}
-              onClick={() => movePiece(0, 1)}
+              onPointerDown={() => movePiece(0, 1)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↓
             </button>
             <button
-              onTouchStart={dropPiece}
-              onClick={dropPiece}
+              onPointerDown={dropPiece}
               className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded text-xs font-bold active:bg-blue-700"
             >
               ⬇
             </button>
             <button
-              onTouchStart={() => setIsPaused(prev => !prev)}
-              onClick={() => setIsPaused(prev => !prev)}
+              onPointerDown={() => setIsPaused(prev => !prev)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               {isPaused ? "▶" : "⏸"}
@@ -813,7 +806,7 @@ export function LetrisGame() {
             Instalar Jogo
           </button>
         </div>
-      )}
+      )}  
     </div>
   );
 
