@@ -532,22 +532,6 @@ export function LetrisGame() {
             )}
 
             {/* Pool Info */}
-            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
-              <div className="text-center mb-1">POOL</div>
-              <div className="text-center text-xs mb-1">
-                {WordLibrary.getPoolNameForLevel(level)}
-              </div>
-              <div className="flex flex-wrap gap-px justify-center">
-                {WordLibrary.getAvailableLettersForLevel(level).slice(0, 6).map(letter => (
-                  <span 
-                    key={letter} 
-                    className="bg-blue-600 text-white text-xs px-1 rounded"
-                  >
-                    {letter}
-                  </span>
-                ))}
-              </div>
-            </div>
 
             {/* Words List */}
             <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">

@@ -50,22 +50,7 @@ export function WordList({ level, foundWords }: WordListProps) {
       </Card>
 
       {/* Pool de Letras */}
-      <Card className="p-3 lg:p-4">
-        <h3 className="mb-2 text-sm lg:text-base">Pool {poolInfo.pool} - {poolInfo.description}</h3>
-        <p className="text-xs lg:text-sm text-gray-600 mb-2">
-          {poolInfo.letters} letras disponíveis
-        </p>
-        <div className="flex flex-wrap gap-1">
-          {availableLetters.map(letter => (
-            <span 
-              key={letter} 
-              className="bg-blue-100 text-blue-800 px-1 lg:px-2 py-1 rounded text-xs lg:text-sm font-bold"
-            >
-              {letter}
-            </span>
-          ))}
-        </div>
-      </Card>
+
     </div>
   );
 }

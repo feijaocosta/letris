@@ -15,10 +15,10 @@ export class WordLibrary {
     {
       level: 1,
       name: "Básico",
-      letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L'],
+      letters: ['A', 'E', 'I', 'O', 'U', 'C', 'L', 'M', 'R', 'S', 'T'],
       words: [
-        'SOL', 'LUA', 'MAR', 'COR', 'LEI', 'REI', 'SAL', 'TAL', 
-        'SER', 'TER', 'LER', 'SEU', 'MEU', 'SUA', 'TUA'
+        'SOL', 'LUA', 'MAR', 'COR', 'LEI', 'REI', 'SAL',
+        'CAMA', 'AMAR', 'MEU', 'TUA'
       ],
       requiredWords: 5
     },
