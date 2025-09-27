@@ -2,13 +2,185 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Viewport otimizado para mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Meta tags PWA -->
+    <meta name="application-name" content="LETRIS" />
+    <meta name="description" content="Combine Tetris com formação de palavras em português. Um jogo inovador e viciante!" />
+    <meta name="keywords" content="letris, tetris, palavras, jogo, português, puzzle, educativo" />
+    <meta name="author" content="LETRIS Game" />
+    
+    <!-- Meta tags para móvel -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LETRIS" />
+    <meta name="msapplication-TileColor" content="#06b6d4" />
+    <meta name="theme-color" content="#06b6d4" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Favicons e ícones -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="mask-icon" href="/icons/icon-192x192.png" color="#06b6d4" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="LETRIS - Tetris com Palavras" />
+    <meta property="og:description" content="Combine Tetris com formação de palavras em português. Um jogo inovador e viciante!" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LETRIS" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LETRIS - Tetris com Palavras" />
+    <meta name="twitter:description" content="Combine Tetris com formação de palavras em português. Um jogo inovador e viciante!" />
+    <meta name="twitter:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Preconnects para performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
     <title>LETRIS - Tetris com Palavras</title>
-    <script type="module" crossorigin src="/letris/assets/index-CAAlxAcK.js"></script>
-    <link rel="stylesheet" crossorigin href="/letris/assets/index-CedCljYq.css">
-  <link rel="manifest" href="/letris/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/letris/registerSW.js"></script></head>
+    
+    <style>
+      /* Prevent zoom on double tap for iOS */
+      * { 
+        touch-action: manipulation; 
+      }
+      
+      /* Prevent rubber band scrolling */
+      html, body {
+        overflow: hidden;
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+      }
+      
+      #root {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+      
+      /* Loading screen */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(to bottom, #06b6d4, #3b82f6, #9333ea);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+      }
+      
+      .loading-logo {
+        font-size: 3rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-text {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DkBTtiDZ.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-VIAh7PwP.js">
+    <link rel="modulepreload" crossorigin href="/assets/ui-4RLaee7V.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-XfJyN11W.css">
+  </head>
   <body>
+    <!-- Loading screen -->
+    <div id="loading" class="loading-screen">
+      <div class="loading-logo">LETRIS</div>
+      <div class="loading-text">Carregando...</div>
+    </div>
+    
     <div id="root"></div>
+    
+    <!-- PWA Configuration Script -->
+    <script src="/pwa-config.js"></script>
+    
+    <!-- Icon Generator Script -->
+    <script src="/icons/icon-placeholder.js"></script>
+    <script>
+      // Set fallback icons using the generator
+      if (typeof generateIcon === 'function') {
+        const iconSizes = [192, 512];
+        iconSizes.forEach(size => {
+          const link = document.createElement('link');
+          link.rel = size === 192 ? 'apple-touch-icon' : 'icon';
+          link.type = 'image/png';
+          link.sizes = `${size}x${size}`;
+          link.href = generateIcon(size);
+          document.head.appendChild(link);
+        });
+      }
+    </script>
+    
+    
+    <!-- PWA install script -->
+    <script>
+      // Remove loading screen when app loads
+      window.addEventListener('load', () => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          setTimeout(() => {
+            loading.style.opacity = '0';
+            setTimeout(() => {
+              loading.remove();
+            }, 500);
+          }, 1000);
+        }
+      });
+      
+      // Prevent context menu on long press (mobile)
+      window.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+      
+      // Prevent default touch behaviors
+      document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      document.addEventListener('touchend', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', (e) => {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          e.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+    </script>
   </body>
 </html>
