@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/letris/', // 👈 IMPORTANTE para rodar no GitHub Pages
   plugins: [react()],
   resolve: {
     alias: {
