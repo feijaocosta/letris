@@ -2,7 +2,7 @@
   "name": "LETRIS - Jogo de Palavras",
   "short_name": "LETRIS",
   "description": "Combine Tetris com formação de palavras em português. Um jogo inovador e viciante!",
-  "start_url": "/letris/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#06b6d4",
