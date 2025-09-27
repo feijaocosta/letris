@@ -135,10 +135,16 @@
   * {
     box-sizing: border-box;
     border-color: var(--color-border);
+    touch-action: manipulation;
   }
   
   html {
     font-family: system-ui, sans-serif;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+    position: fixed;
+    width: 100vw;
   }
   
   body {
@@ -146,6 +152,66 @@
     color: var(--color-foreground);
     margin: 0;
     padding: 0;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+    position: fixed;
+    width: 100vw;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+  
+  #root {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* PWA specific styles */
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+  
+  /* iOS specific styles */
+  @supports (-webkit-appearance: none) {
+    html {
+      height: -webkit-fill-available;
+    }
+    
+    body {
+      height: -webkit-fill-available;
+    }
+    
+    #root {
+      height: -webkit-fill-available;
+    }
+  }
+  
+  /* Prevent text selection on game elements */
+  .game-area, .game-board, .game-controls {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  
+  /* Prevent zoom on form inputs */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Better touch targets */
+  button, .touchable {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
@@ -267,9 +333,4 @@
   --tw-scale-x: 1.05;
   --tw-scale-y: 1.05;
   transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0)) skewX(var(--tw-skew-x, 0)) skewY(var(--tw-skew-y, 0)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1));
-}
-
-/* Buttons */
-button, a, input[type="button"], input[type="submit"] {
-  touch-action: manipulation;
 }

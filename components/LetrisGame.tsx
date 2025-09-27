@@ -5,8 +5,11 @@ import { createRandomPiece, canPlacePiece, rotatePiece, TetrisPiece } from './Te
 import { findWords, removeWords, highlightWords, FoundWord } from './WordDetector';
 import { ScoreSystem } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
+import { PWAInstallPrompt } from './PWAInstallPrompt';
+import { PWAStatus } from './PWAStatus';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { usePWA } from '../hooks/usePWA';
 
 interface Cell {
   letter: string | null;
@@ -19,6 +22,9 @@ const GRID_HEIGHT = 20;
 const INITIAL_FALL_SPEED = 1000; // milliseconds
 
 export function LetrisGame() {
+  const { isOnline, isStandalone } = usePWA();
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  
   const [grid, setGrid] = useState<Cell[][]>(() => 
     Array(GRID_HEIGHT).fill(null).map(() => 
       Array(GRID_WIDTH).fill(null).map(() => ({ 
@@ -53,7 +59,19 @@ export function LetrisGame() {
   // Initialize game
   useEffect(() => {
     startNewGame();
-  }, []);
+    
+    // Show install prompt after game loads (if not standalone and not in development)
+    if (!isStandalone && 
+        process.env.NODE_ENV !== 'development' && 
+        !window.location.hostname.includes('figma')) {
+      const hasShownPrompt = localStorage.getItem('pwa-install-dismissed');
+      if (!hasShownPrompt) {
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 5000);
+      }
+    }
+  }, [isStandalone]);
 
   const startNewGame = () => {
     const newGrid = Array(GRID_HEIGHT).fill(null).map(() => 
@@ -416,49 +434,21 @@ export function LetrisGame() {
     };
   }, []);
 
-  //Install app
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Previne que o mini-infobar padrão apareça
-      e.preventDefault();
-      // Armazena o evento para que possa ser acionado mais tarde
-      setDeferredPrompt(e);
-      // Mostra sua própria UI para convidar o usuário a instalar
-      setShowInstallPrompt(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      // Esconde o botão de instalação
-      setShowInstallPrompt(false);
-      // Mostra o prompt de instalação nativo
-      deferredPrompt.prompt();
-      // Espera pela resposta do usuário ao prompt
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('Usuário aceitou o prompt de instalação do PWA');
-        } else {
-          console.log('Usuário recusou o prompt de instalação do PWA');
-        }
-        setDeferredPrompt(null);
-      });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center p-4">
-      {/* Container Principal 9:16 */}
-      <div className="w-full max-w-sm aspect-[9/16] bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+    <>
+      <div className="h-screen h-dvh bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center game-area">
+        {/* PWA Status */}
+        <PWAStatus />
+        
+        {/* Offline indicator */}
+        {!isOnline && (
+          <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-yellow-900 text-center py-1 text-sm font-bold z-40">
+            📶 Modo Offline - Progresso salvo localmente
+          </div>
+        )}
+        
+        {/* Container Principal 9:16 */}
+        <div className="w-full h-full max-w-sm max-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900 overflow-hidden shadow-2xl flex flex-col game-board" style={{ aspectRatio: '9/16' }}>
         
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-2 text-center relative">
@@ -571,6 +561,22 @@ export function LetrisGame() {
             )}
 
             {/* Pool Info */}
+            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
+              <div className="text-center mb-1">POOL</div>
+              <div className="text-center text-xs mb-1">
+                {WordLibrary.getPoolNameForLevel(level)}
+              </div>
+              <div className="flex flex-wrap gap-px justify-center">
+                {WordLibrary.getAvailableLettersForLevel(level).slice(0, 6).map(letter => (
+                  <span 
+                    key={letter} 
+                    className="bg-blue-600 text-white text-xs px-1 rounded"
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             {/* Words List */}
             <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">
@@ -607,37 +613,43 @@ export function LetrisGame() {
           {/* Single Row Controls */}
           <div className="grid grid-cols-6 gap-1 mb-2">
             <button
-              onPointerDown={() => movePiece(-1, 0)}
+              onTouchStart={() => movePiece(-1, 0)}
+              onClick={() => movePiece(-1, 0)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ←
             </button>
             <button
-              onPointerDown={rotatePieceHandler}
+              onTouchStart={rotatePieceHandler}
+              onClick={rotatePieceHandler}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↻
             </button>
             <button
-              onPointerDown={() => movePiece(1, 0)}
+              onTouchStart={() => movePiece(1, 0)}
+              onClick={() => movePiece(1, 0)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               →
             </button>
             <button
-              onPointerDown={() => movePiece(0, 1)}
+              onTouchStart={() => movePiece(0, 1)}
+              onClick={() => movePiece(0, 1)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↓
             </button>
             <button
-              onPointerDown={dropPiece}
+              onTouchStart={dropPiece}
+              onClick={dropPiece}
               className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded text-xs font-bold active:bg-blue-700"
             >
               ⬇
             </button>
             <button
-              onPointerDown={() => setIsPaused(prev => !prev)}
+              onTouchStart={() => setIsPaused(prev => !prev)}
+              onClick={() => setIsPaused(prev => !prev)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               {isPaused ? "▶" : "⏸"}
@@ -645,7 +657,7 @@ export function LetrisGame() {
           </div>
           
           {/* Controls hint */}
-          <div className="text-center text-xs text-slate-400">
+          <div className="text-center text-xs text-slate-400 game-controls">
             Toque no ? para ver todos os controles
           </div>
         </div>
@@ -675,7 +687,16 @@ export function LetrisGame() {
             </div>
           </div>
         )}
+        </div>
       </div>
+      
+      {/* PWA Install Prompt */}
+      {showInstallPrompt && (
+        <PWAInstallPrompt 
+          onInstall={() => setShowInstallPrompt(false)}
+          onDismiss={() => setShowInstallPrompt(false)}
+        />
+      )}
       
       {/* Level Up Modal */}
       {showLevelUp && (
@@ -777,37 +798,6 @@ export function LetrisGame() {
           </Card>
         </div>
       )}
-      {showInstallPrompt && (
-        <div style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: '#333',
-          color: 'white',
-          padding: '15px',
-          borderRadius: '8px',
-          zIndex: 1000,
-          textAlign: 'center'
-        }}>
-          <p>Instale o Letris para uma experiência de jogo completa!</p>
-          <button
-            onClick={handleInstallClick}
-            style={{
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              marginTop: '10px'
-            }}
-          >
-            Instalar Jogo
-          </button>
-        </div>
-      )}  
-    </div>
+    </>
   );
-
 }
