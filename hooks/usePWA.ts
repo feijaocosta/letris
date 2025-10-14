@@ -46,7 +46,7 @@ export function usePWA() {
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
+            scope: './',
             updateViaCache: 'none'
           });
           
