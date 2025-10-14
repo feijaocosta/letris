@@ -682,6 +682,12 @@ export function LetrisGame() {
                 <div>
                   <h2 className="text-xl font-bold mb-2 text-yellow-400">Pausado</h2>
                   <p className="mb-4">Pressione P ou toque no botão para continuar</p>
+                  <Button 
+                    onClick={() => setIsPaused(false)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Retomar Jogo
+                  </Button>
                 </div>
               )}
             </div>
