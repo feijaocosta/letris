@@ -43,7 +43,7 @@ export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardPro
       <div
         key={`${rowIndex}-${colIndex}`}
         className={`
-          w-6 h-6 border border-gray-300 flex items-center justify-center text-xs font-bold
+          w-auto h-auto max-w-full max-h-full border border-gray-300 flex items-center justify-center text-xs font-bold
           ${isActive ? 'bg-blue-200 border-blue-400' : ''}
           ${isHighlighted ? 'bg-yellow-200 border-yellow-400' : ''}
           ${isLineToClear ? 'bg-yellow-300 border-yellow-500 animate-pulse' : ''}
