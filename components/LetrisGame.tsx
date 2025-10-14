@@ -577,7 +577,7 @@ export function LetrisGame() {
                 ))}
               </div>
             </div>
- 
+
             {/* Words List */}
             <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">
               <div className="text-center mb-1">PALAVRAS</div>

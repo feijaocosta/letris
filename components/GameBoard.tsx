@@ -15,7 +15,7 @@ interface GameBoardProps {
     y: number;
   } | null;
   linesToClear?: number[];
-}
+} 
 
 export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardProps) {
   const renderCell = (cell: Cell, rowIndex: number, colIndex: number) => {
