@@ -17,8 +17,8 @@ export class WordLibrary {
       name: "Básico",
       letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L'],
       words: [
-        'SOL', 'LUA', 'MAR', 'COR', 'LEI', 'REI', 'SAL', 'TAL', 
-        'SER', 'TER', 'LER', 'SEU', 'MEU', 'SUA', 'TUA'
+        'SOL', 'LUA', 'RIO', 'SUL', 'LEI', 'REI', 'SAL', 'TAL', 
+        'SER', 'TER', 'LER', 'SEU', 'TIO', 'SUA', 'TUA'
       ],
       requiredWords: 5
     },

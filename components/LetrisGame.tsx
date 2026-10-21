@@ -569,7 +569,7 @@ export function LetrisGame() {
                 {WordLibrary.getPoolNameForLevel(level)}
               </div>
               <div className="flex flex-wrap gap-px justify-center">
-                {WordLibrary.getAvailableLettersForLevel(level).slice(0, 6).map(letter => (
+                {WordLibrary.getAvailableLettersForLevel(level).map(letter => (
                   <span 
                     key={letter} 
                     className="bg-blue-600 text-white text-xs px-1 rounded"
