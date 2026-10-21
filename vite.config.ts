@@ -1,11 +1,40 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Content-Security-Policy aplicada só no build de produção: em `vite dev`
+// o Vite injeta scripts inline (HMR/React Refresh) que ela bloquearia.
+// Obs.: frame-ancestors, X-Frame-Options, X-Content-Type-Options e
+// Permissions-Policy só funcionam como headers HTTP (não via <meta>),
+// e o GitHub Pages não permite headers customizados.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'", // React usa atributos style inline
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "worker-src 'self'",
+  "manifest-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
+const securityMetaTags = (): Plugin => ({
+  name: 'letris-security-meta',
+  apply: 'build',
+  transformIndexHtml: () => [
+    { tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP }, injectTo: 'head-prepend' },
+    { tag: 'meta', attrs: { name: 'referrer', content: 'strict-origin-when-cross-origin' }, injectTo: 'head-prepend' },
+  ],
+})
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    securityMetaTags(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script', // registro único, via script externo gerado pelo plugin
