@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: 'script', // registro único, via script externo gerado pelo plugin
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest}']
       },
@@ -20,6 +20,7 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/letris/',
+        scope: '/letris/',
         icons: [
           {
             src: 'pwa-192x192.png',

@@ -28,55 +28,10 @@ export function usePWA() {
 
     checkStandaloneMode();
 
-    // Service Worker registration with better error handling
-    const registerSW = async () => {
-      // Skip Service Worker registration in development environments like Figma
-      if (typeof window === 'undefined' || 
-          window.location.hostname.includes('figma') ||
-          window.location.hostname.includes('localhost') ||
-          process.env.NODE_ENV === 'development') {
-        console.log('SW registration skipped in development environment');
-        return null;
-      }
-      
-      // Only register SW in production HTTPS
-      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-        try {
-          // Wait a bit to avoid interfering with page load
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          const registration = await navigator.serviceWorker.register('sw.js', {
-            scope: './',
-            updateViaCache: 'none'
-          });
-          
-          console.log('SW registered successfully:', registration.scope);
-          
-          // Listen for updates
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('New version available');
-                }
-              });
-            }
-          });
-          
-          return registration;
-        } catch (error) {
-          console.log('SW registration failed (normal in development):', error.message);
-          return null;
-        }
-      } else {
-        console.log('SW not supported or not in secure context');
-        return null;
-      }
-    };
-
-    // Only attempt SW registration after a delay
-    setTimeout(registerSW, 3000);
+    // O registro do Service Worker é feito pelo vite-plugin-pwa
+    // (injectRegister: 'script' no vite.config.ts), que já respeita o
+    // base '/letris/'. Não registrar manualmente aqui: este hook é usado
+    // em mais de um componente e criaria registros duplicados.
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
