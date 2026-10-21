@@ -481,8 +481,10 @@ export function LetrisGame() {
         <div className="flex-1 flex p-3 gap-3 min-h-0">
           
           {/* Game Board */}
-          <div className="flex-1 flex flex-col items-center">
-            <GameBoard grid={grid} activePiece={currentPiece} linesToClear={linesToClear} />
+          <div className="flex-1 min-w-0 min-h-0 flex flex-col items-center">
+            <div className="flex-1 min-h-0 w-full">
+              <GameBoard grid={grid} activePiece={currentPiece} linesToClear={linesToClear} />
+            </div>
             
             {/* Game Status Messages */}
             {foundWords.length > 0 && (
