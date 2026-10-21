@@ -586,8 +586,8 @@ export function LetrisGame() {
               <div className="text-center mb-1 text-xs">
                 {foundWordsList.length}/{WordLibrary.getRequiredWordsForLevel(level)}
               </div>
-              <div className="grid grid-cols-1 gap-px text-xs">
-                {WordLibrary.getValidWordsForLevel(level).slice(0, 12).map(word => {
+              <div className="grid grid-cols-1 gap-px text-xs min-h-0 overflow-y-auto">
+                {WordLibrary.getValidWordsForLevel(level).map(word => {
                   const isFound = foundWordsList.includes(word);
                   return (
                     <div 
