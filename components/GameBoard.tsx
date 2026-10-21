@@ -43,12 +43,12 @@ export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardPro
       <div
         key={`${rowIndex}-${colIndex}`}
         className={`
-          w-auto h-auto max-w-full max-h-full border border-gray-300 flex items-center justify-center text-xs font-bold
+          min-w-0 min-h-0 border flex items-center justify-center font-bold leading-none
           ${isActive ? 'bg-blue-200 border-blue-400' : ''}
           ${isHighlighted ? 'bg-yellow-200 border-yellow-400' : ''}
           ${isLineToClear ? 'bg-yellow-300 border-yellow-500 animate-pulse' : ''}
-          ${letter && !isActive && !isHighlighted && !isLineToClear ? 'bg-gray-100' : ''}
-          ${!letter && !isActive && !isLineToClear ? 'bg-slate-800 bg-opacity-50' : ''}
+          ${letter && !isActive && !isHighlighted && !isLineToClear ? 'bg-gray-100 border-gray-300' : ''}
+          ${!letter && !isActive && !isLineToClear ? 'bg-slate-800/50 border-slate-700/60' : ''}
         `}
       >
         {letter && (
@@ -60,12 +60,33 @@ export function GameBoard({ grid, activePiece, linesToClear = [] }: GameBoardPro
     );
   };
 
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+
+  // O tabuleiro ocupa todo o espaço disponível mantendo a proporção
+  // colunas x linhas (10x20). Unidades cq* vêm do container abaixo.
   return (
-    <div className="inline-block border-2 border-slate-600 bg-slate-900 bg-opacity-70 p-1 rounded">
-      <div className="grid grid-cols-10 gap-0">
+    <div className="w-full h-full min-h-0 flex justify-center" style={{ containerType: 'size' }}>
+      <div
+        className="border-2 border-slate-600 bg-slate-900/70 p-1 rounded"
+        style={{
+          width: `min(100cqw, ${(cols / rows) * 100}cqh)`,
+          aspectRatio: `${cols} / ${rows}`,
+          containerType: 'inline-size',
+        }}
+      >
+      <div
+        className="grid gap-0 w-full h-full"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          fontSize: `${55 / cols}cqw`,
+        }}
+      >
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))
         )}
+      </div>
       </div>
     </div>
   );
