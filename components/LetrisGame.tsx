@@ -436,7 +436,7 @@ export function LetrisGame() {
 
   return (
     <>
-      <div className="h-screen h-dvh bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center game-area">
+      <div className="h-full w-full bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center game-area safe-area">
         {/* PWA Status */}
         <PWAStatus />
         
@@ -448,7 +448,7 @@ export function LetrisGame() {
         )}
         
         {/* Container Principal 9:16 */}
-        <div className="w-full h-full max-w-sm max-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900 overflow-hidden shadow-2xl flex flex-col game-board" style={{ aspectRatio: '9/16' }}>
+        <div className="w-full h-full max-w-sm bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900 overflow-hidden shadow-2xl flex flex-col game-board">
         
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-2 text-center relative">
@@ -471,7 +471,7 @@ export function LetrisGame() {
               setShowHelp(true);
               setIsPaused(true);
             }}
-            className="absolute right-2 top-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+            className="absolute right-2 top-2 bg-white/20 hover:bg-white/30 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
           >
             ?
           </button>
@@ -488,7 +488,7 @@ export function LetrisGame() {
             
             {/* Game Status Messages */}
             {foundWords.length > 0 && (
-              <div className="mt-2 p-2 bg-yellow-400 bg-opacity-90 rounded text-xs text-center">
+              <div className="mt-2 p-2 bg-yellow-400/90 rounded text-xs text-center">
                 <div className="flex flex-wrap gap-1 justify-center">
                   {foundWords.map((word, index) => (
                     <span key={index} className="bg-yellow-600 text-white px-1 py-0.5 rounded font-bold text-xs">
@@ -500,7 +500,7 @@ export function LetrisGame() {
             )}
             
             {linesClearedNotification > 0 && (
-              <div className="mt-2 p-2 bg-green-400 bg-opacity-90 rounded text-xs text-center text-green-900 font-bold">
+              <div className="mt-2 p-2 bg-green-400/90 rounded text-xs text-center text-green-900 font-bold">
                 {linesClearedNotification === 1 && "Linha!"}
                 {linesClearedNotification === 2 && "Duplo!"}
                 {linesClearedNotification === 3 && "Triplo!"}
@@ -513,7 +513,7 @@ export function LetrisGame() {
           <div className="w-20 flex flex-col gap-2">
             
             {/* Level Progress */}
-            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
+            <div className="bg-slate-800/70 rounded p-2 text-xs text-cyan-300">
               <div className="text-center mb-1">META</div>
               <div className="text-center mb-1">
                 <span className="text-white font-bold">{foundWordsList.length}</span>
@@ -534,7 +534,7 @@ export function LetrisGame() {
             
             {/* Next Piece */}
             {nextPiece && (
-              <div className="bg-slate-800 bg-opacity-70 rounded p-2">
+              <div className="bg-slate-800/70 rounded p-2">
                 <div className="text-xs text-cyan-300 text-center mb-1">NEXT</div>
                 <div className="flex justify-center">
                   <div className="grid gap-0 w-fit">
@@ -563,7 +563,7 @@ export function LetrisGame() {
             )}
 
             {/* Pool Info */}
-            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300">
+            <div className="bg-slate-800/70 rounded p-2 text-xs text-cyan-300">
               <div className="text-center mb-1">POOL</div>
               <div className="text-center text-xs mb-1">
                 {WordLibrary.getPoolNameForLevel(level)}
@@ -581,7 +581,7 @@ export function LetrisGame() {
             </div>
 
             {/* Words List */}
-            <div className="bg-slate-800 bg-opacity-70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">
+            <div className="bg-slate-800/70 rounded p-2 text-xs text-cyan-300 flex-1 overflow-hidden">
               <div className="text-center mb-1">PALAVRAS</div>
               <div className="text-center mb-1 text-xs">
                 {foundWordsList.length}/{WordLibrary.getRequiredWordsForLevel(level)}
@@ -610,7 +610,7 @@ export function LetrisGame() {
         </div>
 
         {/* Bottom Controls */}
-        <div className="p-3 bg-slate-900 bg-opacity-70 flex-shrink-0">
+        <div className="p-3 bg-slate-900/70 flex-shrink-0">
           
           {/* Single Row Controls */}
           <div className="grid grid-cols-6 gap-1 mb-2">
@@ -666,7 +666,7 @@ export function LetrisGame() {
 
         {/* Game Over / Pause Overlay */}
         {(isPaused || isGameOver) && (
-          <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
             <div className="bg-slate-800 p-6 rounded-lg text-center text-white max-w-xs mx-4">
               {isGameOver ? (
                 <div>
@@ -708,7 +708,7 @@ export function LetrisGame() {
       
       {/* Level Up Modal */}
       {showLevelUp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 max-w-md mx-4 text-center border-2 border-blue-200 shadow-2xl">
             <div className="mb-6">
               <div className="text-6xl mb-4">🎉</div>
@@ -718,7 +718,7 @@ export function LetrisGame() {
               </h3>
             </div>
             
-            <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-6">
+            <div className="bg-white/70 rounded-lg p-4 mb-6">
               <h4 className="font-semibold text-gray-800 mb-2">Novo Pool de Letras:</h4>
               <p className="text-sm text-gray-700 mb-3">
                 {newLevel <= 3 && "Pool 1: Letras Básicas (10 letras disponíveis)"}
@@ -763,7 +763,7 @@ export function LetrisGame() {
       
       {/* Help Modal */}
       {showHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 max-w-md mx-4 text-center border-2 border-blue-200 shadow-2xl">
             <div className="mb-6">
               <div className="text-6xl mb-4">❓</div>
@@ -773,7 +773,7 @@ export function LetrisGame() {
               </h3>
             </div>
             
-            <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-6 text-left">
+            <div className="bg-white/70 rounded-lg p-4 mb-6 text-left">
               <h4 className="font-semibold text-gray-800 mb-2">Objetivo:</h4>
               <p className="text-sm text-gray-700 mb-3">
                 Forme palavras em português (horizontal e vertical) com as letras que caem. 
