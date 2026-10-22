@@ -12,7 +12,7 @@ export function PWAStatus() {
   }
   
   return (
-    <div className="fixed top-2 left-2 z-30 flex gap-1">
+    <div className="fixed left-2 z-30 flex gap-1" style={{ top: 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
       {/* Online/Offline Status - only show when offline */}
       {!isOnline && (
         <div className="bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold">
