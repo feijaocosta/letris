@@ -569,7 +569,7 @@ export function LetrisGame() {
                 {WordLibrary.getPoolNameForLevel(level)}
               </div>
               <div className="flex flex-wrap gap-px justify-center">
-                {WordLibrary.getAvailableLettersForLevel(level).slice(0, 6).map(letter => (
+                {WordLibrary.getAvailableLettersForLevel(level).map(letter => (
                   <span 
                     key={letter} 
                     className="bg-blue-600 text-white text-xs px-1 rounded"
@@ -586,8 +586,8 @@ export function LetrisGame() {
               <div className="text-center mb-1 text-xs">
                 {foundWordsList.length}/{WordLibrary.getRequiredWordsForLevel(level)}
               </div>
-              <div className="grid grid-cols-1 gap-px text-xs">
-                {WordLibrary.getValidWordsForLevel(level).slice(0, 12).map(word => {
+              <div className="grid grid-cols-1 gap-px text-xs min-h-0 overflow-y-auto">
+                {WordLibrary.getValidWordsForLevel(level).map(word => {
                   const isFound = foundWordsList.includes(word);
                   return (
                     <div 

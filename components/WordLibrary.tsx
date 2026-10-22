@@ -17,8 +17,8 @@ export class WordLibrary {
       name: "Básico",
       letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L'],
       words: [
-        'SOL', 'LUA', 'MAR', 'COR', 'LEI', 'REI', 'SAL', 'TAL', 
-        'SER', 'TER', 'LER', 'SEU', 'MEU', 'SUA', 'TUA'
+        'LEI', 'LER', 'LUA', 'REI', 'RIO', 'SAL', 'SER', 'SEU',
+        'SOL', 'SUA', 'SUL', 'TAL', 'TER', 'TIO', 'TUA'
       ],
       requiredWords: 5
     },
@@ -27,8 +27,8 @@ export class WordLibrary {
       name: "Intermediário", 
       letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B'],
       words: [
-        'CASA', 'MESA', 'PATO', 'BOLA', 'REDE', 'SEDE', 'DADO', 'CAMA', 
-        'DAMA', 'CABO', 'SABE', 'PODE', 'TODO', 'LADO', 'MODO'
+        'BOLA', 'CABO', 'CAMA', 'CASA', 'DADO', 'DAMA', 'LADO', 'MESA',
+        'MODO', 'PATO', 'PODE', 'REDE', 'SABE', 'SEDE', 'TODO'
       ],
       requiredWords: 8
     },
@@ -37,8 +37,8 @@ export class WordLibrary {
       name: "Avançado",
       letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B', 'G', 'V', 'F', 'H', 'J'],
       words: [
-        'FOGO', 'GATO', 'VIDA', 'HORA', 'CAMPO', 'GRAVE', 'FUNDO', 'VERDE', 
-        'JOGOS', 'HAVER', 'FUGIR', 'PEDRA', 'BRAVO', 'CALOR', 'VALOR'
+        'BRAVO', 'CALOR', 'CAMPO', 'FOGO', 'FUGIR', 'FUNDO', 'GATO', 'GRAVE',
+        'HAVER', 'HORA', 'JOGOS', 'PEDRA', 'VALOR', 'VERDE', 'VIDA'
       ],
       requiredWords: 12
     },
@@ -47,8 +47,8 @@ export class WordLibrary {
       name: "Expert",
       letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B', 'G', 'V', 'F', 'H', 'J', 'Q', 'W', 'X', 'Y', 'Z'],
       words: [
-        'QUERO', 'ZEBRA', 'YOGA', 'WAFER', 'XEROX', 'ZUMBI', 'WYNNE', 'XISTO', 
-        'QUOTA', 'ZONAS', 'WALTZ', 'QUALM', 'JAZZY', 'NEXUS', 'FUZZY'
+        'AZUL', 'EXAME', 'FAXINA', 'JUIZ', 'PEIXE', 'QUEIJO', 'QUERO', 'QUOTA',
+        'XADREZ', 'XEROX', 'XISTO', 'YOGA', 'ZEBRA', 'ZONAS', 'ZUMBI'
       ],
       requiredWords: 15
     }
