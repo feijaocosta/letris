@@ -14,6 +14,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - `components/TetrisPieces.tsx` — formatos das peças e geração de letras
 - `components/WordLibrary.tsx` — pools de letras e listas de palavras por nível (fonte única)
 - `hooks/usePWA.ts` — só estados online/instalado (NÃO registra Service Worker)
+- `hooks/useAppUpdate.ts` + `components/UpdateBanner.tsx` — detecta versão nova e mostra botão "Atualizar"
 - `styles/globals.css` — tema Tailwind e regras de altura/safe-area
 - `components/ui/` — componentes shadcn gerados; evitar mexer
 
@@ -22,6 +23,9 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Nada de build ou dependências no Git:** `node_modules/`, `dist/`, `dev-dist/` estão no `.gitignore`.
 - **Base `/letris/`:** caminhos de assets e Service Worker sempre relativos ao base do Vite.
 - **Service Worker:** registrado só pelo vite-plugin-pwa (`injectRegister: 'script'`). Não criar `public/sw.js` nem `public/manifest.json` manuais.
+- **Versão/atualização:** o build gera `dist/version.json` (fora do precache) e embute `__APP_VERSION__`. O app compara os dois ao abrir, ao voltar do segundo plano e a cada 5 min; "Atualizar" remove o SW e os caches e recarrega.
+- **Botões de controle:** usam `onPointerDown` (e `onClick` só para teclado). Não voltar a usar `onTouchStart` + `onClick` juntos, porque duplica a ação.
+- **Palavras e linhas:** são procuradas no mesmo tabuleiro e removidas juntas (`resolveBoard`), e a próxima peça só nasce depois disso.
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).

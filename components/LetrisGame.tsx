@@ -7,6 +7,7 @@ import { ScoreSystem } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { PWAStatus } from './PWAStatus';
+import { UpdateBanner } from './UpdateBanner';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { usePWA } from '../hooks/usePWA';
@@ -20,6 +21,46 @@ interface Cell {
 const GRID_WIDTH = 10;
 const GRID_HEIGHT = 20;
 const INITIAL_FALL_SPEED = 1000; // milliseconds
+
+const createEmptyCell = (): Cell => ({ letter: null, isActive: false, isHighlighted: false });
+
+const createEmptyGrid = (): Cell[][] =>
+  Array(GRID_HEIGHT).fill(null).map(() => Array(GRID_WIDTH).fill(null).map(createEmptyCell));
+
+function findCompleteLines(grid: Cell[][]): number[] {
+  const lines: number[] = [];
+  for (let row = 0; row < GRID_HEIGHT; row++) {
+    if (grid[row].every(cell => cell.letter !== null)) lines.push(row);
+  }
+  return lines;
+}
+
+// Remove as linhas indicadas e desce o que está acima (como no Tetris)
+function removeLines(grid: Cell[][], lines: number[]): Cell[][] {
+  const toRemove = new Set(lines);
+  const kept = grid.filter((_, row) => !toRemove.has(row));
+  const emptyRows = Array(grid.length - kept.length).fill(null)
+    .map(() => Array(GRID_WIDTH).fill(null).map(createEmptyCell));
+  return [...emptyRows, ...kept];
+}
+
+// Gravidade por coluna: letras caem nos buracos deixados pelas palavras
+function applyGravity(grid: Cell[][]): Cell[][] {
+  const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+  for (let col = 0; col < GRID_WIDTH; col++) {
+    let writeIndex = GRID_HEIGHT - 1;
+    for (let row = GRID_HEIGHT - 1; row >= 0; row--) {
+      if (newGrid[row][col].letter !== null) {
+        if (writeIndex !== row) {
+          newGrid[writeIndex][col] = { ...newGrid[row][col] };
+          newGrid[row][col] = createEmptyCell();
+        }
+        writeIndex--;
+      }
+    }
+  }
+  return newGrid;
+}
 
 export function LetrisGame() {
   const { isOnline, isStandalone } = usePWA();
@@ -53,8 +94,31 @@ export function LetrisGame() {
   const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
   
   const gameLoopRef = useRef<NodeJS.Timeout>();
-  const wordHighlightRef = useRef<NodeJS.Timeout>();
-  const lineHighlightRef = useRef<NodeJS.Timeout>();
+  const resolveTimeoutRef = useRef<NodeJS.Timeout>();
+  const linesNotificationRef = useRef<NodeJS.Timeout>();
+
+  // Estado "real" do tabuleiro e do nível para uso dentro de timeouts,
+  // evitando closures com valores antigos.
+  const gridRef = useRef<Cell[][]>(grid);
+  const levelRef = useRef(level);
+  levelRef.current = level;
+  const isResolvingRef = useRef(false);
+  // Enquanto palavras/linhas estão sendo destacadas e removidas, a próxima
+  // peça não nasce (evita que ela seja apagada ou deslocada pela limpeza).
+  const [isResolving, setIsResolving] = useState(false);
+
+  const updateGrid = useCallback((newGrid: Cell[][]) => {
+    gridRef.current = newGrid;
+    setGrid(newGrid);
+  }, []);
+
+  const cancelResolution = () => {
+    if (resolveTimeoutRef.current) clearTimeout(resolveTimeoutRef.current);
+    isResolvingRef.current = false;
+    setIsResolving(false);
+    setFoundWords([]);
+    setLinesToClear([]);
+  };
 
   // Initialize game
   useEffect(() => {
@@ -74,15 +138,10 @@ export function LetrisGame() {
   }, [isStandalone]);
 
   const startNewGame = () => {
-    const newGrid = Array(GRID_HEIGHT).fill(null).map(() => 
-      Array(GRID_WIDTH).fill(null).map(() => ({ 
-        letter: null, 
-        isActive: false, 
-        isHighlighted: false 
-      }))
-    );
+    cancelResolution();
+    const newGrid = createEmptyGrid();
     
-    setGrid(newGrid);
+    updateGrid(newGrid);
     setCurrentPiece(createRandomPiece(1));
     setNextPiece(createRandomPiece(1));
     setScore(0);
@@ -91,172 +150,101 @@ export function LetrisGame() {
     setLinesCleared(0);
     setIsGameOver(false);
     setIsPaused(false);
-    setFoundWords([]);
     setFoundWordsList([]);
     setLinesClearedNotification(0);
-    setLinesToClear([]);
     setShowLevelUp(false);
     setNewLevel(1);
     setShowHelp(false);
     setGameStartTime(Date.now());
   };
 
-  const checkAndRemoveWords = useCallback((currentGrid: Cell[][]) => {
-    const words = findWords(currentGrid, level);
+  /**
+   * Procura palavras e linhas completas no MESMO tabuleiro, destaca tudo,
+   * registra as palavras e, após a animação, remove palavras e linhas juntas.
+   * Depois repete (cascata) até não sobrar nada a eliminar.
+   * Retorna true se iniciou uma rodada de eliminação.
+   */
+  const resolveBoard = useCallback((currentGrid: Cell[][]): boolean => {
+    if (isResolvingRef.current) return true;
+
+    const currentLevel = levelRef.current;
+    const words = findWords(currentGrid, currentLevel);
+    const lines = findCompleteLines(currentGrid);
+    if (words.length === 0 && lines.length === 0) return false;
+
+    isResolvingRef.current = true;
+    setIsResolving(true);
+
     if (words.length > 0) {
-      // Highlight words first
-      const highlightedGrid = highlightWords(currentGrid, words);
-      setGrid(highlightedGrid);
+      updateGrid(highlightWords(currentGrid, words));
       setFoundWords(words);
-      
-      // Add words to found list
-      const newFoundWords = words.map(w => w.word);
       setFoundWordsList(prev => {
         const updated = [...prev];
-        newFoundWords.forEach(word => {
-          if (!updated.includes(word)) {
-            updated.push(word);
-          }
+        words.forEach(({ word }) => {
+          if (!updated.includes(word)) updated.push(word);
         });
         return updated;
       });
-      
-      // Remove words after a short delay
-      wordHighlightRef.current = setTimeout(() => {
-        const clearedGrid = removeWords(currentGrid, words);
-        
-        // Usar o sistema de pontuação
-        const scoreCalc = ScoreSystem.calculateWordPoints(words.length, level);
-        setScore(prev => prev + scoreCalc.points);
+    }
+    if (lines.length > 0) {
+      setLinesToClear(lines);
+    }
+
+    resolveTimeoutRef.current = setTimeout(() => {
+      let newGrid = removeWords(gridRef.current, words);
+      if (lines.length > 0) newGrid = removeLines(newGrid, lines);
+      if (words.length > 0) newGrid = applyGravity(newGrid);
+
+      let points = 0;
+      if (words.length > 0) {
+        points += ScoreSystem.calculateWordPoints(words.length, currentLevel).points;
         setWordsFound(prev => prev + words.length);
-        setFoundWords([]);
-        
-        // Apply gravity after removing words
-        applyGravityAndCheckLines(clearedGrid);
-      }, 1000);
-    }
-  }, [level]);
-
-  const executeLineClear = useCallback((currentGrid: Cell[][], linesToRemove: number[]) => {
-    const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
-    
-    // Remove lines from bottom to top to maintain indices
-    linesToRemove.sort((a, b) => b - a).forEach(row => {
-      newGrid.splice(row, 1);
-      // Add new empty line at top
-      newGrid.unshift(
-        Array(GRID_WIDTH).fill(null).map(() => ({ 
-          letter: null, 
-          isActive: false, 
-          isHighlighted: false 
-        }))
-      );
-    });
-    
-    const linesCount = linesToRemove.length;
-    
-    // Usar o sistema de pontuação
-    const scoreCalc = ScoreSystem.calculateLinePoints(linesCount, level);
-    setScore(prev => prev + scoreCalc.points);
-    setLinesCleared(prev => prev + linesCount);
-    setLinesToClear([]);
-    
-    // Show notification
-    setLinesClearedNotification(linesCount);
-    setTimeout(() => setLinesClearedNotification(0), 2000);
-    
-    setGrid(newGrid);
-    
-    // Check for words after line clear
-    setTimeout(() => {
-      checkAndRemoveWords(newGrid);
-    }, 500);
-  }, [level, checkAndRemoveWords]);
-
-  const highlightCompleteLines = useCallback((currentGrid: Cell[][]) => {
-    const linesToHighlight: number[] = [];
-    
-    // Find all complete lines
-    for (let row = 0; row < GRID_HEIGHT; row++) {
-      const isComplete = currentGrid[row].every(cell => cell.letter !== null);
-      if (isComplete) {
-        linesToHighlight.push(row);
       }
-    }
-    
-    if (linesToHighlight.length > 0) {
-      setLinesToClear(linesToHighlight);
-      
-      // Clear lines after highlighting
-      lineHighlightRef.current = setTimeout(() => {
-        executeLineClear(currentGrid, linesToHighlight);
-      }, 1000);
-    }
-    
-    return linesToHighlight.length > 0;
-  }, [executeLineClear]);
+      if (lines.length > 0) {
+        points += ScoreSystem.calculateLinePoints(lines.length, currentLevel).points;
+        setLinesCleared(prev => prev + lines.length);
+        setLinesClearedNotification(lines.length);
+        if (linesNotificationRef.current) clearTimeout(linesNotificationRef.current);
+        linesNotificationRef.current = setTimeout(() => setLinesClearedNotification(0), 2000);
+      }
+      setScore(prev => prev + points);
+      setFoundWords([]);
+      setLinesToClear([]);
+      updateGrid(newGrid);
+
+      // Cascata: a remoção pode ter formado novas palavras ou linhas
+      isResolvingRef.current = false;
+      if (!resolveBoard(newGrid)) {
+        setIsResolving(false);
+      }
+    }, 1000);
+
+    return true;
+  }, [updateGrid]);
 
   const placePiece = useCallback((piece: TetrisPiece) => {
-    setGrid(prevGrid => {
-      const newGrid = prevGrid.map(row => row.map(cell => ({ ...cell })));
-      
-      for (let row = 0; row < piece.shape.length; row++) {
-        for (let col = 0; col < piece.shape[row].length; col++) {
-          if (piece.shape[row][col]) {
-            const gridRow = piece.y + row;
-            const gridCol = piece.x + col;
-            
-            if (gridRow >= 0 && gridRow < GRID_HEIGHT && gridCol >= 0 && gridCol < GRID_WIDTH) {
-              newGrid[gridRow][gridCol] = {
-                letter: piece.letters[row][col],
-                isActive: false,
-                isHighlighted: false
-              };
-            }
-          }
-        }
-      }
-      
-      // Process the grid immediately after placing piece
-      setTimeout(() => {
-        if (!highlightCompleteLines(newGrid)) {
-          // No lines to clear, check for words immediately
-          setTimeout(() => {
-            checkAndRemoveWords(newGrid);
-          }, 100);
-        }
-      }, 50);
-      
-      return newGrid;
-    });
-  }, [highlightCompleteLines, checkAndRemoveWords]);
-
-  const applyGravityAndCheckLines = useCallback((currentGrid: Cell[][]) => {
-    const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
+    const newGrid = gridRef.current.map(row => row.map(cell => ({ ...cell })));
     
-    // Apply gravity column by column
-    for (let col = 0; col < GRID_WIDTH; col++) {
-      let writeIndex = GRID_HEIGHT - 1;
-      
-      // Start from bottom and move up
-      for (let row = GRID_HEIGHT - 1; row >= 0; row--) {
-        if (newGrid[row][col].letter !== null) {
-          if (writeIndex !== row) {
-            newGrid[writeIndex][col] = { ...newGrid[row][col] };
-            newGrid[row][col] = { letter: null, isActive: false, isHighlighted: false };
+    for (let row = 0; row < piece.shape.length; row++) {
+      for (let col = 0; col < piece.shape[row].length; col++) {
+        if (piece.shape[row][col]) {
+          const gridRow = piece.y + row;
+          const gridCol = piece.x + col;
+          
+          if (gridRow >= 0 && gridRow < GRID_HEIGHT && gridCol >= 0 && gridCol < GRID_WIDTH) {
+            newGrid[gridRow][gridCol] = {
+              letter: piece.letters[row][col],
+              isActive: false,
+              isHighlighted: false
+            };
           }
-          writeIndex--;
         }
       }
     }
     
-    setGrid(newGrid);
-    
-    // Check for complete lines after applying gravity (with delay to avoid immediate re-execution)
-    setTimeout(() => {
-      highlightCompleteLines(newGrid);
-    }, 100);
-  }, [highlightCompleteLines]);
+    updateGrid(newGrid);
+    resolveBoard(newGrid);
+  }, [updateGrid, resolveBoard]);
 
   const spawnNewPiece = useCallback(() => {
     if (nextPiece) {
@@ -268,7 +256,7 @@ export function LetrisGame() {
         setIsGameOver(true);
       }
     }
-  }, [nextPiece, grid]);
+  }, [nextPiece, grid, level]);
 
   const movePiece = useCallback((deltaX: number, deltaY: number) => {
     if (!currentPiece || isPaused || isGameOver) return;
@@ -279,14 +267,11 @@ export function LetrisGame() {
     if (canPlacePiece(currentPiece, grid, newX, newY)) {
       setCurrentPiece(prev => prev ? { ...prev, x: newX, y: newY } : null);
     } else if (deltaY > 0) {
-      // Piece hit something below, place it
+      // Piece hit something below, place it (a próxima nasce pelo efeito abaixo)
       placePiece(currentPiece);
       setCurrentPiece(null);
-      setTimeout(() => {
-        spawnNewPiece();
-      }, 100);
     }
-  }, [currentPiece, grid, isPaused, isGameOver, placePiece, checkAndRemoveWords, spawnNewPiece]);
+  }, [currentPiece, grid, isPaused, isGameOver, placePiece]);
 
   const rotatePieceHandler = useCallback(() => {
     if (!currentPiece || isPaused || isGameOver) return;
@@ -308,10 +293,24 @@ export function LetrisGame() {
     const droppedPiece = { ...currentPiece, y: newY };
     placePiece(droppedPiece);
     setCurrentPiece(null);
-    setTimeout(() => {
-      spawnNewPiece();
-    }, 100);
-  }, [currentPiece, grid, isPaused, isGameOver, placePiece, checkAndRemoveWords, spawnNewPiece]);
+  }, [currentPiece, grid, isPaused, isGameOver, placePiece]);
+
+  const togglePause = useCallback(() => setIsPaused(prev => !prev), []);
+
+  // Props dos botões de controle na tela. Antes havia onTouchStart + onClick,
+  // e no celular o toque disparava os dois (ação duplicada). Agora a ação
+  // roda só no pointerdown (toque, mouse ou caneta, uma vez só); o onClick
+  // fica apenas para ativação por teclado (Enter/Espaço com o botão focado,
+  // quando event.detail === 0).
+  const controlButton = (action: () => void) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      action();
+    },
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (e.detail === 0) action();
+    },
+  });
 
   // Game loop
   useEffect(() => {
@@ -334,10 +333,10 @@ export function LetrisGame() {
 
   // Spawn first piece
   useEffect(() => {
-    if (!currentPiece && !isGameOver && nextPiece) {
+    if (!currentPiece && !isGameOver && nextPiece && !isResolving) {
       spawnNewPiece();
     }
-  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece]);
+  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving]);
 
   // Keyboard controls
   useEffect(() => {
@@ -396,17 +395,11 @@ export function LetrisGame() {
   
   // Function to continue to next level
   const continueToNextLevel = () => {
+    cancelResolution();
     setLevel(newLevel);
     
     // Clear the board and reset found words for the new level
-    const clearedGrid = Array(GRID_HEIGHT).fill(null).map(() => 
-      Array(GRID_WIDTH).fill(null).map(() => ({ 
-        letter: null, 
-        isActive: false, 
-        isHighlighted: false 
-      }))
-    );
-    setGrid(clearedGrid);
+    updateGrid(createEmptyGrid());
     setFoundWordsList([]);
     setWordsFound(0);
     
@@ -425,11 +418,11 @@ export function LetrisGame() {
   // Cleanup timeouts
   useEffect(() => {
     return () => {
-      if (wordHighlightRef.current) {
-        clearTimeout(wordHighlightRef.current);
+      if (resolveTimeoutRef.current) {
+        clearTimeout(resolveTimeoutRef.current);
       }
-      if (lineHighlightRef.current) {
-        clearTimeout(lineHighlightRef.current);
+      if (linesNotificationRef.current) {
+        clearTimeout(linesNotificationRef.current);
       }
     };
   }, []);
@@ -439,6 +432,7 @@ export function LetrisGame() {
       <div className="h-full w-full bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center game-area safe-area">
         {/* PWA Status */}
         <PWAStatus />
+        <UpdateBanner />
         
         {/* Offline indicator */}
         {!isOnline && (
@@ -613,45 +607,39 @@ export function LetrisGame() {
         <div className="p-3 bg-slate-900/70 flex-shrink-0">
           
           {/* Single Row Controls */}
-          <div className="grid grid-cols-6 gap-1 mb-2">
+          <div className="grid grid-cols-6 gap-1 mb-2 touch-manipulation select-none">
             <button
-              onTouchStart={() => movePiece(-1, 0)}
-              onClick={() => movePiece(-1, 0)}
+              {...controlButton(() => movePiece(-1, 0))}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ←
             </button>
             <button
-              onTouchStart={rotatePieceHandler}
-              onClick={rotatePieceHandler}
+              {...controlButton(rotatePieceHandler)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↻
             </button>
             <button
-              onTouchStart={() => movePiece(1, 0)}
-              onClick={() => movePiece(1, 0)}
+              {...controlButton(() => movePiece(1, 0))}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               →
             </button>
             <button
-              onTouchStart={() => movePiece(0, 1)}
-              onClick={() => movePiece(0, 1)}
+              {...controlButton(() => movePiece(0, 1))}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               ↓
             </button>
             <button
-              onTouchStart={dropPiece}
-              onClick={dropPiece}
+              {...controlButton(dropPiece)}
               className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded text-xs font-bold active:bg-blue-700"
             >
               ⬇
             </button>
             <button
-              onTouchStart={() => setIsPaused(prev => !prev)}
-              onClick={() => setIsPaused(prev => !prev)}
+              {...controlButton(togglePause)}
               className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-xs font-bold active:bg-slate-500"
             >
               {isPaused ? "▶" : "⏸"}
@@ -795,6 +783,8 @@ export function LetrisGame() {
                 Encontre <span className="font-bold text-blue-600">{WordLibrary.getRequiredWordsForLevel(level)} palavras</span> 
                 {" "}para avançar ao próximo nível. Cada nível tem um pool de letras diferente.
               </p>
+              
+              <p className="text-xs text-gray-500 mt-3 text-center">Versão {__APP_VERSION__}</p>
             </div>
             
             <Button 
