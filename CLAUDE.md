@@ -1,11 +1,11 @@
 # LETRIS — contexto para o Claude Code
 
-Jogo que mistura Tetris com formação de palavras em português. React 18 + TypeScript + Vite 5 + Tailwind 4 + vite-plugin-pwa. Publicado em https://feijaocosta.github.io/letris/
+Jogo que mistura Tetris com formação de palavras em português. React 18 + TypeScript + Vite 5 + Tailwind 4 + vite-plugin-pwa. Publicado em https://letris.kingdomapps.net (domínio próprio; https://feijaocosta.github.io/letris/ redireciona para ele)
 
 ## Regras de trabalho
 - **Sempre criar um branch novo** para qualquer mudança e abrir PR para a `main`. Nunca commitar direto na `main`.
 - Conversar em português do Brasil; commits e PRs também em português.
-- Antes de abrir PR: `npm ci` + `npm run build` e, se mexer em layout, testar o build servido em `/letris/` em tamanhos de celular (390×844, 390×660, 375×560).
+- Antes de abrir PR: `npm ci` + `npm run build` e, se mexer em layout, testar o build servido na raiz `/` em tamanhos de celular (390×844, 390×660, 375×560).
 
 ## Estrutura
 - `App.tsx` (raiz) e `src/main.tsx` (entrada)
@@ -21,10 +21,10 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 ## Decisões já tomadas (não desfazer)
 - **Deploy:** `.github/workflows/deploy.yml` faz build e publica `dist/` no branch `gh-pages` a cada push na `main`. `npm run deploy` manual não é mais necessário.
 - **Nada de build ou dependências no Git:** `node_modules/`, `dist/`, `dev-dist/` estão no `.gitignore`.
-- **Base `/letris/`:** caminhos de assets e Service Worker sempre relativos ao base do Vite.
+- **Domínio e base:** o site roda em `letris.kingdomapps.net` com base `/` (manifest `start_url`/`scope` também `/`). O workflow de deploy grava o CNAME (`cname:` no peaceiris). Caminhos de assets e Service Worker sempre relativos ao base do Vite.
 - **Service Worker:** registrado só pelo vite-plugin-pwa (`injectRegister: 'script'`). Não criar `public/sw.js` nem `public/manifest.json` manuais.
 - **Versão/atualização:** o build gera `dist/version.json` (fora do precache) e embute `__APP_VERSION__`. O app compara os dois ao abrir, ao voltar do segundo plano e a cada 5 min; "Atualizar" remove o SW e os caches e recarrega.
-- **Botões de controle:** usam `onPointerDown` (e `onClick` só para teclado). Não voltar a usar `onTouchStart` + `onClick` juntos, porque duplica a ação.
+- **Botões de controle:** agem SÓ no `onPointerDown`. Não adicionar `onClick` nem `onTouchStart`: no celular o click chega ao soltar o dedo e a peça anda duas vezes.
 - **Palavras e linhas:** são procuradas no mesmo tabuleiro e removidas juntas (`resolveBoard`), e a próxima peça só nasce depois disso.
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
@@ -37,6 +37,8 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #6: tabuleiro colapsado (células sem tamanho)
 - PR #7: layout cortado no iPhone + botão "?" invisível
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
+- PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
+- PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
 
 ## Pendências / ideias
 - Expert ainda tem YOGA, XEROX e QUOTA (aceitas no Brasil, mas YOGA usa Y e XEROX é marca) — decidir se troca.
