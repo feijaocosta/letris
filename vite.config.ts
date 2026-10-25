@@ -30,16 +30,41 @@ const securityMetaTags = (): Plugin => ({
   ],
 })
 
+// Versão do build: data/hora + commit (no GitHub Actions). Vai embutida no
+// bundle (__APP_VERSION__) e também em dist/version.json, que fica FORA do
+// precache do Service Worker. O app compara as duas para saber se há versão
+// nova publicada (ver hooks/useAppUpdate.ts).
+const APP_VERSION = [
+  new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
+  process.env.GITHUB_SHA?.slice(0, 7),
+].filter(Boolean).join('-')
+
+const versionFile = (): Plugin => ({
+  name: 'letris-version-file',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'version.json',
+      source: JSON.stringify({ version: APP_VERSION }),
+    })
+  },
+})
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     securityMetaTags(),
+    versionFile(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script', // registro único, via script externo gerado pelo plugin
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest}'],
+        // version.json precisa vir sempre da rede
+        globIgnores: ['**/version.json'],
+        navigateFallbackDenylist: [/version\.json/],
       },
       manifest: {
         name: 'Letris - O Jogo de Palavras',
@@ -76,6 +101,9 @@ export default defineConfig({
       base: '/letris/' // Definir o base para o PWA também
     })
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   resolve: {
     alias: {
       '@': '/src',
