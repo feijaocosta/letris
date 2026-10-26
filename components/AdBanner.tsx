@@ -7,8 +7,9 @@ import { fillBanner } from '../lib/ads';
 // (conta em revisão, sem anúncio, bloqueador, offline), mostra o anúncio
 // próprio (HOUSE_AD). Sem nenhum dos dois, o espaço reservado ou nada.
 //
-// O <ins> do AdSense fica sempre montado (invisível enquanto não preenche)
-// porque o AdSense não preenche blocos sem tamanho. Ele marca o resultado
+// O <ins> do AdSense fica sempre montado (invisível e sem receber toques
+// enquanto não preenche) porque o AdSense não preenche blocos sem tamanho;
+// o anúncio próprio fica por cima dele (z-10). Ele marca o resultado
 // em data-ad-status: "filled" ou "unfilled".
 
 type Status = 'pending' | 'filled' | 'unfilled';
@@ -59,7 +60,7 @@ export function AdBanner() {
             href={HOUSE_AD.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full h-full"
+            className="absolute inset-0 z-10 block"
           >
             <img
               src={`${import.meta.env.BASE_URL}${HOUSE_AD.image}`}
@@ -86,7 +87,12 @@ export function AdBanner() {
               height: 250,
               position: 'absolute',
               inset: 0,
+              zIndex: 0,
               visibility: status === 'filled' ? 'visible' : 'hidden',
+              // O AdSense põe "visibility: visible" no iframe dentro do <ins>,
+              // então só esconder não basta: sem isto o iframe vazio fica por
+              // cima e engole o toque no anúncio próprio.
+              pointerEvents: status === 'filled' ? 'auto' : 'none',
             }}
             data-ad-client={ADS.client}
             data-ad-slot={ADS.bannerSlot}

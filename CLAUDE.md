@@ -49,6 +49,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #15: anúncio próprio não clicava (iframe vazio do AdSense por cima)
 - PR #14: anúncio próprio (Vitrine/WhatsApp) quando o AdSense não preenche o banner
 - PR #13: ativa AdSense (client, bloco do banner, CSP e ads.txt)
 - PR #12: layout novo (entrada, jogo, pausa, ajuda, fim de nível/jogo), modos Botões/Gestos, recordes e estrutura de anúncios
