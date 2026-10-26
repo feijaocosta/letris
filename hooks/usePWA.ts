@@ -30,7 +30,7 @@ export function usePWA() {
 
     // O registro do Service Worker é feito pelo vite-plugin-pwa
     // (injectRegister: 'script' no vite.config.ts), que já respeita o
-    // base '/letris/'. Não registrar manualmente aqui: este hook é usado
+    // base do Vite. Não registrar manualmente aqui: este hook é usado
     // em mais de um componente e criaria registros duplicados.
 
     // Listen for install prompt

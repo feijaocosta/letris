@@ -297,18 +297,17 @@ export function LetrisGame() {
 
   const togglePause = useCallback(() => setIsPaused(prev => !prev), []);
 
-  // Props dos botões de controle na tela. Antes havia onTouchStart + onClick,
-  // e no celular o toque disparava os dois (ação duplicada). Agora a ação
-  // roda só no pointerdown (toque, mouse ou caneta, uma vez só); o onClick
-  // fica apenas para ativação por teclado (Enter/Espaço com o botão focado,
-  // quando event.detail === 0).
+  // Props dos botões de controle na tela. A ação roda SÓ no pointerdown
+  // (toque, mouse ou caneta). Não usar onClick nem onTouchStart junto: no
+  // celular o click chega ao soltar o dedo e a peça andava duas vezes.
+  // Os botões não recebem foco; no teclado valem os atalhos (setas, espaço, P).
   const controlButton = (action: () => void) => ({
+    type: 'button' as const,
+    tabIndex: -1,
     onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
+      if (!e.isPrimary || e.button !== 0) return;
       action();
-    },
-    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (e.detail === 0) action();
     },
   });
 

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "LETRIS - Jogo que combina Tetris com formação de palavras em português",
   "main": "index.js",
-  "homepage": "https://feijaocosta.github.io/letris",
+  "homepage": "https://letris.kingdomapps.net",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

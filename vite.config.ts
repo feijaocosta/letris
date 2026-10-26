@@ -73,8 +73,8 @@ export default defineConfig({
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
-        start_url: '/letris/',
-        scope: '/letris/',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -98,7 +98,7 @@ export default defineConfig({
       devOptions: {
         enabled: true // Habilitar para testar em desenvolvimento, desabilitar em produção se não for necessário
       },
-      base: '/letris/' // Definir o base para o PWA também
+      base: '/' // mesmo base do Vite
     })
   ],
   define: {
@@ -109,5 +109,7 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  base: '/letris/', // Seu nome de repositório para GitHub Pages
+  // Servido na raiz do domínio próprio letris.kingdomapps.net (o endereço
+  // antigo feijaocosta.github.io/letris/ é redirecionado pelo GitHub Pages).
+  base: '/',
 })
