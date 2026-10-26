@@ -24,8 +24,22 @@ export const ADS = {
   testMode: false,
   /** Intervalo mínimo sugerido entre anúncios de tela cheia */
   frequencyHint: '60s',
-  /** Mostra a moldura "Espaço do anúncio" enquanto não há bloco configurado */
+  /** Mostra a moldura "Espaço do anúncio" enquanto não há bloco configurado
+   *  (só quando também não há anúncio próprio) */
   showPlaceholder: true,
+  /** Quanto esperar o AdSense preencher o banner antes de mostrar o anúncio próprio */
+  bannerTimeoutMs: 4000,
+};
+
+/**
+ * Anúncio próprio ("da casa"): aparece no lugar do banner quando o AdSense
+ * não preenche o espaço (conta em revisão, sem anúncio disponível,
+ * bloqueador ou offline). Para desligar, use `null`.
+ */
+export const HOUSE_AD: { image: string; alt: string; href: string } | null = {
+  image: 'ads/vitrine-kingdomapps.png', // em public/, relativo ao base do Vite
+  alt: 'Vitrine Kingdom Apps: site pronto por assinatura para o seu negócio. Fale conosco no WhatsApp.',
+  href: 'https://wa.me/5511947904394?text=' + encodeURIComponent('Olá! Vi o anúncio da Vitrine no Letris e quero saber mais.'),
 };
 
 export const adsEnabled = ADS.client.trim() !== '';

@@ -34,7 +34,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Botões de controle:** agem SÓ no `onPointerDown`. Não adicionar `onClick` nem `onTouchStart`: no celular o click chega ao soltar o dedo e a peça anda duas vezes.
 - **Visual:** paleta do ícone (fundo `ink` #2a1f38, `panel`, `deep`, blocos azul/amarelo/vermelho/laranja/verde) definida no `@theme` do `globals.css`; as cores dos blocos ficam em `@theme static` porque são usadas via `var()`. Fonte Nunito local (`@fontsource-variable/nunito`), sem Google Fonts por causa da CSP. Ícones são SVG inline, sem emoji.
 - **Controles:** dois modos (Botões/Gestos), escolhidos na entrada ou na pausa e salvos no aparelho. Os gestos no tabuleiro funcionam nos dois modos; no modo Gestos os botões somem e o tabuleiro cresce. Arrastar para baixo acelera (não solta).
-- **Anúncios:** Ad Placement API (`adBreak` type `next`) ao avançar de nível e ao "Jogar de novo"; banner 300×250 nas telas de nível concluído e fim de jogo. Tudo desligado enquanto `ADS.client` em `config/ads.ts` estiver vazio. Com o client preenchido o build libera os domínios do Google na CSP e gera `/ads.txt`.
+- **Anúncios:** Ad Placement API (`adBreak` type `next`) ao avançar de nível e ao "Jogar de novo"; banner 300×250 nas telas de nível concluído e fim de jogo. Tudo desligado enquanto `ADS.client` em `config/ads.ts` estiver vazio. Se o AdSense não preencher o banner (`data-ad-status` ≠ `filled` em até `bannerTimeoutMs`), aparece o anúncio próprio `HOUSE_AD` (imagem em `public/ads/`, link para o WhatsApp da Vitrine Kingdom Apps). Com o client preenchido o build libera os domínios do Google na CSP e gera `/ads.txt`.
 - **Palavras e linhas:** são procuradas no mesmo tabuleiro e removidas juntas (`resolveBoard`), e a próxima peça só nasce depois disso.
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
@@ -49,6 +49,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #14: anúncio próprio (Vitrine/WhatsApp) quando o AdSense não preenche o banner
 - PR #13: ativa AdSense (client, bloco do banner, CSP e ads.txt)
 - PR #12: layout novo (entrada, jogo, pausa, ajuda, fim de nível/jogo), modos Botões/Gestos, recordes e estrutura de anúncios
 
