@@ -6,7 +6,7 @@
   "homepage": "https://letris.kingdomapps.net",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/check-words.mjs && vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist"
   },

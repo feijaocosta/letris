@@ -1,5 +1,3 @@
-import { WordLibrary } from './WordLibrary';
-
 interface Cell {
   letter: string | null;
   isActive: boolean;
@@ -13,85 +11,50 @@ interface ColoredCell extends Cell {
 export interface FoundWord {
   word: string;
   positions: { row: number; col: number }[];
-  direction: 'horizontal' | 'vertical'; // Removido 'diagonal'
+  direction: 'horizontal' | 'vertical';
 }
 
-// Remove todas as funções antigas e usa WordLibrary
-export const getRequiredWordsForLevel = WordLibrary.getRequiredWordsForLevel;
-export const getAvailableLettersForLevel = WordLibrary.getAvailableLettersForLevel;
-export const getValidWordsForLevel = WordLibrary.getValidWordsForLevel;
+const MIN_LENGTH = 3;
+const MAX_LENGTH = 8;
 
 /**
- * Encontra palavras válidas no grid (apenas horizontal e vertical)
+ * Encontra palavras válidas no grid (horizontal e vertical).
+ * Quando uma palavra está dentro de outra na mesma linha/coluna
+ * (SAL dentro de SALTO), vale só a maior.
  */
-export function findWords(grid: Array<Array<{ letter: string | null }>>, level: number): FoundWord[] {
-  const foundWords: FoundWord[] = [];
-  
-  // Busca horizontal (esquerda para direita)
-  for (let row = 0; row < grid.length; row++) {
-    for (let col = 0; col <= grid[row].length - 3; col++) { // Mínimo 3 letras
-      for (let len = 3; len <= Math.min(8, grid[row].length - col); len++) { // Máximo 8 letras
-        const positions: { row: number; col: number }[] = [];
+export function findWords(grid: Array<Array<{ letter: string | null }>>, valid: Set<string>): FoundWord[] {
+  const found: FoundWord[] = [];
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+
+  const scan = (direction: FoundWord['direction'], lines: number, length: number, at: (line: number, i: number) => { row: number; col: number }) => {
+    for (let line = 0; line < lines; line++) {
+      for (let start = 0; start <= length - MIN_LENGTH; start++) {
         let word = '';
-        let allFilled = true;
-        
-        for (let i = 0; i < len; i++) {
-          if (grid[row][col + i].letter) {
-            word += grid[row][col + i].letter;
-            positions.push({ row, col: col + i });
-          } else {
-            allFilled = false;
-            break;
+        const positions: { row: number; col: number }[] = [];
+        for (let i = start; i < Math.min(length, start + MAX_LENGTH); i++) {
+          const pos = at(line, i);
+          const letter = grid[pos.row][pos.col].letter;
+          if (!letter) break;
+          word += letter;
+          positions.push(pos);
+          if (word.length >= MIN_LENGTH && valid.has(word)) {
+            found.push({ word, positions: [...positions], direction });
           }
-        }
-        
-        if (allFilled && WordLibrary.isValidNormalizedWord(word, level)) {
-          foundWords.push({
-            word,
-            positions,
-            direction: 'horizontal'
-          });
         }
       }
     }
-  }
-  
-  // Busca vertical (cima para baixo)
-  for (let col = 0; col < grid[0].length; col++) {
-    for (let row = 0; row <= grid.length - 3; row++) { // Mínimo 3 letras
-      for (let len = 3; len <= Math.min(8, grid.length - row); len++) { // Máximo 8 letras
-        const positions: { row: number; col: number }[] = [];
-        let word = '';
-        let allFilled = true;
-        
-        for (let i = 0; i < len; i++) {
-          if (grid[row + i][col].letter) {
-            word += grid[row + i][col].letter;
-            positions.push({ row: row + i, col });
-          } else {
-            allFilled = false;
-            break;
-          }
-        }
-        
-        if (allFilled && WordLibrary.isValidNormalizedWord(word, level)) {
-          foundWords.push({
-            word,
-            positions,
-            direction: 'vertical'
-          });
-        }
-      }
-    }
-  }
-  
-  // Remove palavras duplicadas (mesmas posições)
-  return foundWords.filter((word, index, array) => 
-    index === array.findIndex(w => 
-      w.word === word.word && 
-      JSON.stringify(w.positions) === JSON.stringify(word.positions)
-    )
-  );
+  };
+
+  scan('horizontal', rows, cols, (row, i) => ({ row, col: i }));
+  scan('vertical', cols, rows, (col, i) => ({ row: i, col }));
+
+  const key = (p: { row: number; col: number }) => `${p.row}:${p.col}`;
+  return found.filter(word => !found.some(other => {
+    if (other === word || other.direction !== word.direction || other.positions.length <= word.positions.length) return false;
+    const otherCells = new Set(other.positions.map(key));
+    return word.positions.every(p => otherCells.has(key(p)));
+  }));
 }
 
 export function highlightWords<T extends Cell>(grid: T[][], words: FoundWord[]): T[][] {

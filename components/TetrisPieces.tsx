@@ -1,4 +1,3 @@
-import { WordLibrary } from './WordLibrary';
 import type { TileColor } from './LetrisUI';
 
 export interface TetrisPiece {
@@ -50,17 +49,14 @@ const TETRIS_SHAPES = [
   ]
 ];
 
-function getRandomLetter(level: number): string {
-  return WordLibrary.getRandomLetterForLevel(level);
-}
-
-export function createRandomPiece(level: number = 1): TetrisPiece {
+/** `nextLetter` vem do gerador do nível (WordLibrary.createLetterGenerator) */
+export function createRandomPiece(nextLetter: () => string): TetrisPiece {
   const randomIndex = Math.floor(Math.random() * TETRIS_SHAPES.length);
   const shape = TETRIS_SHAPES[randomIndex];
   
   // Create letters for each block in the shape
   const letters = shape.map(row => 
-    row.map(cell => cell ? getRandomLetter(level) : '')
+    row.map(cell => cell ? nextLetter() : '')
   );
   
   return {
