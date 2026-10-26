@@ -1,108 +1,86 @@
 // Sistema de Pontuação do LETRIS
-// Centraliza toda a lógica de pontos, níveis e progressão
+// Centraliza a lógica de pontos e velocidade; os números ficam em config/gameplay.ts
 
-export interface ScoreCalculation {
-  points: number;
-  reason: string;
+import { SCORING, SPEED } from '../config/gameplay';
+
+export interface ScoredWord {
+  word: string;
+  /** Já tinha sido formada neste nível */
+  repeated: boolean;
+  /** Palavra válida que não está na lista do nível (só pontos, não conta para a meta) */
+  bonus: boolean;
 }
 
+export interface ClearResult {
+  points: number;
+  /** Rótulos para o aviso na tela ("Combo ×1,5", "Cascata"...) */
+  labels: string[];
+}
+
+const fmt = (n: number) => n.toLocaleString('pt-BR');
+
 export class ScoreSystem {
-  // Pontos base por ações
-  static readonly WORD_BASE_POINTS = 100;
-  static readonly LINE_CLEAR_POINTS = [0, 40, 100, 300, 1200]; // Tetris tradicional
-  static readonly LEVEL_MULTIPLIER = 1;
+  static levelMultiplier(level: number): number {
+    return 1 + SCORING.levelMultiplierPerLevel * (level - 1);
+  }
 
-  // Sistema de níveis e velocidade
-  static readonly INITIAL_FALL_SPEED = 1000; // ms
-  static readonly SPEED_INCREASE_PER_LEVEL = 100; // ms menos por nível
-  static readonly MIN_FALL_SPEED = 100; // ms mínimo
-  static readonly TIME_ACCELERATION = 30000; // 30s para acelerar
-  static readonly TIME_SPEED_REDUCTION = 50; // ms reduzidos a cada intervalo
-
-  /**
-   * Calcula pontos por palavras encontradas
-   */
-  static calculateWordPoints(wordsCount: number, level: number): ScoreCalculation {
-    const basePoints = wordsCount * this.WORD_BASE_POINTS;
-    const points = basePoints * level;
-    
-    return {
-      points,
-      reason: `${wordsCount} palavra(s) × ${this.WORD_BASE_POINTS} × nível ${level}`
-    };
+  static wordValue(word: string): number {
+    const len = Math.min(word.length, 6);
+    return SCORING.wordByLength[len] ?? SCORING.wordByLength[6];
   }
 
   /**
-   * Calcula pontos por linhas eliminadas
+   * Pontos de uma rodada de limpeza (palavras e linhas eliminadas juntas).
    */
-  static calculateLinePoints(linesCount: number, level: number): ScoreCalculation {
-    const basePoints = this.LINE_CLEAR_POINTS[Math.min(linesCount, 4)] || 0;
-    const points = basePoints * level;
-    
-    const lineNames = ['', 'Linha!', 'Duplo!', 'Triplo!', 'TETRIS!'];
-    const reason = `${lineNames[linesCount]} - ${basePoints} × nível ${level}`;
-    
-    return {
-      points,
-      reason
-    };
+  static scoreClear(words: ScoredWord[], lines: number, level: number, cascade: boolean): ClearResult {
+    const labels: string[] = [];
+
+    let wordPoints = words.reduce(
+      (sum, w) => sum + ScoreSystem.wordValue(w.word) * (w.repeated ? SCORING.repeatedWordFactor : 1),
+      0,
+    );
+    if (words.length >= 2) {
+      const factor = SCORING.multiWordFactor[Math.min(words.length, 3) - 2];
+      wordPoints *= factor;
+      labels.push(`Combo ×${fmt(factor)}`);
+    }
+    if (words.some(w => w.bonus)) labels.push('Bônus!');
+    if (words.some(w => w.repeated)) labels.push('Repetida');
+
+    const linePoints = lines > 0 ? SCORING.lines[Math.min(lines, SCORING.lines.length - 1)] : 0;
+    if (lines > 0) labels.push(['', 'Linha!', 'Duplo!', 'Triplo!', 'TETRIS!'][Math.min(lines, 4)]);
+
+    let total = wordPoints + linePoints;
+    if (words.length > 0 && lines > 0) {
+      total *= 1 + SCORING.wordAndLineBonus;
+      labels.push('Palavra + linha');
+    }
+    if (cascade) {
+      total *= 1 + SCORING.cascadeBonus;
+      labels.push('Cascata');
+    }
+
+    return { points: Math.round(total * ScoreSystem.levelMultiplier(level)), labels };
+  }
+
+  static hardDropPoints(rows: number): number {
+    return rows * SCORING.hardDropPerRow;
+  }
+
+  static levelCompletePoints(level: number): number {
+    return SCORING.levelCompletePerLevel * level;
   }
 
   /**
-   * Calcula velocidade de queda baseada no nível e tempo
+   * Tempo (ms) para a peça descer uma linha. `levelPlayedMs` é o tempo
+   * jogado no nível atual (sem pausas); zera a cada nível.
    */
-  static calculateFallSpeed(level: number, gameTime: number): number {
-    // Redução por nível
-    const levelReduction = (level - 1) * this.SPEED_INCREASE_PER_LEVEL;
-    
-    // Redução por tempo (acelera a cada 30 segundos)
-    const timeIntervals = Math.floor(gameTime / this.TIME_ACCELERATION);
-    const timeReduction = timeIntervals * this.TIME_SPEED_REDUCTION;
-    
-    // Velocidade final
-    const finalSpeed = this.INITIAL_FALL_SPEED - levelReduction - timeReduction;
-    
-    // Não pode ser menor que o mínimo
-    return Math.max(finalSpeed, this.MIN_FALL_SPEED);
-  }
-
-  /**
-   * Retorna o número de palavras necessárias para avançar de nível
-   */
-  static getRequiredWordsForLevel(level: number): number {
-    if (level <= 3) return 5;   // Níveis 1-3: 5 palavras
-    if (level <= 6) return 8;   // Níveis 4-6: 8 palavras  
-    if (level <= 9) return 12;  // Níveis 7-9: 12 palavras
-    return 15;                  // Nível 10+: 15 palavras
-  }
-
-  /**
-   * Calcula bônus de pontos por velocidade
-   */
-  static calculateSpeedBonus(fallSpeed: number): number {
-    // Quanto mais rápido, maior o bônus
-    const speedRatio = this.INITIAL_FALL_SPEED / fallSpeed;
-    return Math.floor(speedRatio * 10); // 10 pontos por unidade de velocidade
-  }
-
-  /**
-   * Formata pontuação para display
-   */
-  static formatScore(score: number): string {
-    return score.toLocaleString('pt-BR');
-  }
-
-  /**
-   * Calcula estatísticas do jogo
-   */
-  static calculateGameStats(score: number, level: number, wordsFound: number, linesCleared: number) {
-    return {
-      score: this.formatScore(score),
-      level,
-      wordsFound,
-      linesCleared,
-      avgPointsPerWord: wordsFound > 0 ? Math.round(score / wordsFound) : 0,
-      avgPointsPerLine: linesCleared > 0 ? Math.round(score / linesCleared) : 0
-    };
+  static calculateFallSpeed(level: number, levelPlayedMs: number): number {
+    const levelReduction = (level - 1) * SPEED.perLevelMs;
+    const timeReduction = Math.min(
+      SPEED.maxTimeReductionMs,
+      Math.floor(levelPlayedMs / SPEED.timeStepMs) * SPEED.perStepMs,
+    );
+    return Math.max(SPEED.initialMs - levelReduction - timeReduction, SPEED.minMs);
   }
 }

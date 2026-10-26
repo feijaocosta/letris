@@ -91,6 +91,7 @@ interface LevelCompleteProps {
   words: number;
   points: number;
   lines: number;
+  levelBonus: number;
   nextLevel: number;
   nextPoolName: string;
   nextRequiredWords: number;
@@ -119,6 +120,11 @@ export function LevelComplete(p: LevelCompleteProps) {
         <StatCard label="PONTOS" value={p.points.toLocaleString('pt-BR')} />
         <StatCard label="LINHAS" value={p.lines} />
       </div>
+      {p.levelBonus > 0 && (
+        <span className="-mt-1.5 text-center text-[13px] font-bold text-soft">
+          inclui <span className="text-tile-yellow font-black">+{p.levelBonus.toLocaleString('pt-BR')}</span> de bônus por concluir o nível
+        </span>
+      )}
 
       <Panel className="p-3 flex flex-col gap-2">
         <span className="text-[13px] font-extrabold text-soft">
