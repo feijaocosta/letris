@@ -39,6 +39,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Palavras e linhas:** são procuradas no mesmo tabuleiro e removidas juntas (`resolveBoard`), e a próxima peça só nasce depois disso.
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
+- **Ícone:** o oficial é `public/pwa-512x512.png` (blocos coloridos formando LETRIS). `pwa-192x192.png`, `apple-touch-icon.png` (180), `favicon-32x32.png` e `favicon.ico` são gerados a partir dele; não usar outro desenho.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** listas em ordem alfabética, só em português, e toda palavra deve usar apenas letras do pool do nível. Cada nível precisa ter pelo menos `requiredWords` palavras (Expert exige 15 e tem 15).
 
@@ -50,6 +51,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #18: favicon e ícone do iOS com o ícone oficial; remove os placeholders
 - PR #16: pausa acelerava o jogo; girar sem parar segurava a peça no ar
 - PR #15: anúncio próprio não clicava (iframe vazio do AdSense por cima)
 - PR #14: anúncio próprio (Vitrine/WhatsApp) quando o AdSense não preenche o banner
@@ -60,4 +62,3 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - AdSense ativo (`ca-pub-2445285097738073`, bloco 300×250 `1660743556`). Anúncios entre rodadas dependem da aprovação do H5 Games Ads (pedida à parte); até lá o `adBreak` não mostra nada e o jogo segue.
 - `ads.txt` também precisa estar na raiz `kingdomapps.net` (repo `fcwwebsites/kingdomapps-hotsite-kingdomapps`).
 - Expert ainda tem YOGA, XEROX e QUOTA (aceitas no Brasil, mas YOGA usa Y e XEROX é marca) — decidir se troca.
-- Ícones referenciados em `public/icons/` são placeholders.
