@@ -11,7 +11,7 @@ import { ADS, adsEnabled } from './config/ads'
 // Com AdSense configurado (config/ads.ts), libera os domínios do Google:
 // script do adsbygoogle, iframes dos anúncios e imagens/requests deles.
 const AD_HOSTS = adsEnabled
-  ? ' https://*.googlesyndication.com https://*.googleadservices.com https://*.doubleclick.net https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google'
+  ? ' https://*.googlesyndication.com https://*.googleadservices.com https://*.googletagservices.com https://*.doubleclick.net https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google'
   : ''
 
 const CSP = [
