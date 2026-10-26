@@ -6,6 +6,10 @@ interface Cell {
   isHighlighted: boolean;
 }
 
+interface ColoredCell extends Cell {
+  color?: unknown;
+}
+
 export interface FoundWord {
   word: string;
   positions: { row: number; col: number }[];
@@ -20,9 +24,8 @@ export const getValidWordsForLevel = WordLibrary.getValidWordsForLevel;
 /**
  * Encontra palavras válidas no grid (apenas horizontal e vertical)
  */
-export function findWords(grid: Cell[][], level: number): FoundWord[] {
+export function findWords(grid: Array<Array<{ letter: string | null }>>, level: number): FoundWord[] {
   const foundWords: FoundWord[] = [];
-  const validWords = WordLibrary.getValidWordsForLevel(level);
   
   // Busca horizontal (esquerda para direita)
   for (let row = 0; row < grid.length; row++) {
@@ -91,7 +94,7 @@ export function findWords(grid: Cell[][], level: number): FoundWord[] {
   );
 }
 
-export function highlightWords(grid: Cell[][], words: FoundWord[]): Cell[][] {
+export function highlightWords<T extends Cell>(grid: T[][], words: FoundWord[]): T[][] {
   const newGrid = grid.map(row => 
     row.map(cell => ({ ...cell, isHighlighted: false }))
   );
@@ -108,7 +111,7 @@ export function highlightWords(grid: Cell[][], words: FoundWord[]): Cell[][] {
   return newGrid;
 }
 
-export function removeWords(grid: Cell[][], words: FoundWord[]): Cell[][] {
+export function removeWords<T extends ColoredCell>(grid: T[][], words: FoundWord[]): T[][] {
   const newGrid = grid.map(row => 
     row.map(cell => ({ ...cell }))
   );
@@ -118,6 +121,7 @@ export function removeWords(grid: Cell[][], words: FoundWord[]): Cell[][] {
       if (pos.row >= 0 && pos.row < newGrid.length && 
           pos.col >= 0 && pos.col < newGrid[0].length) {
         newGrid[pos.row][pos.col].letter = null;
+        if ('color' in newGrid[pos.row][pos.col]) newGrid[pos.row][pos.col].color = null;
         newGrid[pos.row][pos.col].isActive = false;
         newGrid[pos.row][pos.col].isHighlighted = false;
       }

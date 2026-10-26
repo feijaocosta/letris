@@ -1,19 +1,27 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { ADS, adsEnabled } from './config/ads'
 
 // Content-Security-Policy aplicada só no build de produção: em `vite dev`
 // o Vite injeta scripts inline (HMR/React Refresh) que ela bloquearia.
 // Obs.: frame-ancestors, X-Frame-Options, X-Content-Type-Options e
 // Permissions-Policy só funcionam como headers HTTP (não via <meta>),
 // e o GitHub Pages não permite headers customizados.
+// Com AdSense configurado (config/ads.ts), libera os domínios do Google:
+// script do adsbygoogle, iframes dos anúncios e imagens/requests deles.
+const AD_HOSTS = adsEnabled
+  ? ' https://*.googlesyndication.com https://*.googleadservices.com https://*.doubleclick.net https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google'
+  : ''
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src 'self'${AD_HOSTS}`,
   "style-src 'self' 'unsafe-inline'", // React usa atributos style inline
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob:${adsEnabled ? ' https:' : ''}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${AD_HOSTS}`,
+  `frame-src${adsEnabled ? AD_HOSTS : " 'none'"}`,
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",
@@ -51,27 +59,42 @@ const versionFile = (): Plugin => ({
   },
 })
 
+// ads.txt na raiz do domínio, exigido pelo AdSense (só com client configurado)
+const adsTxt = (): Plugin => ({
+  name: 'letris-ads-txt',
+  apply: 'build',
+  generateBundle() {
+    if (!adsEnabled) return
+    this.emitFile({
+      type: 'asset',
+      fileName: 'ads.txt',
+      source: `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`,
+    })
+  },
+})
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     securityMetaTags(),
     versionFile(),
+    adsTxt(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script', // registro único, via script externo gerado pelo plugin
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest,woff2}'],
         // version.json precisa vir sempre da rede
-        globIgnores: ['**/version.json'],
-        navigateFallbackDenylist: [/version\.json/],
+        globIgnores: ['**/version.json', '**/ads.txt'],
+        navigateFallbackDenylist: [/version\.json/, /ads\.txt/],
       },
       manifest: {
         name: 'Letris - O Jogo de Palavras',
         short_name: 'Letris',
         description: 'Um jogo divertido que combina Tetris com formação de palavras em português.',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#2a1f38',
+        background_color: '#2a1f38',
         display: 'standalone',
         start_url: '/',
         scope: '/',

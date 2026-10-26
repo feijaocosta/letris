@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Cores dos blocos: "static" porque também são usadas via var() em
+   style (tileVars) e o Tailwind descartaria as que nenhuma classe usa. */
+@theme static {
+  --color-tile-blue: #1d6fc2;
+  --color-tile-yellow: #f5b301;
+  --color-tile-red: #e5483f;
+  --color-tile-orange: #f0802a;
+  --color-tile-green: #12946a;
+}
+
 @theme {
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
@@ -88,6 +98,17 @@
   --color-slate-800: #1e293b;
   --color-slate-900: #0f172a;
   
+  /* Paleta do LETRIS (mesmas cores do ícone) */
+  --color-ink: #2a1f38;      /* fundo */
+  --color-panel: #3d2f52;    /* cartões e botões */
+  --color-deep: #1c1426;     /* tabuleiro, trilhos */
+  --color-line: #4a3a61;     /* bordas */
+  --color-soft: #cdbfe0;     /* rótulos */
+  --color-faint: #a898bd;    /* texto de apoio */
+  --color-chip: #e6dcf2;     /* texto de chips */
+
+  --font-sans: 'Nunito Variable', system-ui, sans-serif;
+
   --color-background: var(--color-white);
   --color-foreground: var(--color-gray-900);
   --color-card: var(--color-white);
@@ -149,13 +170,13 @@
   }
 
   html {
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-sans);
     height: 100%;
   }
 
   body {
-    background-color: #0f172a;
-    color: var(--color-foreground);
+    background-color: var(--color-ink);
+    color: var(--color-white);
     position: fixed;
     inset: 0;
   }
@@ -192,6 +213,42 @@
     min-height: 44px;
     min-width: 44px;
   }
+}
+
+/* Bloco de letra (peças, logo, chips de letra). Cor via --tile-bg/--tile-fg;
+   tamanho da letra vem do font-size herdado. */
+.tile {
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+  border-radius: 22%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: inset 0 -0.14em 0 rgba(0, 0, 0, 0.22);
+}
+
+/* Palavra encontrada: brilho amarelo */
+.tile-glow {
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 -0.14em 0 rgba(0, 0, 0, 0.22), 0 0 0 2px #fff, 0 0 12px 3px rgba(255, 212, 90, 0.85);
+}
+
+/* Linha completa: contorno branco piscando */
+.tile-flash {
+  box-shadow: inset 0 -0.14em 0 rgba(0, 0, 0, 0.22), 0 0 0 2px #fff;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+/* Botões "físicos" com sombra inferior */
+.btn-3d {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-3d:active {
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  transform: translateY(2px);
 }
 
 /* Animations */

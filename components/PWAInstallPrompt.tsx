@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
+import { useState, useEffect } from 'react';
+import { Logo } from './LetrisUI';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -127,73 +126,43 @@ export function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPromptProps
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 max-w-sm mx-4 text-center border-2 border-cyan-200 shadow-2xl">
-        <div className="mb-6">
-          <div className="text-6xl mb-4">📱</div>
-          <h2 className="text-2xl font-bold text-cyan-800 mb-2">Instalar LETRIS</h2>
-          <h3 className="text-lg font-semibold text-blue-700 mb-4">
-            Jogue offline a qualquer hora!
-          </h3>
-        </div>
-        
-        <div className="bg-white/70 rounded-lg p-4 mb-6 text-left">
-          <h4 className="font-semibold text-gray-800 mb-2">Vantagens de instalar:</h4>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• 🚀 Acesso mais rápido</li>
-            <li>• 📱 Ícone na tela inicial</li>
-            <li>• 🌐 Funciona offline</li>
-            <li>• 📱 Experiência app nativo</li>
-            <li>• 💾 Salva progresso local</li>
-          </ul>
+    <div className="fixed inset-0 bg-[#17111f]/90 flex items-center justify-center z-50 p-4 text-white">
+      <div className="bg-ink border border-line rounded-3xl p-6 w-full max-w-sm flex flex-col gap-4">
+        <div className="flex justify-center"><Logo size={30} gap={4} /></div>
+        <div className="text-center">
+          <h2 className="m-0 text-2xl font-black">Instale o LETRIS</h2>
+          <p className="m-0 mt-1 text-[15px] font-bold text-soft">Abra direto da tela inicial e jogue mesmo sem internet.</p>
         </div>
 
         {isIOS && !isStandalone ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-800 mb-2">
-              <strong>Para instalar no iOS:</strong>
-            </p>
-            <ol className="text-xs text-blue-700 text-left space-y-1">
-              <li>1. Toque no botão compartilhar (📤)</li>
-              <li>2. Role para baixo</li>
-              <li>3. Toque em "Adicionar à Tela de Início"</li>
-              <li>4. Toque em "Adicionar"</li>
+          <div className="bg-panel rounded-2xl p-4 text-sm font-semibold text-chip">
+            <p className="m-0 mb-2 font-black text-white">No iPhone ou iPad:</p>
+            <ol className="m-0 pl-5 flex flex-col gap-1">
+              <li>Toque no botão Compartilhar do Safari</li>
+              <li>Escolha "Adicionar à Tela de Início"</li>
+              <li>Toque em "Adicionar"</li>
             </ol>
           </div>
         ) : null}
-        
-        <div className="flex gap-3">
+
+        <div className="flex gap-2.5">
           {deferredPrompt && !isIOS ? (
-            <Button 
-              onClick={handleInstallClick}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transform transition-all duration-200 hover:scale-105"
-            >
-              Instalar Agora! 📱
-            </Button>
+            <button type="button" onClick={handleInstallClick}
+              className="btn-3d flex-1 h-12 rounded-2xl bg-tile-green text-white font-black">
+              Instalar
+            </button>
           ) : (
-            <Button 
-              onClick={handleDismiss}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg"
-            >
-              Entendi! 👍
-            </Button>
+            <button type="button" onClick={handleDismiss}
+              className="btn-3d flex-1 h-12 rounded-2xl bg-tile-green text-white font-black">
+              Entendi
+            </button>
           )}
-          
-          <Button 
-            onClick={handleDismiss}
-            variant="outline"
-            className="flex-1 border-gray-300 text-gray-600 hover:bg-gray-50"
-          >
+          <button type="button" onClick={handleDismiss}
+            className="flex-1 h-12 rounded-2xl bg-panel text-white font-extrabold">
             Agora não
-          </Button>
+          </button>
         </div>
-        
-        <p className="text-xs text-gray-500 mt-3">
-          Você pode instalar mais tarde através do menu do navegador
-        </p>
-      </Card>
+      </div>
     </div>
   );
 }
-
-export default PWAInstallPrompt;
