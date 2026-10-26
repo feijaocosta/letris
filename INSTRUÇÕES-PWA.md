@@ -25,18 +25,8 @@
 
 ## 🔧 Próximos Passos:
 
-### 1. Gerar Ícones PWA
-Acesse `/generate-icons.html` no navegador e baixe todos os ícones, depois coloque na pasta `/public/icons/`:
-- `icon-16x16.png`
-- `icon-32x32.png`
-- `icon-72x72.png`
-- `icon-96x96.png`
-- `icon-128x128.png`
-- `icon-144x144.png`
-- `icon-152x152.png`
-- `icon-192x192.png`
-- `icon-384x384.png`
-- `icon-512x512.png`
+### 1. Ícones PWA
+Já prontos: o ícone oficial é `public/pwa-512x512.png`; os demais (`pwa-192x192.png`, `apple-touch-icon.png`, `favicon-32x32.png`, `favicon.ico`) são gerados a partir dele.
 
 ### 2. Testar PWA Localmente
 ```bash
