@@ -49,9 +49,11 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #13: ativa AdSense (client, bloco do banner, CSP e ads.txt)
 - PR #12: layout novo (entrada, jogo, pausa, ajuda, fim de nível/jogo), modos Botões/Gestos, recordes e estrutura de anúncios
 
 ## Pendências / ideias
-- Preencher `config/ads.ts` (client e bannerSlot) quando o AdSense aprovar; depois desligar `testMode`.
+- AdSense ativo (`ca-pub-2445285097738073`, bloco 300×250 `1660743556`). Anúncios entre rodadas dependem da aprovação do H5 Games Ads (pedida à parte); até lá o `adBreak` não mostra nada e o jogo segue.
+- `ads.txt` também precisa estar na raiz `kingdomapps.net` (repo `fcwwebsites/kingdomapps-hotsite-kingdomapps`).
 - Expert ainda tem YOGA, XEROX e QUOTA (aceitas no Brasil, mas YOGA usa Y e XEROX é marca) — decidir se troca.
 - Ícones referenciados em `public/icons/` são placeholders.
