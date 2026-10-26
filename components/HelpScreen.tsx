@@ -30,7 +30,7 @@ export function HelpScreen({ onClose }: { onClose: () => void }) {
             title="Forme palavras"
             visual={<div className="flex gap-[3px]">{['S', 'O', 'L'].map(l => <Tile key={l} letter={l} color="orange" size={30} className="tile-glow" />)}</div>}
           >
-            Na horizontal ou na vertical, usando as palavras da lista. Elas brilham, somem e valem pontos.
+            Na horizontal ou na vertical, usando as palavras da lista. Palavras maiores valem mais, e outras palavras válidas dão pontos de bônus.
           </HelpCard>
 
           <HelpCard

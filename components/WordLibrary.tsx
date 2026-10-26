@@ -1,165 +1,116 @@
 // Biblioteca de Palavras do LETRIS
-// Centraliza toda a lógica de palavras, pools de letras e validação
+// Banco de palavras, progressão de níveis e geração de letras.
+// Os dados ficam em data/words.json (validado por scripts/check-words.mjs).
 
-export interface WordPool {
-  level: number;
+import data from '../data/words.json';
+import { SCORING } from '../config/gameplay';
+
+interface LevelData {
+  name: string;
+  addLetters: string;
+  mix: Record<string, number>;
+  goal: number;
+}
+
+export interface LevelConfig {
   name: string;
   letters: string[];
-  words: string[];
-  requiredWords: number;
+  /** Quantas palavras de cada tamanho entram na lista sorteada */
+  mix: Record<number, number>;
+  goal: number;
+}
+
+const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
+
+// Letras acumuladas: cada nível herda as do anterior
+const LEVELS: LevelConfig[] = (() => {
+  const letters: string[] = [];
+  return (data.levels as LevelData[]).map(level => {
+    for (const l of level.addLetters) if (!letters.includes(l)) letters.push(l);
+    const mix: Record<number, number> = {};
+    for (const [len, count] of Object.entries(level.mix)) mix[Number(len)] = count;
+    return { name: level.name, letters: [...letters], mix, goal: level.goal };
+  });
+})();
+
+const ALL_WORDS: string[] = Object.values(data.words as Record<string, string[]>).flat();
+
+function shuffle<T>(items: T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 export class WordLibrary {
-  // Pools de letras por dificuldade
-  private static readonly LETTER_POOLS: WordPool[] = [
-    {
-      level: 1,
-      name: "Básico",
-      letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L'],
-      words: [
-        'LEI', 'LER', 'LUA', 'REI', 'RIO', 'SAL', 'SER', 'SEU',
-        'SOL', 'SUA', 'SUL', 'TAL', 'TER', 'TIO', 'TUA'
-      ],
-      requiredWords: 5
-    },
-    {
-      level: 2,
-      name: "Intermediário", 
-      letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B'],
-      words: [
-        'BOLA', 'CABO', 'CAMA', 'CASA', 'DADO', 'DAMA', 'LADO', 'MESA',
-        'MODO', 'PATO', 'PODE', 'REDE', 'SABE', 'SEDE', 'TODO'
-      ],
-      requiredWords: 8
-    },
-    {
-      level: 3,
-      name: "Avançado",
-      letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B', 'G', 'V', 'F', 'H', 'J'],
-      words: [
-        'BRAVO', 'CALOR', 'CAMPO', 'FOGO', 'FUGIR', 'FUNDO', 'GATO', 'GRAVE',
-        'HAVER', 'HORA', 'JOGOS', 'PEDRA', 'VALOR', 'VERDE', 'VIDA'
-      ],
-      requiredWords: 12
-    },
-    {
-      level: 4,
-      name: "Expert",
-      letters: ['A', 'E', 'I', 'O', 'U', 'R', 'S', 'T', 'N', 'L', 'M', 'D', 'C', 'P', 'B', 'G', 'V', 'F', 'H', 'J', 'Q', 'W', 'X', 'Y', 'Z'],
-      words: [
-        'AZUL', 'EXAME', 'FAXINA', 'JUIZ', 'PEIXE', 'QUEIJO', 'QUERO', 'QUOTA',
-        'XADREZ', 'XEROX', 'XISTO', 'YOGA', 'ZEBRA', 'ZONAS', 'ZUMBI'
-      ],
-      requiredWords: 15
-    }
-  ];
-
-  /**
-   * Obtém o pool de letras baseado no nível
-   */
-  static getPoolForLevel(level: number): WordPool {
-    if (level <= 3) return this.LETTER_POOLS[0];
-    if (level <= 6) return this.LETTER_POOLS[1]; 
-    if (level <= 9) return this.LETTER_POOLS[2];
-    return this.LETTER_POOLS[3];
+  /** Nível 10 em diante usa a última configuração */
+  static getLevelConfig(level: number): LevelConfig {
+    return LEVELS[Math.min(Math.max(level, 1), LEVELS.length) - 1];
   }
 
-  /**
-   * Obtém letras disponíveis para um nível
-   */
   static getAvailableLettersForLevel(level: number): string[] {
-    return this.getPoolForLevel(level).letters;
+    return this.getLevelConfig(level).letters;
   }
 
-  /**
-   * Obtém palavras válidas para um nível
-   */
-  static getValidWordsForLevel(level: number): string[] {
-    return this.getPoolForLevel(level).words;
-  }
-
-  /**
-   * Obtém palavras necessárias para avançar de nível
-   */
   static getRequiredWordsForLevel(level: number): number {
-    return this.getPoolForLevel(level).requiredWords;
+    return this.getLevelConfig(level).goal;
   }
 
-  /**
-   * Obtém nome do pool para um nível
-   */
   static getPoolNameForLevel(level: number): string {
-    return this.getPoolForLevel(level).name;
+    return this.getLevelConfig(level).name;
   }
 
   /**
-   * Gera letra aleatória baseada no nível
+   * Todas as palavras do banco que dá para formar com as letras do nível.
+   * As que não estão na lista sorteada valem como "bônus" (só pontos).
    */
-  static getRandomLetterForLevel(level: number): string {
+  static getBankForLevel(level: number): Set<string> {
+    const letters = new Set(this.getAvailableLettersForLevel(level));
+    return new Set(ALL_WORDS.filter(w => [...w].every(c => letters.has(c))));
+  }
+
+  /**
+   * Sorteia a lista de palavras do nível conforme o `mix` (tamanhos),
+   * evitando as já usadas na partida. Se faltar palavra inédita, repete.
+   */
+  static drawWordsForLevel(level: number, used: Set<string>): string[] {
+    const { mix } = this.getLevelConfig(level);
+    const bank = [...this.getBankForLevel(level)];
+    const picked: string[] = [];
+    for (const [len, count] of Object.entries(mix)) {
+      const ofLength = bank.filter(w => w.length === Number(len));
+      const fresh = shuffle(ofLength.filter(w => !used.has(w)));
+      const old = shuffle(ofLength.filter(w => used.has(w)));
+      picked.push(...[...fresh, ...old].slice(0, count));
+    }
+    // Exibição: menores primeiro, depois alfabética
+    return picked.sort((a, b) => a.length - b.length || a.localeCompare(b));
+  }
+
+  /**
+   * Gerador de letras do nível: parte das letras vem das palavras que
+   * ainda faltam (na proporção em que aparecem nelas), o resto de todas as
+   * letras do nível, sem deixar faltar vogal por muito tempo.
+   */
+  static createLetterGenerator(level: number, remainingWords: () => string[]): () => string {
     const letters = this.getAvailableLettersForLevel(level);
-    return letters[Math.floor(Math.random() * letters.length)];
-  }
+    const vowels = letters.filter(l => VOWELS.has(l));
+    let consonantsInARow = 0;
 
-  /**
-   * Verifica se uma palavra é válida para o nível
-   */
-  static isValidWordForLevel(word: string, level: number): boolean {
-    const validWords = this.getValidWordsForLevel(level);
-    return validWords.includes(word.toUpperCase());
-  }
-
-  /**
-   * Remove acentos de uma palavra para comparação
-   */
-  static normalizeWord(word: string): string {
-    return word
-      .toUpperCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
-  }
-
-  /**
-   * Verifica se uma palavra normalizada é válida
-   */
-  static isValidNormalizedWord(word: string, level: number): boolean {
-    const normalizedWord = this.normalizeWord(word);
-    const validWords = this.getValidWordsForLevel(level).map(w => this.normalizeWord(w));
-    return validWords.includes(normalizedWord);
-  }
-
-  /**
-   * Obtém estatísticas do pool
-   */
-  static getPoolStats(level: number) {
-    const pool = this.getPoolForLevel(level);
-    return {
-      level: pool.level,
-      name: pool.name,
-      letterCount: pool.letters.length,
-      wordCount: pool.words.length,
-      requiredWords: pool.requiredWords,
-      letters: pool.letters.slice(0, 10), // Primeiras 10 para display
-      hasMore: pool.letters.length > 10
+    return () => {
+      let letter: string;
+      if (consonantsInARow >= SCORING.maxConsonantsInARow) {
+        letter = vowels[Math.floor(Math.random() * vowels.length)];
+      } else {
+        const targetLetters = remainingWords().join('');
+        letter = targetLetters && Math.random() < SCORING.targetLetterChance
+          ? targetLetters[Math.floor(Math.random() * targetLetters.length)]
+          : letters[Math.floor(Math.random() * letters.length)];
+      }
+      consonantsInARow = VOWELS.has(letter) ? 0 : consonantsInARow + 1;
+      return letter;
     };
-  }
-
-  /**
-   * Obtém todas as palavras de todos os níveis (para debug)
-   */
-  static getAllWords(): string[] {
-    return this.LETTER_POOLS.flatMap(pool => pool.words);
-  }
-
-  /**
-   * Valida se o pool de um nível está bem formado
-   */
-  static validatePool(level: number): boolean {
-    const pool = this.getPoolForLevel(level);
-    
-    // Verifica se todas as palavras podem ser formadas com as letras disponíveis
-    return pool.words.every(word => {
-      const wordLetters = word.split('');
-      return wordLetters.every(letter => pool.letters.includes(letter));
-    });
   }
 }
