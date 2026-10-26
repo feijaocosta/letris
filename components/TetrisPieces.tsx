@@ -1,11 +1,16 @@
 import { WordLibrary } from './WordLibrary';
+import type { TileColor } from './LetrisUI';
 
 export interface TetrisPiece {
   shape: boolean[][];
   letters: string[][];
+  color: TileColor;
   x: number;
   y: number;
 }
+
+// Cor de cada formato, na mesma ordem de TETRIS_SHAPES
+const SHAPE_COLORS: TileColor[] = ['blue', 'yellow', 'red', 'green', 'orange', 'blue', 'orange'];
 
 // Formas das peças do Tetris
 const TETRIS_SHAPES = [
@@ -61,6 +66,7 @@ export function createRandomPiece(level: number = 1): TetrisPiece {
   return {
     shape,
     letters,
+    color: SHAPE_COLORS[randomIndex],
     x: Math.floor((10 - shape[0].length) / 2), // Center horizontally on a 10-wide grid
     y: 0
   };
@@ -95,7 +101,7 @@ export function rotatePiece(piece: TetrisPiece): TetrisPiece {
 
 export function canPlacePiece(
   piece: TetrisPiece,
-  grid: Array<Array<{ letter: string | null; isActive: boolean; isHighlighted: boolean }>>,
+  grid: Array<Array<{ letter: string | null }>>,
   newX?: number,
   newY?: number
 ): boolean {

@@ -8,10 +8,17 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - Antes de abrir PR: `npm ci` + `npm run build` e, se mexer em layout, testar o build servido na raiz `/` em tamanhos de celular (390×844, 390×660, 375×560).
 
 ## Estrutura
-- `App.tsx` (raiz) e `src/main.tsx` (entrada)
-- `components/LetrisGame.tsx` — tela e lógica principal (grid 10×20, teclado, níveis, painéis)
+- `App.tsx` (raiz: alterna entrada/jogo, abre "Como jogar", guarda o modo de controle) e `src/main.tsx` (entrada)
+- `components/HomeScreen.tsx` — tela de entrada (recorde, melhor nível, escolha Botões/Gestos, JOGAR)
+- `components/LetrisGame.tsx` — tela e lógica do jogo (grid 10×20, teclado, botões, gestos, níveis)
+- `components/GameOverlays.tsx` — pausa, nível concluído e fim de jogo (essas duas com anúncio)
+- `components/HelpScreen.tsx` — "Como jogar"
+- `components/LetrisUI.tsx` — blocos de letra (`Tile`), logo, cartões, seletor de controle e ícones SVG
 - `components/GameBoard.tsx` — tabuleiro; ocupa a área disponível mantendo 10×20 via container queries
-- `components/TetrisPieces.tsx` — formatos das peças e geração de letras
+- `components/TetrisPieces.tsx` — formatos, cores e letras das peças
+- `hooks/useBoardGestures.ts` — deslizar move, tocar gira, arrastar ↓ acelera
+- `config/ads.ts` + `lib/ads.ts` + `components/AdBanner.tsx` — AdSense (Ad Placement API entre rodadas + banner 300×250)
+- `lib/storage.ts` — preferências e recordes no localStorage (prefixo `letris:`)
 - `components/WordLibrary.tsx` — pools de letras e listas de palavras por nível (fonte única)
 - `hooks/usePWA.ts` — só estados online/instalado (NÃO registra Service Worker)
 - `hooks/useAppUpdate.ts` + `components/UpdateBanner.tsx` — detecta versão nova e mostra botão "Atualizar"
@@ -25,6 +32,9 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Service Worker:** registrado só pelo vite-plugin-pwa (`injectRegister: 'script'`). Não criar `public/sw.js` nem `public/manifest.json` manuais.
 - **Versão/atualização:** o build gera `dist/version.json` (fora do precache) e embute `__APP_VERSION__`. O app compara os dois ao abrir, ao voltar do segundo plano e a cada 5 min; "Atualizar" remove o SW e os caches e recarrega.
 - **Botões de controle:** agem SÓ no `onPointerDown`. Não adicionar `onClick` nem `onTouchStart`: no celular o click chega ao soltar o dedo e a peça anda duas vezes.
+- **Visual:** paleta do ícone (fundo `ink` #2a1f38, `panel`, `deep`, blocos azul/amarelo/vermelho/laranja/verde) definida no `@theme` do `globals.css`; as cores dos blocos ficam em `@theme static` porque são usadas via `var()`. Fonte Nunito local (`@fontsource-variable/nunito`), sem Google Fonts por causa da CSP. Ícones são SVG inline, sem emoji.
+- **Controles:** dois modos (Botões/Gestos), escolhidos na entrada ou na pausa e salvos no aparelho. Os gestos no tabuleiro funcionam nos dois modos; no modo Gestos os botões somem e o tabuleiro cresce. Arrastar para baixo acelera (não solta).
+- **Anúncios:** Ad Placement API (`adBreak` type `next`) ao avançar de nível e ao "Jogar de novo"; banner 300×250 nas telas de nível concluído e fim de jogo. Tudo desligado enquanto `ADS.client` em `config/ads.ts` estiver vazio. Com o client preenchido o build libera os domínios do Google na CSP e gera `/ads.txt`.
 - **Palavras e linhas:** são procuradas no mesmo tabuleiro e removidas juntas (`resolveBoard`), e a próxima peça só nasce depois disso.
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
@@ -39,7 +49,9 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #12: layout novo (entrada, jogo, pausa, ajuda, fim de nível/jogo), modos Botões/Gestos, recordes e estrutura de anúncios
 
 ## Pendências / ideias
+- Preencher `config/ads.ts` (client e bannerSlot) quando o AdSense aprovar; depois desligar `testMode`.
 - Expert ainda tem YOGA, XEROX e QUOTA (aceitas no Brasil, mas YOGA usa Y e XEROX é marca) — decidir se troca.
 - Ícones referenciados em `public/icons/` são placeholders.

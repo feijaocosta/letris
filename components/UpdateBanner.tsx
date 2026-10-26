@@ -9,7 +9,7 @@ export function UpdateBanner() {
 
   return (
     <div
-      className="fixed left-2 right-2 mx-auto max-w-sm z-[60] flex items-center justify-between gap-2 bg-green-500 text-green-950 px-3 py-2 rounded-lg shadow-lg text-sm font-bold"
+      className="fixed left-2 right-2 mx-auto max-w-sm z-[60] flex items-center justify-between gap-2 bg-tile-green text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold"
       style={{ top: 'calc(env(safe-area-inset-top) + 0.5rem)' }}
       role="status"
     >
@@ -17,7 +17,7 @@ export function UpdateBanner() {
       <button
         onClick={applyUpdate}
         disabled={isUpdating}
-        className="bg-green-950 text-white px-3 py-1 rounded-md text-xs font-bold disabled:opacity-60"
+        className="bg-ink text-white px-3 py-1 rounded-md text-xs font-bold disabled:opacity-60"
       >
         {isUpdating ? 'Atualizando…' : 'Atualizar'}
       </button>
