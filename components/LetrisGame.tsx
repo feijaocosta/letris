@@ -83,11 +83,9 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [adBusy, setAdBusy] = useState(false);
-  const [gameStartTime, setGameStartTime] = useState(Date.now());
   // Pontos e linhas no início do nível, para o resumo de "nível concluído"
   const [levelStart, setLevelStart] = useState({ score: 0, lines: 0 });
 
-  const gameLoopRef = useRef<ReturnType<typeof setTimeout>>();
   const resolveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const linesNotificationRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -103,6 +101,13 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   // Enquanto palavras/linhas estão sendo destacadas e removidas, a próxima
   // peça não nasce (evita que ela seja apagada ou deslocada pela limpeza).
   const [isResolving, setIsResolving] = useState(false);
+
+  // Tempo efetivamente jogado (sem pausas, telas de fim de nível nem
+  // anúncios). É ele que acelera a queda com o passar do tempo.
+  const playedMsRef = useRef(0);
+  const runningSinceRef = useRef<number | null>(null);
+  const getPlayedMs = () =>
+    playedMsRef.current + (runningSinceRef.current !== null ? Date.now() - runningSinceRef.current : 0);
 
   const updateGrid = useCallback((newGrid: Cell[][]) => {
     gridRef.current = newGrid;
@@ -137,7 +142,8 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     setLinesClearedNotification(0);
     setShowLevelUp(false);
     setLevelStart({ score: 0, lines: 0 });
-    setGameStartTime(Date.now());
+    playedMsRef.current = 0;
+    runningSinceRef.current = Date.now();
   };
 
   useEffect(() => {
@@ -299,16 +305,34 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     while (canPlacePiece(currentPiece, grid, currentPiece.x, ghostY + 1)) ghostY++;
   }
 
-  // Game loop
+  const running = !isPaused && !isGameOver;
+  const hasPiece = currentPiece !== null;
+  const moveRef = useRef(movePiece);
+  moveRef.current = movePiece;
+
+  // Liga/desliga o cronômetro de tempo jogado junto com a pausa
   useEffect(() => {
-    if (!isPaused && !isGameOver && currentPiece) {
-      const fallSpeed = ScoreSystem.calculateFallSpeed(level, Date.now() - gameStartTime);
-      gameLoopRef.current = setTimeout(() => movePiece(0, 1), fallSpeed);
+    if (running) {
+      runningSinceRef.current = Date.now();
+    } else if (runningSinceRef.current !== null) {
+      playedMsRef.current += Date.now() - runningSinceRef.current;
+      runningSinceRef.current = null;
     }
-    return () => {
-      if (gameLoopRef.current) clearTimeout(gameLoopRef.current);
+  }, [running]);
+
+  // Gravidade: um relógio por peça, que NÃO recomeça quando a peça gira ou
+  // anda para os lados (senão girar sem parar segurava a peça no ar).
+  useEffect(() => {
+    if (!running || !hasPiece) return;
+    const fallSpeed = () => ScoreSystem.calculateFallSpeed(levelRef.current, getPlayedMs());
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      moveRef.current(0, 1);
+      timer = setTimeout(tick, fallSpeed());
     };
-  }, [currentPiece, isPaused, isGameOver, level, movePiece, gameStartTime]);
+    timer = setTimeout(tick, fallSpeed());
+    return () => clearTimeout(timer);
+  }, [running, hasPiece, level]);
 
   // Nasce a próxima peça quando não há peça ativa nem limpeza em andamento
   useEffect(() => {
@@ -433,8 +457,6 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   });
 
   // "↓" segurado continua descendo (depois de 250 ms, para um toque não virar dois)
-  const moveRef = useRef(movePiece);
-  moveRef.current = movePiece;
   const holdRef = useRef<{ timeout?: ReturnType<typeof setTimeout>; interval?: ReturnType<typeof setInterval> }>({});
   const stopHold = () => {
     clearTimeout(holdRef.current.timeout);
