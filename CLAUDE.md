@@ -18,6 +18,8 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - `components/TetrisPieces.tsx` — formatos, cores e letras das peças
 - `hooks/useBoardGestures.ts` — deslizar move, tocar gira, arrastar ↓ acelera
 - `config/ads.ts` + `lib/ads.ts` + `components/AdBanner.tsx` — AdSense (Ad Placement API entre rodadas + banner 300×250)
+- `config/analytics.ts` + `lib/analytics.ts` — Google Analytics 4 (`G-1YMLTC0J79`) e `track()` dos eventos
+- `lib/consent.ts` + `components/ConsentBanner.tsx` + `public/privacidade.html` — consentimento de cookies (LGPD) e política de privacidade
 - `lib/storage.ts` — preferências e recordes no localStorage (prefixo `letris:`)
 - `data/words.json` — banco de palavras (por tamanho) e progressão dos níveis (letras novas, mistura de tamanhos, meta); validado por `scripts/check-words.mjs` no `npm run build`
 - `components/WordLibrary.tsx` — lê o banco: letras do nível, sorteio da lista do nível, banco de bônus e gerador de letras com peso
@@ -38,6 +40,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Visual:** paleta do ícone (fundo `ink` #2a1f38, `panel`, `deep`, blocos azul/amarelo/vermelho/laranja/verde) definida no `@theme` do `globals.css`; as cores dos blocos ficam em `@theme static` porque são usadas via `var()`. Fonte Nunito local (`@fontsource-variable/nunito`), sem Google Fonts por causa da CSP. Ícones são SVG inline, sem emoji.
 - **Controles:** dois modos (Botões/Gestos), escolhidos na entrada ou na pausa e salvos no aparelho. Os gestos no tabuleiro funcionam nos dois modos; no modo Gestos os botões somem e o tabuleiro cresce. Arrastar para baixo acelera (não solta).
 - **Anúncios:** Ad Placement API (`adBreak` type `next`) ao avançar de nível e ao "Jogar de novo"; banner 300×250 nas telas de nível concluído e fim de jogo. Tudo desligado enquanto `ADS.client` em `config/ads.ts` estiver vazio. Se o AdSense não preencher o banner (`data-ad-status` ≠ `filled` em até `bannerTimeoutMs`), aparece o anúncio próprio `HOUSE_AD` (imagem em `public/ads/`, link para o WhatsApp da Vitrine Kingdom Apps). Com o client preenchido o build libera os domínios do Google na CSP e gera `/ads.txt`.
+- **Métricas e consentimento:** GA4 só é carregado depois de "Aceitar" no aviso de cookies (sem resposta = recusado). Sem aceite, o AdSense recebe `requestNonPersonalizedAds = 1`. O aviso aparece na entrada até a escolha e reabre pelo link "Privacidade". Em localhost/dev os eventos vão só para `window.dataLayer` (o script do Google não carrega). Eventos: `game_start`, `word_formed`, `level_complete`, `game_over`, `control_mode_change`, `help_open`, `house_ad_click`, `ad_break_shown`, `pwa_install`, `app_update`. Sem dados pessoais.
 - **Velocidade e gravidade:** 1000 ms/linha no nível 1, −60 ms por nível, −20 ms a cada 30 s jogados no nível (no máx. −100, zera a cada nível), mínimo 250 ms. O tempo conta só o jogo rodando (`playedMsRef`). O relógio de queda é por peça e não recomeça quando a peça gira ou anda para os lados.
 - **Pontuação:** palavra nova 100/150/220/300 (3/4/5/6+ letras), repetida metade, combo ×1,5/×2, cascata +50%, palavra + linha +50%, linhas 50/120/250/500, soltar +1 por linha, fim de nível 300 × nível, multiplicador 1 + 0,2 × (nível − 1). Pontos somados na detecção e mostrados no tabuleiro.
 - **Palavras por nível:** cada nível sorteia a lista (mistura de tamanhos em `data/words.json`) sem repetir palavras já sorteadas na partida. Outras palavras do banco que cabem nas letras do nível valem como bônus (só pontos, não contam para a meta). Quando uma palavra está dentro de outra na mesma linha/coluna, vale só a maior. ~60% das letras vêm das palavras que faltam, e nunca saem mais de 3 consoantes seguidas.
@@ -56,6 +59,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #19: Google Analytics 4 com consentimento (LGPD), eventos do jogo e política de privacidade
 - PR #18: favicon e ícone do iOS com o ícone oficial; remove os placeholders
 - PR #17: banco de palavras sorteado por nível com palavras maiores, nova pontuação e velocidade mais gradual
 - PR #16: pausa acelerava o jogo; girar sem parar segurava a peça no ar

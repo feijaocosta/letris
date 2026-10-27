@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { track } from '../lib/analytics';
 
 interface PWAInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -42,6 +43,7 @@ export function usePWA() {
 
     // Listen for app installed
     const handleAppInstalled = () => {
+      track('pwa_install');
       console.log('PWA was installed');
       setIsInstalled(true);
       setIsInstallable(false);

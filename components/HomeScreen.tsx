@@ -13,10 +13,11 @@ interface HomeScreenProps {
   onControlModeChange: (mode: ControlMode) => void;
   onPlay: () => void;
   onHelp: () => void;
+  onPrivacy: () => void;
   isOnline: boolean;
 }
 
-export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, isOnline }: HomeScreenProps) {
+export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
   const bestScore = load(KEYS.bestScore, 0);
   const bestLevel = load(KEYS.bestLevel, 1);
 
@@ -60,7 +61,13 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, i
           <button type="button" onClick={onHelp} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
             Como jogar
           </button>
-          <span className="text-xs font-semibold text-faint text-center">Versão {__APP_VERSION__}</span>
+          <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint">
+            <span>Versão {__APP_VERSION__}</span>
+            <span aria-hidden="true">·</span>
+            <button type="button" onClick={onPrivacy} className="min-h-0 min-w-0 py-1 underline font-extrabold text-soft">
+              Privacidade
+            </button>
+          </div>
         </div>
       </div>
     </div>

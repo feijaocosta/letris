@@ -4,9 +4,12 @@ import { HomeScreen } from './components/HomeScreen';
 import { HelpScreen } from './components/HelpScreen';
 import { UpdateBanner } from './components/UpdateBanner';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { ConsentBanner } from './components/ConsentBanner';
 import type { ControlMode } from './components/LetrisUI';
 import { usePWA } from './hooks/usePWA';
 import { initAds } from './lib/ads';
+import { track } from './lib/analytics';
+import { applyConsent, getConsent, setConsent, type Consent } from './lib/consent';
 import { KEYS, load, save } from './lib/storage';
 
 export default function App() {
@@ -15,22 +18,43 @@ export default function App() {
   const [gameKey, setGameKey] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [controlMode, setControlMode] = useState<ControlMode>(() => load(KEYS.controlMode, 'buttons'));
+  const [controlMode, setControlModeState] = useState<ControlMode>(() => load(KEYS.controlMode, 'buttons'));
+  const [consent, setConsentState] = useState<Consent>(getConsent);
+  const [consentOpen, setConsentOpen] = useState(() => getConsent() === null);
+
+  const setControlMode = (mode: ControlMode) => {
+    if (mode !== controlMode) track('control_mode_change', { control_mode: mode });
+    setControlModeState(mode);
+  };
+
+  const chooseConsent = (choice: 'granted' | 'denied') => {
+    setConsent(choice);
+    setConsentState(choice);
+    setConsentOpen(false);
+  };
+
+  const openHelp = () => {
+    track('help_open', { from: screen === 'home' ? 'entrada' : 'jogo' });
+    setHelpOpen(true);
+  };
 
   useEffect(() => {
     save(KEYS.controlMode, controlMode);
   }, [controlMode]);
 
   useEffect(() => {
+    // Consentimento antes dos anúncios: define se podem ser personalizados
+    applyConsent();
     initAds();
   }, []);
 
-  // Convite para instalar: só na tela de entrada, nunca no meio da partida
+  // Convite para instalar: só na tela de entrada, nunca no meio da partida,
+  // e depois de o jogador responder sobre os cookies
   useEffect(() => {
-    if (screen !== 'home' || isStandalone || import.meta.env.DEV) return;
+    if (screen !== 'home' || isStandalone || consent === null || import.meta.env.DEV) return;
     const timer = setTimeout(() => setShowInstallPrompt(true), 4000);
     return () => clearTimeout(timer);
-  }, [screen, isStandalone]);
+  }, [screen, isStandalone, consent]);
 
   useEffect(() => {
     // Prevent default touch behaviors that interfere with the game
@@ -62,6 +86,8 @@ export default function App() {
   }, []);
 
   const play = () => {
+    track('game_start', { control_mode: controlMode });
+    setConsentOpen(false);
     setShowInstallPrompt(false);
     setGameKey(k => k + 1);
     setScreen('game');
@@ -74,7 +100,8 @@ export default function App() {
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onPlay={play}
-          onHelp={() => setHelpOpen(true)}
+          onHelp={openHelp}
+          onPrivacy={() => setConsentOpen(true)}
           isOnline={isOnline}
         />
       ) : (
@@ -83,13 +110,17 @@ export default function App() {
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onHome={() => setScreen('home')}
-          onHelp={() => setHelpOpen(true)}
+          onHelp={openHelp}
         />
       )}
 
       {helpOpen && <HelpScreen onClose={() => setHelpOpen(false)} />}
 
-      {showInstallPrompt && screen === 'home' && (
+      {consentOpen && screen === 'home' && !helpOpen && (
+        <ConsentBanner onAccept={() => chooseConsent('granted')} onDecline={() => chooseConsent('denied')} />
+      )}
+
+      {showInstallPrompt && screen === 'home' && !consentOpen && (
         <PWAInstallPrompt
           onInstall={() => setShowInstallPrompt(false)}
           onDismiss={() => setShowInstallPrompt(false)}
