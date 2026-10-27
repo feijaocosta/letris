@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ADS, HOUSE_AD, adsEnabled } from '../config/ads';
 import { fillBanner } from '../lib/ads';
+import { track } from '../lib/analytics';
 
 // Banner 300×250 das telas de fim de rodada.
 // Se o AdSense preencher o bloco, mostra o anúncio dele; se não preencher
@@ -60,6 +61,7 @@ export function AdBanner() {
             href={HOUSE_AD.href}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => track('house_ad_click', { ad: 'vitrine' })}
             className="absolute inset-0 z-10 block"
           >
             <img

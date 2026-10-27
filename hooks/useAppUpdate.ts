@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { track } from '../lib/analytics';
 
 // Verifica se existe uma versão publicada mais nova que a que está rodando.
 // A versão atual vem embutida no bundle (__APP_VERSION__); a publicada vem de
@@ -64,6 +65,7 @@ export function useAppUpdate() {
   // recarrega a página direto da rede. O vite-plugin-pwa registra o SW
   // novo assim que a página carrega.
   const applyUpdate = useCallback(async () => {
+    track('app_update');
     setIsUpdating(true);
     try {
       if ('serviceWorker' in navigator) {

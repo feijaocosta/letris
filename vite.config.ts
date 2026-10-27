@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ADS, adsEnabled } from './config/ads'
+import { analyticsEnabled } from './config/analytics'
 
 // Content-Security-Policy aplicada só no build de produção: em `vite dev`
 // o Vite injeta scripts inline (HMR/React Refresh) que ela bloquearia.
@@ -14,13 +15,18 @@ const AD_HOSTS = adsEnabled
   ? ' https://*.googlesyndication.com https://*.googleadservices.com https://*.googletagservices.com https://*.doubleclick.net https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google'
   : ''
 
+// Com o GA4 configurado (config/analytics.ts), libera o gtag.js e os envios.
+const GA_HOSTS = analyticsEnabled
+  ? ' https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com'
+  : ''
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self'${AD_HOSTS}`,
+  `script-src 'self'${AD_HOSTS}${GA_HOSTS}`,
   "style-src 'self' 'unsafe-inline'", // React usa atributos style inline
-  `img-src 'self' data: blob:${adsEnabled ? ' https:' : ''}`,
+  `img-src 'self' data: blob:${adsEnabled || analyticsEnabled ? ' https:' : ''}`,
   "font-src 'self' data:",
-  `connect-src 'self'${AD_HOSTS}`,
+  `connect-src 'self'${AD_HOSTS}${GA_HOSTS}`,
   `frame-src${adsEnabled ? AD_HOSTS : " 'none'"}`,
   "worker-src 'self'",
   "manifest-src 'self'",

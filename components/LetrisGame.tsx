@@ -12,6 +12,7 @@ import {
 } from './LetrisUI';
 import { useBoardGestures } from '../hooks/useBoardGestures';
 import { adBreakNext } from '../lib/ads';
+import { track } from '../lib/analytics';
 import { KEYS, load, save } from '../lib/storage';
 
 const GRID_WIDTH = 10;
@@ -119,6 +120,8 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   // nem anúncios). É ele que acelera a queda com o passar do tempo; zera a
   // cada nível.
   const playedMsRef = useRef(0);
+  // Tempo jogado nos níveis anteriores da partida (para a métrica de duração)
+  const gamePlayedMsRef = useRef(0);
   const runningSinceRef = useRef<number | null>(null);
   const getPlayedMs = () =>
     playedMsRef.current + (runningSinceRef.current !== null ? Date.now() - runningSinceRef.current : 0);
@@ -182,6 +185,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     setShowLevelUp(false);
     setLevelStart({ score: 0, lines: 0 });
     playedMsRef.current = 0;
+    gamePlayedMsRef.current = 0;
     runningSinceRef.current = Date.now();
   };
 
@@ -214,6 +218,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
         repeated: formedInLevelRef.current.has(word),
       };
       formedInLevelRef.current.add(word);
+      track('word_formed', { length: word.length, bonus: result.bonus, repeated: result.repeated, level: currentLevel });
       return result;
     });
 
@@ -436,6 +441,12 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
       setLevelBonus(bonus);
       setIsPaused(true);
       setShowLevelUp(true);
+      track('level_complete', {
+        level,
+        duration_s: Math.round(getPlayedMs() / 1000),
+        words: foundWordsList.length,
+        points: score + bonus - levelStart.score,
+      });
       save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level + 1));
     }
   }, [foundWordsList.length, requiredWords, level, showLevelUp]);
@@ -443,10 +454,18 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   // Fim de jogo: atualiza o recorde
   useEffect(() => {
     if (!isGameOver) return;
-    if (score > load(KEYS.bestScore, 0)) {
+    const newRecord = score > load(KEYS.bestScore, 0);
+    if (newRecord) {
       save(KEYS.bestScore, score);
       setIsNewRecord(true);
     }
+    track('game_over', {
+      level,
+      score,
+      words: gameWords.length,
+      duration_s: Math.round((gamePlayedMsRef.current + getPlayedMs()) / 1000),
+      new_record: newRecord,
+    });
     save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level));
   }, [isGameOver]);
 
@@ -462,6 +481,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     updateGrid(createEmptyGrid());
     setFoundWordsList([]);
     setLevelStart({ ...totalsRef.current });
+    gamePlayedMsRef.current += getPlayedMs();
     playedMsRef.current = 0;
     runningSinceRef.current = Date.now();
     updatePiece(newPiece());

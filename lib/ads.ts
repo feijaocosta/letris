@@ -1,4 +1,5 @@
 import { ADS, adsEnabled } from '../config/ads';
+import { track } from './analytics';
 
 // Integração com a Ad Placement API do AdSense (anúncios para jogos HTML5)
 // e com os banners display. Os dois usam o mesmo script adsbygoogle.js.
@@ -6,7 +7,7 @@ import { ADS, adsEnabled } from '../config/ads';
 
 declare global {
   interface Window {
-    adsbygoogle?: unknown[];
+    adsbygoogle?: unknown[] & { requestNonPersonalizedAds?: 0 | 1 };
   }
 }
 
@@ -14,6 +15,15 @@ let initialized = false;
 
 function push(config: unknown) {
   (window.adsbygoogle = window.adsbygoogle || []).push(config);
+}
+
+/**
+ * Sem consentimento, o AdSense só mostra anúncios não personalizados
+ * (vale para os pedidos feitos depois desta chamada).
+ */
+export function setAdsPersonalized(personalized: boolean) {
+  window.adsbygoogle = window.adsbygoogle || [];
+  window.adsbygoogle.requestNonPersonalizedAds = personalized ? 0 : 1;
 }
 
 /** Carrega o script do AdSense uma vez. Sem `client` configurado, não faz nada. */
@@ -56,7 +66,7 @@ export function adBreakNext(name: string): Promise<void> {
       push({
         type: 'next',
         name,
-        beforeAd: () => { started = true; },
+        beforeAd: () => { started = true; track('ad_break_shown', { placement: name }); },
         afterAd: () => {},
         adBreakDone: finish,
       });
