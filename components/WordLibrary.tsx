@@ -62,10 +62,7 @@ export class WordLibrary {
     return this.getLevelConfig(level).name;
   }
 
-  /**
-   * Todas as palavras do banco que dá para formar com as letras do nível.
-   * As que não estão na lista sorteada valem como "bônus" (só pontos).
-   */
+  /** Todas as palavras do banco que dá para formar com as letras do nível. */
   static getBankForLevel(level: number): Set<string> {
     const letters = new Set(this.getAvailableLettersForLevel(level));
     return new Set(ALL_WORDS.filter(w => [...w].every(c => letters.has(c))));

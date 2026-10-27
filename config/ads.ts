@@ -38,8 +38,8 @@ export const ADS = {
  */
 export const HOUSE_AD: { image: string; alt: string; href: string } | null = {
   image: 'ads/vitrine-kingdomapps.png', // em public/, relativo ao base do Vite
-  alt: 'Vitrine Kingdom Apps: site pronto por assinatura para o seu negócio. Fale conosco no WhatsApp.',
-  href: 'https://wa.me/5511947904394?text=' + encodeURIComponent('Olá! Vi o anúncio da Vitrine no Letris e quero saber mais.'),
+  alt: 'Vitrine Kingdom Apps: site pronto por assinatura para o seu negócio.',
+  href: 'https://vitrine.kingdomapps.net',
 };
 
 export const adsEnabled = ADS.client.trim() !== '';

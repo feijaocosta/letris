@@ -7,8 +7,6 @@ export interface ScoredWord {
   word: string;
   /** Já tinha sido formada neste nível */
   repeated: boolean;
-  /** Palavra válida que não está na lista do nível (só pontos, não conta para a meta) */
-  bonus: boolean;
 }
 
 export interface ClearResult {
@@ -44,7 +42,6 @@ export class ScoreSystem {
       wordPoints *= factor;
       labels.push(`Combo ×${fmt(factor)}`);
     }
-    if (words.some(w => w.bonus)) labels.push('Bônus!');
     if (words.some(w => w.repeated)) labels.push('Repetida');
 
     const linePoints = lines > 0 ? SCORING.lines[Math.min(lines, SCORING.lines.length - 1)] : 0;

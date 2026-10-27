@@ -83,6 +83,40 @@ export function PauseMenu({ controlMode, onControlModeChange, onResume, onHelp, 
   );
 }
 
+// ---------- Comemoração (entre a última palavra e o resumo) ----------
+
+export function LevelSplash({ level, words }: { level: number; words: string[] }) {
+  const last = words[words.length - 1];
+  return (
+    <div className="fixed inset-0 z-30 bg-ink/85 safe-area flex items-center justify-center px-6 animate-[fade-in_.25s_ease-out]">
+      <div className="max-w-sm flex flex-col items-center gap-4 text-center animate-[pop-in_.4s_ease-out_both]">
+        <div className="flex gap-1 text-ink" aria-hidden="true">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="tile w-11 h-11" style={{ ...starTile, transform: i === 1 ? 'translateY(-6px)' : undefined }}>
+              <IconStar size={24} />
+            </div>
+          ))}
+        </div>
+        <div>
+          <h1 className="m-0 text-[34px] font-black leading-tight">Meta batida!</h1>
+          <span className="text-base font-bold text-soft">Nível {level} concluído</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {words.map((word, i) => (
+            <span
+              key={word}
+              className={`rounded-full animate-[pop-in_.3s_ease-out_both] ${word === last ? 'ring-2 ring-tile-yellow' : ''}`}
+              style={{ animationDelay: `${150 + i * 60}ms` }}
+            >
+              <WordChip word={word} found />
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Nível concluído ----------
 
 interface LevelCompleteProps {
@@ -96,7 +130,6 @@ interface LevelCompleteProps {
   nextPoolName: string;
   nextRequiredWords: number;
   newLetters: string[];
-  busy: boolean;
   onContinue: () => void;
 }
 
@@ -143,7 +176,7 @@ export function LevelComplete(p: LevelCompleteProps) {
       <AdBanner />
 
       <div className="flex-1" />
-      <PrimaryButton onClick={p.onContinue} disabled={p.busy}>Próximo nível</PrimaryButton>
+      <PrimaryButton onClick={p.onContinue}>Próximo nível</PrimaryButton>
     </Screen>
   );
 }
