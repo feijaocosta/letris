@@ -5,7 +5,7 @@ import { createRandomPiece, canPlacePiece, rotatePiece, type TetrisPiece } from 
 import { findWords, removeWords, highlightWords } from './WordDetector';
 import { ScoreSystem, type ScoredWord } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
-import { GameOver, LevelComplete, PauseMenu } from './GameOverlays';
+import { GameOver, LevelComplete, LevelSplash, PauseMenu } from './GameOverlays';
 import {
   IconDown, IconDrop, IconLeft, IconPause, IconRight, IconRotate, IconSwipe, IconSwipeDown, IconTap,
   Label, Logo, Panel, Tile, TILE_COLORS, WordChip, type ControlMode,
@@ -58,6 +58,11 @@ function applyGravity(grid: Cell[][]): Cell[][] {
   return newGrid;
 }
 
+// Fim de nível: a palavra que bateu a meta brilha por um instante, depois
+// aparece a comemoração com as palavras do nível e então o resumo.
+const LEVEL_END_GLOW_MS = 900;
+const LEVEL_SPLASH_MS = 1600;
+
 // Ao girar encostado na parede, tenta deslocar a peça um pouco
 const ROTATION_KICKS = [0, -1, 1, -2, 2];
 
@@ -86,7 +91,9 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   const [popup, setPopup] = useState<{ id: number; points: number; labels: string[] } | null>(null);
   const [levelBonus, setLevelBonus] = useState(0);
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
-  const [showLevelUp, setShowLevelUp] = useState(false);
+  // playing → ending (palavra brilhando) → splash (comemoração) → summary (resumo)
+  const [levelPhase, setLevelPhase] = useState<'playing' | 'ending' | 'splash' | 'summary'>('playing');
+  const levelEndTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [adBusy, setAdBusy] = useState(false);
   // Pontos e linhas no início do nível, para o resumo de "nível concluído"
   const [levelStart, setLevelStart] = useState({ score: 0, lines: 0 });
@@ -104,10 +111,10 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   totalsRef.current = { score, lines: linesCleared };
   const isResolvingRef = useRef(false);
 
-  // Palavras do nível: lista sorteada, banco válido (lista + bônus), as já
-  // formadas no nível e as já sorteadas na partida (para não repetir).
+  // Palavras do nível: lista sorteada (só elas valem, como num caça-palavras),
+  // as já formadas no nível e as já sorteadas na partida (para não repetir).
   const levelWordsRef = useRef<string[]>([]);
-  const bankRef = useRef<Set<string>>(new Set());
+  const validWordsRef = useRef<Set<string>>(new Set());
   const foundTargetsRef = useRef<Set<string>>(new Set());
   const formedInLevelRef = useRef<Set<string>>(new Set());
   const usedWordsRef = useRef<Set<string>>(new Set());
@@ -142,7 +149,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     words.forEach(w => usedWordsRef.current.add(w));
     levelWordsRef.current = words;
     setLevelWords(words);
-    bankRef.current = WordLibrary.getBankForLevel(lvl);
+    validWordsRef.current = new Set(words);
     foundTargetsRef.current = new Set();
     formedInLevelRef.current = new Set();
     letterGenRef.current = WordLibrary.createLetterGenerator(
@@ -158,6 +165,11 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
     popupTimeoutRef.current = setTimeout(() => setPopup(null), 1400);
   }, []);
+
+  function clearLevelEndTimers() {
+    levelEndTimersRef.current.forEach(clearTimeout);
+    levelEndTimersRef.current = [];
+  }
 
   const cancelResolution = () => {
     if (resolveTimeoutRef.current) clearTimeout(resolveTimeoutRef.current);
@@ -182,7 +194,8 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     setFoundWordsList([]);
     setGameWords([]);
     setPopup(null);
-    setShowLevelUp(false);
+    clearLevelEndTimers();
+    setLevelPhase('playing');
     setLevelStart({ score: 0, lines: 0 });
     playedMsRef.current = 0;
     gamePlayedMsRef.current = 0;
@@ -203,28 +216,24 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     if (isResolvingRef.current) return true;
 
     const currentLevel = levelRef.current;
-    const words = findWords(currentGrid, bankRef.current);
+    const words = findWords(currentGrid, validWordsRef.current);
     const lines = findCompleteLines(currentGrid);
     if (words.length === 0 && lines.length === 0) return false;
 
     isResolvingRef.current = true;
     setIsResolving(true);
 
-    // Classifica: palavra da lista (conta para a meta) ou bônus; nova ou repetida
+    // Palavra nova ou repetida (já formada antes neste nível)
     const scored: ScoredWord[] = words.map(({ word }) => {
-      const result = {
-        word,
-        bonus: !levelWordsRef.current.includes(word),
-        repeated: formedInLevelRef.current.has(word),
-      };
+      const result = { word, repeated: formedInLevelRef.current.has(word) };
       formedInLevelRef.current.add(word);
-      track('word_formed', { length: word.length, bonus: result.bonus, repeated: result.repeated, level: currentLevel });
+      track('word_formed', { length: word.length, repeated: result.repeated, level: currentLevel });
       return result;
     });
 
     if (words.length > 0) {
       updateGrid(highlightWords(currentGrid, words));
-      const newTargets = scored.filter(w => !w.bonus && !foundTargetsRef.current.has(w.word)).map(w => w.word);
+      const newTargets = scored.filter(w => !foundTargetsRef.current.has(w.word)).map(w => w.word);
       newTargets.forEach(w => foundTargetsRef.current.add(w));
       if (newTargets.length > 0) setFoundWordsList([...foundTargetsRef.current]);
       setGameWords(prev => [...prev, ...scored.map(w => w.word).filter((w, i, all) => !prev.includes(w) && all.indexOf(w) === i)]);
@@ -293,7 +302,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     }
   }, [nextPiece, updatePiece]);
 
-  const canAct = !isPaused && !isGameOver;
+  const canAct = !isPaused && !isGameOver && levelPhase === 'playing';
 
   /** Move a peça; retorna true se ela encaixou no tabuleiro. */
   const movePiece = useCallback((deltaX: number, deltaY: number): boolean => {
@@ -349,7 +358,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     while (canPlacePiece(currentPiece, grid, currentPiece.x, ghostY + 1)) ghostY++;
   }
 
-  const running = !isPaused && !isGameOver;
+  const running = !isPaused && !isGameOver && levelPhase === 'playing';
   const hasPiece = currentPiece !== null;
   const moveRef = useRef(movePiece);
   moveRef.current = movePiece;
@@ -380,10 +389,10 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
   // Nasce a próxima peça quando não há peça ativa nem limpeza em andamento
   useEffect(() => {
-    if (!currentPiece && !isGameOver && nextPiece && !isResolving && !showLevelUp) {
+    if (!currentPiece && !isGameOver && nextPiece && !isResolving && levelPhase === 'playing') {
       spawnNewPiece();
     }
-  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving, showLevelUp]);
+  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving, levelPhase]);
 
   // Pausa sozinho quando o app vai para o segundo plano
   useEffect(() => {
@@ -432,15 +441,22 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [movePiece, rotatePieceHandler, dropPiece, togglePause, isGameOver, onHelp]);
 
-  // Meta do nível atingida: pausa e mostra o resumo
+  // Meta do nível atingida: congela o jogo com a palavra brilhando, mostra a
+  // comemoração, chama o anúncio entre rodadas (se houver) e abre o resumo.
   const requiredWords = WordLibrary.getRequiredWordsForLevel(level);
   useEffect(() => {
-    if (foundWordsList.length >= requiredWords && !showLevelUp) {
+    if (levelPhase === 'playing' && foundWordsList.length >= requiredWords) {
       const bonus = ScoreSystem.levelCompletePoints(level);
       setScore(prev => prev + bonus);
       setLevelBonus(bonus);
-      setIsPaused(true);
-      setShowLevelUp(true);
+      setLevelPhase('ending');
+      levelEndTimersRef.current.push(
+        setTimeout(() => setLevelPhase('splash'), LEVEL_END_GLOW_MS),
+        setTimeout(async () => {
+          await adBreakNext('fim-de-nivel');
+          setLevelPhase(phase => (phase === 'splash' ? 'summary' : phase));
+        }, LEVEL_END_GLOW_MS + LEVEL_SPLASH_MS),
+      );
       track('level_complete', {
         level,
         duration_s: Math.round(getPlayedMs() / 1000),
@@ -449,7 +465,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
       });
       save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level + 1));
     }
-  }, [foundWordsList.length, requiredWords, level, showLevelUp]);
+  }, [foundWordsList.length, requiredWords, level, levelPhase]);
 
   // Fim de jogo: atualiza o recorde
   useEffect(() => {
@@ -469,11 +485,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level));
   }, [isGameOver]);
 
-  const continueToNextLevel = async () => {
-    setAdBusy(true);
-    await adBreakNext('proximo-nivel');
-    setAdBusy(false);
-
+  const continueToNextLevel = () => {
     const nextLevel = level + 1;
     cancelResolution();
     setupLevel(nextLevel);
@@ -486,7 +498,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     runningSinceRef.current = Date.now();
     updatePiece(newPiece());
     setNextPiece(newPiece());
-    setShowLevelUp(false);
+    setLevelPhase('playing');
     setIsPaused(false);
   };
 
@@ -500,6 +512,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   // Cleanup timeouts
   useEffect(() => {
     return () => {
+      clearLevelEndTimers();
       if (resolveTimeoutRef.current) clearTimeout(resolveTimeoutRef.current);
       if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
     };
@@ -570,7 +583,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           <button
             type="button"
             aria-label="Pausar"
-            onClick={() => setIsPaused(true)}
+            onClick={() => { if (levelPhase === 'playing') setIsPaused(true); }}
             className="w-11 h-11 rounded-full bg-panel flex items-center justify-center shrink-0"
           >
             <IconPause size={20} strokeWidth={2.8} />
@@ -679,7 +692,9 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           onRestart={restartAfterGameOver}
           onHome={onHome}
         />
-      ) : showLevelUp ? (
+      ) : levelPhase === 'splash' ? (
+        <LevelSplash level={level} words={foundWordsList} />
+      ) : levelPhase === 'summary' ? (
         <LevelComplete
           level={level}
           requiredWords={requiredWords}
@@ -691,7 +706,6 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           nextPoolName={WordLibrary.getPoolNameForLevel(nextLevel)}
           nextRequiredWords={WordLibrary.getRequiredWordsForLevel(nextLevel)}
           newLetters={newLetters}
-          busy={adBusy}
           onContinue={continueToNextLevel}
         />
       ) : isPaused ? (
