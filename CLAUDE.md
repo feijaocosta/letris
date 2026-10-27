@@ -14,7 +14,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - `components/GameOverlays.tsx` — pausa, nível concluído e fim de jogo (essas duas com anúncio)
 - `components/HelpScreen.tsx` — "Como jogar"
 - `components/LetrisUI.tsx` — blocos de letra (`Tile`), logo, cartões, seletor de controle e ícones SVG
-- `components/GameBoard.tsx` — tabuleiro; ocupa a área disponível mantendo 10×20 via container queries
+- `components/GameBoard.tsx` — tabuleiro; mede a área disponível (ResizeObserver) e ocupa o máximo mantendo 10×20
 - `components/TetrisPieces.tsx` — formatos, cores e letras das peças
 - `hooks/useBoardGestures.ts` — deslizar move, tocar gira, arrastar ↓ acelera
 - `config/ads.ts` + `lib/ads.ts` + `components/AdBanner.tsx` — AdSense (Ad Placement API entre rodadas + banner 300×250)
@@ -49,6 +49,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **CSP:** injetada apenas no build (plugin em `vite.config.ts`); `script-src 'self'` sem scripts inline. `style-src` permite `'unsafe-inline'` por causa dos `style` do React. Headers como X-Frame-Options não funcionam no GitHub Pages.
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
 - **Ícone:** o oficial é `public/pwa-512x512.png` (blocos coloridos formando LETRIS). `pwa-192x192.png`, `apple-touch-icon.png` (180), `favicon-32x32.png` e `favicon.ico` são gerados a partir dele; não usar outro desenho.
+- **Tamanho do tabuleiro:** calculado em px com ResizeObserver. Não voltar para container queries (`cqh`): o Safari do iPhone não atualizava quando a lista de palavras crescia e o tabuleiro cobria as palavras.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** em `data/words.json`, MAIÚSCULAS sem acento/Ç (o jogo ignora acentos), ordem alfabética, só português, sem marcas; o build falha se alguma regra quebrar ou se um nível não tiver palavras suficientes.
 
@@ -60,6 +61,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #21: tabuleiro ficava por cima da lista de palavras no iPhone
 - PR #20: só valem palavras da lista (caça-palavras), comemoração de fim de nível com anúncio, link da Vitrine
 - PR #19: Google Analytics 4 com consentimento (LGPD), eventos do jogo e política de privacidade
 - PR #18: favicon e ícone do iOS com o ícone oficial; remove os placeholders
