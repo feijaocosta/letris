@@ -40,6 +40,12 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
           ))}
         </div>
 
+        {LANGUAGES.length > 1 && (
+          <div className="relative flex justify-end shrink-0 -mr-2">
+            <LanguagePicker value={lang} options={LANGUAGES} onChange={changeLanguage} />
+          </div>
+        )}
+
         <div className="relative flex-1 min-h-[100px] flex flex-col items-center justify-center gap-3.5">
           <Logo size={48} gap={6} />
           <p className="m-0 text-[17px] font-bold text-soft text-center">{t('home.tagline')}</p>
@@ -53,13 +59,6 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
             <StatCard label={t('home.bestScore')} value={n(bestScore)} />
             <StatCard label={t('home.bestLevel')} value={bestLevel} />
           </div>
-
-          {LANGUAGES.length > 1 && (
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs text-center">{t('home.language')}</Label>
-              <LanguagePicker value={lang} options={LANGUAGES} onChange={changeLanguage} />
-            </div>
-          )}
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs text-center">{t('home.controls')}</Label>

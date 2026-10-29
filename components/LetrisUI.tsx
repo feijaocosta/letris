@@ -108,7 +108,8 @@ export function ControlModeToggle({ value, onChange, compact = false }: {
   );
 }
 
-// Seletor de idioma: sigla grande (PT, EN...) com o nome completo para leitores de tela
+// Seletor de idioma discreto (canto da entrada): siglas PT, EN... com o nome
+// completo para leitores de tela
 export function LanguagePicker<T extends string>({ value, options, onChange }: {
   value: T;
   options: ReadonlyArray<{ code: T; label: string }>;
@@ -117,8 +118,7 @@ export function LanguagePicker<T extends string>({ value, options, onChange }: {
   const { t } = useI18n();
   return (
     <div
-      className="grid gap-1.5 bg-deep rounded-2xl p-1.5"
-      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      className="inline-flex gap-0.5 bg-deep rounded-full p-0.5"
       role="radiogroup"
       aria-label={t('home.language')}
     >
@@ -133,7 +133,7 @@ export function LanguagePicker<T extends string>({ value, options, onChange }: {
             aria-label={label}
             title={label}
             onClick={() => onChange(code)}
-            className={`h-10 rounded-xl text-[15px] font-black tracking-wide ${selected ? 'bg-tile-yellow text-ink' : 'text-chip'}`}
+            className={`h-9 min-h-0 min-w-0 w-11 rounded-full text-xs font-black tracking-wide ${selected ? 'bg-panel text-white' : 'text-faint'}`}
           >
             {code.toUpperCase()}
           </button>
