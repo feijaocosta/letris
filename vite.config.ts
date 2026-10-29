@@ -132,6 +132,8 @@ export default defineConfig({
   ],
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
+    // Ganchos dos testes automáticos (ver tests/); false no build publicado
+    __E2E__: JSON.stringify(process.env.LETRIS_E2E === '1'),
   },
   resolve: {
     alias: {

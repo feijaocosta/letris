@@ -518,6 +518,45 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
     };
   }, []);
 
+  // Ganchos dos testes automáticos (tests/). Só existem no build feito pelo
+  // Playwright (LETRIS_E2E=1); no build publicado __E2E__ é false e o
+  // bloco inteiro some do bundle.
+  if (__E2E__) {
+    (window as unknown as { __letris: unknown }).__letris = {
+      state: () => ({
+        level, score, lines: linesCleared, phase: levelPhase, paused: isPaused, gameOver: isGameOver,
+        levelWords, found: foundWordsList,
+        fallMs: ScoreSystem.calculateFallSpeed(level, getPlayedMs()),
+        piece: pieceRef.current && { x: pieceRef.current.x, y: pieceRef.current.y, letters: pieceRef.current.letters },
+        board: gridRef.current.map(row => row.map(cell => cell.letter ?? '.').join('')),
+      }),
+      // Cada string é uma linha do tabuleiro, alinhadas ao fundo; "." = vazio
+      setBoard: (rows: string[]) => {
+        const newGrid = createEmptyGrid();
+        rows.forEach((text, i) => {
+          const row = GRID_HEIGHT - rows.length + i;
+          text.split('').forEach((letter, col) => {
+            if (letter !== '.') newGrid[row][col] = { letter, color: 'blue', isActive: false, isHighlighted: false };
+          });
+        });
+        updateGrid(newGrid);
+      },
+      // Peça horizontal 1×N com as letras dadas
+      setPiece: (letters: string, x: number, y = 0) => updatePiece({
+        shape: [letters.split('').map(() => true)],
+        letters: [letters.split('')],
+        color: 'orange',
+        x,
+        y,
+      }),
+      setLevelWords: (words: string[]) => {
+        levelWordsRef.current = words;
+        validWordsRef.current = new Set(words);
+        setLevelWords(words);
+      },
+    };
+  }
+
   // ---------- Controles ----------
 
   const gestures = useBoardGestures({ move: movePiece, rotate: rotatePieceHandler });
