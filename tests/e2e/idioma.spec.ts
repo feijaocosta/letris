@@ -1,6 +1,8 @@
 import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import pt from '../../locales/pt.json';
 import en from '../../locales/en.json';
+import { LOCALES } from '../locales';
+import { LANGUAGE_CONFIGS, LANGUAGE_LIST } from '../../config/languages';
 
 // Sprint 2 do multilíngue: escolha do idioma, recordes por idioma e métricas
 const stored = (page: import('@playwright/test').Page, key: string) =>
@@ -21,8 +23,17 @@ test('?lang= de idioma que não existe é ignorado', async ({ page }) => {
   expect(await stored(page, 'lang')).toBeNull();
 });
 
-test.describe('celular em espanhol (idioma ainda não disponível)', () => {
-  test.use({ locale: 'es-ES' });
+test.describe('celular em espanhol', () => {
+  test.use({ locale: 'es-MX' });
+  test('abre em espanhol', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText(LOCALES.es.home.tagline)).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('es');
+  });
+});
+
+test.describe('celular em alemão (idioma que o jogo não tem)', () => {
+  test.use({ locale: 'de-DE' });
   test('abre em inglês', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByText(en.home.tagline)).toBeVisible();
@@ -128,18 +139,18 @@ test.describe('métricas', () => {
 test.describe('política de privacidade', () => {
   test.use({ consent: null });
 
-  for (const [lang, file, heading] of [['pt', 'privacidade.html', 'Política de privacidade'], ['en', 'privacy.html', 'Privacy policy']] as const) {
-    test(`em ${lang}, o aviso de cookies leva para ${file}`, async ({ page }) => {
-      await page.goto(`/?lang=${lang}`);
-      const link = page.getByRole('link', { name: lang === 'pt' ? pt.consent.policy : en.consent.policy });
-      await expect(link).toHaveAttribute('href', new RegExp(`${file}$`));
+  for (const { code, privacyPage } of LANGUAGE_LIST) {
+    test(`em ${code}, o aviso de cookies leva para ${privacyPage}`, async ({ page }) => {
+      await page.goto(`/?lang=${code}`);
+      const link = page.getByRole('link', { name: LOCALES[code].consent.policy });
+      await expect(link).toHaveAttribute('href', new RegExp(`${privacyPage}$`));
       await link.click();
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
-      expect(await page.evaluate(() => document.documentElement.lang)).toBe(lang === 'pt' ? 'pt-BR' : 'en');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(LOCALES[code].consent.policy);
+      expect(await page.evaluate(() => document.documentElement.lang)).toBe(LANGUAGE_CONFIGS[code].locale);
     });
   }
 
-  test('as duas páginas apontam uma para a outra e voltam para o jogo', async ({ page }) => {
+  test('as páginas de privacidade apontam umas para as outras e voltam para o jogo', async ({ page }) => {
     await page.goto('/privacidade.html');
     await page.getByRole('link', { name: 'English' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Privacy policy');

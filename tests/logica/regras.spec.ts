@@ -3,8 +3,7 @@ import { findWords } from '../../components/WordDetector';
 import { ScoreSystem } from '../../components/ScoreSystem';
 import { WordLibrary } from '../../components/WordLibrary';
 import { LANGUAGE_CONFIGS, LANGUAGE_LIST } from '../../config/languages';
-import ptBank from '../../data/words/pt.json';
-import enBank from '../../data/words/en.json';
+import { BANKS } from '../locales';
 import { SPEED } from '../../config/gameplay';
 
 // Regras do jogo testadas sem navegador. Cada teste cita o PR que corrigiu
@@ -30,7 +29,6 @@ test.describe('palavras', () => {
 });
 
 // Vale para todos os idiomas (PR #17; inglês no sprint 4 do multilíngue)
-const BANKS = { pt: ptBank, en: enBank } as const;
 
 for (const config of LANGUAGE_LIST) {
   const lib = new WordLibrary(BANKS[config.code], config);
@@ -132,4 +130,8 @@ test.describe('velocidade (PR #16 e #17)', () => {
   test('nunca fica mais rápido que o mínimo', () => {
     expect(ScoreSystem.calculateFallSpeed(99, 60 * 60 * 1000)).toBe(SPEED.minMs);
   });
+});
+
+test('todo idioma do jogo está nos testes (tests/locales.ts)', () => {
+  for (const { code } of LANGUAGE_LIST) expect(Object.keys(BANKS), code).toContain(code);
 });

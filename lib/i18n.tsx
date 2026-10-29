@@ -1,6 +1,7 @@
 import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import pt from '../locales/pt.json';
 import en from '../locales/en.json';
+import es from '../locales/es.json';
 import { KEYS, load, save } from './storage';
 import { DEFAULT_LANG, LANGUAGE_CONFIGS, LANGUAGE_LIST, type Lang } from '../config/languages';
 
@@ -21,7 +22,7 @@ type Messages = { [key: string]: string | Messages };
 
 // Textos de cada idioma (o build confere que todo idioma de
 // config/languages.json tem o seu locale)
-const MESSAGES: Record<Lang, Messages> = { pt, en };
+const MESSAGES: Record<Lang, Messages> = { pt, en, es };
 
 const FALLBACK: Lang = DEFAULT_LANG;
 

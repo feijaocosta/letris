@@ -1,7 +1,7 @@
 import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
-import enLocale from '../../locales/en.json';
+import { LOCALES } from '../locales';
 
 // PR #23: os textos saíram do código para locales/pt.json. Nenhuma tela pode
 // mostrar uma chave crua ("home.play") no lugar do texto.
@@ -62,19 +62,21 @@ test('nenhuma tela mostra chave de texto sem tradução', async ({ page }) => {
   await expectNoRawKeys(page, 'fim de jogo');
 });
 
-test('em inglês, nenhuma tela de entrada, ajuda ou jogo mostra chave crua (sprint 4)', async ({ page }) => {
-  await page.goto('/?lang=en');
-  await expect(page.getByText(enLocale.home.tagline)).toBeVisible();
-  await expectNoRawKeys(page, 'entrada EN');
-  await page.getByRole('button', { name: enLocale.common.howToPlay }).click();
-  await expect(page.getByText(enLocale.help.wordsTitle, { exact: true })).toBeVisible();
-  await expectNoRawKeys(page, 'como jogar EN');
-  await page.getByRole('button', { name: enLocale.help.close }).click();
-  await page.getByRole('button', { name: enLocale.home.play, exact: true }).click();
-  await page.getByRole('button', { name: enLocale.game.pause }).click();
-  await expect(page.getByText(enLocale.pause.title, { exact: true })).toBeVisible();
-  await expectNoRawKeys(page, 'pausa EN');
-});
+for (const [lang, locale] of Object.entries(LOCALES).filter(([l]) => l !== 'pt')) {
+  test(`em ${lang}, entrada, ajuda e pausa sem chave crua (sprints 4 a 6)`, async ({ page }) => {
+    await page.goto(`/?lang=${lang}`);
+    await expect(page.getByText(locale.home.tagline)).toBeVisible();
+    await expectNoRawKeys(page, `entrada ${lang}`);
+    await page.getByRole('button', { name: locale.common.howToPlay }).click();
+    await expect(page.getByText(locale.help.wordsTitle, { exact: true })).toBeVisible();
+    await expectNoRawKeys(page, `como jogar ${lang}`);
+    await page.getByRole('button', { name: locale.help.close }).click();
+    await page.getByRole('button', { name: locale.home.play, exact: true }).click();
+    await page.getByRole('button', { name: locale.game.pause }).click();
+    await expect(page.getByText(locale.pause.title, { exact: true })).toBeVisible();
+    await expectNoRawKeys(page, `pausa ${lang}`);
+  });
+}
 
 test.describe('aviso de cookies', () => {
   test.use({ consent: null });

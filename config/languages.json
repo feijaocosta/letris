@@ -17,6 +17,14 @@
       "vowels": "AEIOU",
       "extraVowels": "Y",
       "privacyPage": "privacy.html"
+    },
+    {
+      "code": "es",
+      "label": "Español",
+      "locale": "es",
+      "alphabet": "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "privacyPage": "privacidad.html"
     }
   ]
 }

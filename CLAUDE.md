@@ -1,6 +1,6 @@
 # LETRIS — contexto para o Claude Code
 
-Jogo que mistura Tetris com formação de palavras, em português e inglês (espanhol e francês planejados). React 18 + TypeScript + Vite 5 + Tailwind 4 + vite-plugin-pwa. Publicado em https://letris.kingdomapps.net (domínio próprio; https://feijaocosta.github.io/letris/ redireciona para ele)
+Jogo que mistura Tetris com formação de palavras, em português, inglês, espanhol e francês. React 18 + TypeScript + Vite 5 + Tailwind 4 + vite-plugin-pwa. Publicado em https://letris.kingdomapps.net (domínio próprio; https://feijaocosta.github.io/letris/ redireciona para ele)
 
 ## Regras de trabalho
 - **Sempre criar um branch novo** para qualquer mudança e abrir PR para a `main`. Nunca commitar direto na `main`.
@@ -22,8 +22,8 @@ Jogo que mistura Tetris com formação de palavras, em português e inglês (esp
 - `hooks/useBoardGestures.ts` — deslizar move, tocar gira, arrastar ↓ acelera
 - `config/ads.ts` + `lib/ads.ts` + `components/AdBanner.tsx` — AdSense (Ad Placement API entre rodadas + banner 300×250)
 - `config/analytics.ts` + `lib/analytics.ts` — Google Analytics 4 (`G-1YMLTC0J79`) e `track()` dos eventos
-- `lib/consent.ts` + `components/ConsentBanner.tsx` + `public/privacidade.html` / `public/privacy.html` — consentimento de cookies (LGPD) e política de privacidade
-- `lib/i18n.tsx` + `locales/<idioma>.json` (pt, en) — textos da interface: `useI18n()` devolve `t('grupo.chave', { variáveis })`, `rich()` (texto com destaque) e `n()` (números no formato do idioma); validados por `scripts/check-locales.mjs` no `npm run build`
+- `lib/consent.ts` + `components/ConsentBanner.tsx` + `public/privacidade.html` / `privacy.html` / `privacidad.html` / `confidentialite.html` (uma por idioma, com links entre si) — consentimento de cookies (LGPD) e política de privacidade
+- `lib/i18n.tsx` + `locales/<idioma>.json` (pt, en, es, fr) — textos da interface: `useI18n()` devolve `t('grupo.chave', { variáveis })`, `rich()` (texto com destaque) e `n()` (números no formato do idioma); validados por `scripts/check-locales.mjs` no `npm run build`
 - `lib/storage.ts` — preferências e recordes no localStorage (prefixo `letris:`); recordes por idioma (`bestScore:pt`, `bestLevel:pt`)
 - `config/languages.json` + `config/languages.ts` — idiomas do jogo (código, nome, locale, alfabeto, vogais, `extraVowels`); ordem do seletor
 - `data/words/<idioma>.json` — banco de palavras (por tamanho) e progressão dos níveis de cada idioma (letras novas, mistura de tamanhos, meta); validado por `scripts/check-words.mjs` no `npm run build`
@@ -61,10 +61,12 @@ Jogo que mistura Tetris com formação de palavras, em português e inglês (esp
 - **Tamanho do tabuleiro:** calculado em px com ResizeObserver. Não voltar para container queries (`cqh`): o Safari do iPhone não atualizava quando a lista de palavras crescia e o tabuleiro cobria as palavras.
 - **Testes:** Playwright (`@playwright/test` com versão fixa). Os testes do jogo usam o build com `LETRIS_E2E=1` (`dist-e2e/`), que expõe `window.__letris` (estado, montar tabuleiro, trocar peça e lista do nível); no build publicado `__E2E__` é `false` e o gancho some. Não testar mexendo nos internos do React.
 - **Textos (i18n):** nenhum texto de interface escrito direto nos componentes; tudo em `locales/pt.json` (idioma de referência) e lido com `t()`. Chaves em inglês, camelCase, agrupadas por tela (`home.play`, `levelComplete.title`). Solução própria, sem biblioteca. Rótulos da pontuação saem do `ScoreSystem` como chaves; os nomes dos grupos de níveis em `data/words/*.json` (`basic`, `intermediate`...) são traduzidos em `pools.*`. O build falha com chave inexistente, chave faltando em outro idioma ou variáveis diferentes do PT. Valores de métricas (ex.: `navegador`) são dados, não texto de tela.
-- **Idioma:** idiomas prontos = os de `config/languages.json`. Ao abrir, `?lang=` (salva a escolha e sai da URL) → idioma salvo (`letris:lang`) → idiomas do navegador → inglês, se pronto → português. Só idiomas prontos (com locale e banco) entram. O seletor é uma pílula discreta (PT | EN) no canto superior direito da entrada e só aparece com 2 idiomas ou mais; cada idioma tem a sua política de privacidade (`privacyPage` em `config/languages.json`, arquivo em `public/`), e o aviso de cookies abre a do idioma; trocar idioma nunca no meio da partida. `<html lang>` e o título acompanham. Recordes separados por idioma; os antigos (sem idioma) foram migrados uma vez para `:pt`.
+- **Idioma:** idiomas prontos = os de `config/languages.json`. Ao abrir, `?lang=` (salva a escolha e sai da URL) → idioma salvo (`letris:lang`) → idiomas do navegador → inglês, se pronto → português. Só idiomas prontos (com locale e banco) entram. O seletor é uma pílula discreta (PT | EN | ES | FR) no canto superior direito da entrada e só aparece com 2 idiomas ou mais; cada idioma tem a sua política de privacidade (`privacyPage` em `config/languages.json`, arquivo em `public/`), e o aviso de cookies abre a do idioma; trocar idioma nunca no meio da partida. `<html lang>` e o título acompanham. Recordes separados por idioma; os antigos (sem idioma) foram migrados uma vez para `:pt`.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** em `data/words/<idioma>.json`, MAIÚSCULAS sem acento (Ç→C; Ñ é letra própria no espanhol; Œ→OE no francês), igual a `normalizeWord`, só letras do `alphabet` do idioma, em NFC, ordem alfabética do idioma (`localeCompare` com o locale), sem marcas nem nomes próprios; o build falha se alguma regra quebrar, se um nível não tiver palavras suficientes ou se um idioma de `config/languages.json` não tiver banco e locale.
 - **Inglês:** progressão de letras AEIOURSTNL → D → HM → CY → PB → GW → FK → V → JZ → QX, mesma mistura de tamanhos e metas do PT. `Y` é `extraVowels`: quebra a sequência de consoantes (SKY, FLY, GYM), mas não é sorteado como vogal forçada.
+- **Espanhol:** Ñ é letra própria (entra no nível 5, com G). Progressão AEIOURSTNL → D → CM → PB → GÑ → VY → FH → Z → JQ → X; como há poucas palavras de 3 letras, a mistura começa com mais palavras de 4. Nunca incluir ANO (sem Ñ).
+- **Testes por idioma:** `tests/locales.ts` reúne textos e bancos de todos os idiomas; os testes de sorteio, textos e privacidade rodam para cada um. Idioma novo entra lá também.
 - **Banco por idioma:** carregado com `import()` antes da partida (pré-carregado na entrada); nunca ler o JSON com `fetch` (`.json` não entra no precache). Use `Array.from(palavra)` para contar/separar letras.
 
 ## Histórico
