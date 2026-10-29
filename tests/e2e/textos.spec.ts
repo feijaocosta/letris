@@ -1,6 +1,7 @@
 import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
+import enLocale from '../../locales/en.json';
 
 // PR #23: os textos saíram do código para locales/pt.json. Nenhuma tela pode
 // mostrar uma chave crua ("home.play") no lugar do texto.
@@ -59,6 +60,20 @@ test('nenhuma tela mostra chave de texto sem tradução', async ({ page }) => {
   await drop(page);
   await expect(page.getByRole('button', { name: pt.gameOver.playAgain })).toBeVisible({ timeout: 5_000 });
   await expectNoRawKeys(page, 'fim de jogo');
+});
+
+test('em inglês, nenhuma tela de entrada, ajuda ou jogo mostra chave crua (sprint 4)', async ({ page }) => {
+  await page.goto('/?lang=en');
+  await expect(page.getByText(enLocale.home.tagline)).toBeVisible();
+  await expectNoRawKeys(page, 'entrada EN');
+  await page.getByRole('button', { name: enLocale.common.howToPlay }).click();
+  await expect(page.getByText(enLocale.help.wordsTitle, { exact: true })).toBeVisible();
+  await expectNoRawKeys(page, 'como jogar EN');
+  await page.getByRole('button', { name: enLocale.help.close }).click();
+  await page.getByRole('button', { name: enLocale.home.play, exact: true }).click();
+  await page.getByRole('button', { name: enLocale.game.pause }).click();
+  await expect(page.getByText(enLocale.pause.title, { exact: true })).toBeVisible();
+  await expectNoRawKeys(page, 'pausa EN');
 });
 
 test.describe('aviso de cookies', () => {

@@ -21,7 +21,10 @@ export function AdBanner() {
   const insRef = useRef<HTMLModElement>(null);
   const live = adsEnabled && ADS.bannerSlot !== '';
   const [status, setStatus] = useState<Status>(live ? 'pending' : 'unfilled');
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  // O anúncio próprio só existe em português por enquanto: em outro idioma
+  // cai no espaço reservado (nunca mostrar a arte em PT para quem joga em EN)
+  const houseAd = lang === 'pt' ? HOUSE_AD : null;
 
   useEffect(() => {
     if (!live) return;
@@ -51,24 +54,24 @@ export function AdBanner() {
     };
   }, [live]);
 
-  const showHouse = status !== 'filled' && HOUSE_AD !== null;
-  if (!live && !HOUSE_AD && !ADS.showPlaceholder) return null;
+  const showHouse = status !== 'filled' && houseAd !== null;
+  if (!live && !houseAd && !ADS.showPlaceholder) return null;
 
   return (
     <div className="flex flex-col items-center gap-1 shrink-0">
       <span className="text-[10px] font-extrabold tracking-wider text-faint">{t('ads.label')}</span>
       <div className="relative w-[300px] h-[250px] rounded-lg overflow-hidden">
-        {showHouse && HOUSE_AD ? (
+        {showHouse && houseAd ? (
           <a
-            href={HOUSE_AD.href}
+            href={houseAd.href}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track('house_ad_click', { ad: 'vitrine' })}
             className="absolute inset-0 z-10 block"
           >
             <img
-              src={`${import.meta.env.BASE_URL}${HOUSE_AD.image}`}
-              alt={HOUSE_AD.alt}
+              src={`${import.meta.env.BASE_URL}${houseAd.image}`}
+              alt={houseAd.alt}
               width={300}
               height={250}
               className="block w-full h-full"

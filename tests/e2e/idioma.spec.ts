@@ -1,5 +1,6 @@
 import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import pt from '../../locales/pt.json';
+import en from '../../locales/en.json';
 
 // Sprint 2 do multilíngue: escolha do idioma, recordes por idioma e métricas
 const stored = (page: import('@playwright/test').Page, key: string) =>
@@ -22,16 +23,47 @@ test('?lang= de idioma que não existe é ignorado', async ({ page }) => {
 
 test.describe('celular em espanhol (idioma ainda não disponível)', () => {
   test.use({ locale: 'es-ES' });
-  test('abre em português', async ({ page }) => {
+  test('abre em inglês', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText(pt.home.tagline)).toBeVisible();
+    await expect(page.getByText(en.home.tagline)).toBeVisible();
   });
 });
 
-test('com um idioma só, o seletor de idioma não aparece', async ({ page }) => {
+test.describe('celular em inglês', () => {
+  test.use({ locale: 'en-US' });
+  test('abre em inglês', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText(en.home.tagline)).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('en');
+    await expect(page).toHaveTitle(en.meta.title);
+  });
+});
+
+test('seletor de idioma na entrada troca os textos e guarda a escolha', async ({ page }) => {
   await page.goto('/');
+  const picker = page.getByRole('radiogroup', { name: pt.home.language });
+  await expect(picker).toBeVisible();
+  await picker.getByRole('radio', { name: 'English' }).click();
+  await expect(page.getByText(en.home.tagline)).toBeVisible();
+  expect(await stored(page, 'lang')).toBe('"en"');
+  await page.reload();
+  await expect(page.getByText(en.home.tagline)).toBeVisible();
+  await page.getByRole('radio', { name: 'Português' }).click();
   await expect(page.getByText(pt.home.tagline)).toBeVisible();
-  await expect(page.getByRole('radiogroup', { name: pt.home.language })).toHaveCount(0);
+});
+
+test('recordes separados por idioma', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('letris:test-recordes')) return;
+    sessionStorage.setItem('letris:test-recordes', '1');
+    localStorage.setItem('letris:bestScore:pt', '1234');
+    localStorage.setItem('letris:bestScore:en', '567');
+  });
+  await page.goto('/');
+  await expect(page.getByText('1.234')).toBeVisible();
+  await page.getByRole('radio', { name: 'English' }).click();
+  await expect(page.getByText('567', { exact: true })).toBeVisible();
+  await expect(page.getByText('1,234')).toHaveCount(0);
 });
 
 test('recorde antigo (de antes dos idiomas) continua aparecendo, agora como do português', async ({ page }) => {
@@ -69,6 +101,17 @@ test('o recorde é salvo no idioma do jogo', async ({ page }) => {
 
 test.describe('métricas', () => {
   test.use({ consent: 'granted' });
+  test('trocar o idioma registra language_change e os eventos seguintes saem no idioma novo', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('radio', { name: 'English' }).click();
+    await page.getByRole('button', { name: en.home.play, exact: true }).click();
+    await expect(page.getByRole('button', { name: en.game.pause })).toBeVisible();
+    const events = await page.evaluate(() => (window.dataLayer ?? []).map(a => Array.from(a as ArrayLike<unknown>))
+      .filter(a => a[0] === 'event').map(a => ({ name: a[1] as string, ...(a[2] as Record<string, unknown>) })));
+    expect(events.find(e => e.name === 'language_change')).toMatchObject({ from: 'pt', to: 'en' });
+    expect(events.find(e => e.name === 'game_start')).toMatchObject({ game_language: 'en' });
+  });
+
   test('todo evento leva o idioma e a versão do jogo', async ({ page }) => {
     await startGame(page);
     const events = await page.evaluate(() => (window.dataLayer ?? []).map(a => Array.from(a as ArrayLike<unknown>))

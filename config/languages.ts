@@ -4,7 +4,7 @@ import data from './languages.json';
 // scripts de validação). Para um idioma novo: entrada no JSON, código no tipo
 // Lang, locales/<code>.json e data/words/<code>.json.
 
-export type Lang = 'pt';
+export type Lang = 'pt' | 'en';
 
 export interface LanguageConfig {
   code: Lang;
@@ -16,6 +16,12 @@ export interface LanguageConfig {
   alphabet: string;
   /** Vogais para o sorteio de letras */
   vowels: string;
+  /**
+   * Letras que contam como vogal só na regra de "no máximo N consoantes
+   * seguidas" (ex.: Y em inglês: SKY, FLY, GYM), mas não são sorteadas
+   * quando o jogo força uma vogal
+   */
+  extraVowels?: string;
 }
 
 export const LANGUAGE_LIST = data.languages as LanguageConfig[];

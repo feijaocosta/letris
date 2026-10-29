@@ -39,10 +39,13 @@ export class WordLibrary {
   private readonly levels: LevelConfig[];
   private readonly allWords: string[];
   private readonly vowels: Set<string>;
+  /** Vogais + letras que quebram a sequência de consoantes (Y em inglês) */
+  private readonly runBreakers: Set<string>;
 
   constructor(data: WordBankData, lang: LanguageConfig) {
     this.lang = lang;
     this.vowels = new Set(lang.vowels);
+    this.runBreakers = new Set(lang.vowels + (lang.extraVowels ?? ''));
     // Letras acumuladas: cada nível herda as do anterior. Array.from separa
     // por caractere de verdade (Ñ é um só).
     const letters: string[] = [];
@@ -117,7 +120,7 @@ export class WordLibrary {
           ? pick(targetLetters)
           : pick(letters);
       }
-      consonantsInARow = this.vowels.has(letter) ? 0 : consonantsInARow + 1;
+      consonantsInARow = this.runBreakers.has(letter) ? 0 : consonantsInARow + 1;
       return letter;
     };
   }
