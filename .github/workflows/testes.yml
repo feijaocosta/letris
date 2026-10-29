@@ -1,0 +1,48 @@
+name: Testes de regressão
+
+# Roda os testes (tests/) em todo PR para a main. Se algum problema já
+# corrigido voltar, o PR fica vermelho antes de chegar ao site.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar o navegador dos testes
+        run: npx playwright install --with-deps chromium
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Testes
+        run: npm test
+
+      - name: Relatório (quando falhar)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

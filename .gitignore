@@ -10,3 +10,8 @@ dev-dist/
 *.log
 .env
 .env.local
+
+# Testes (Playwright)
+dist-e2e/
+test-results/
+playwright-report/

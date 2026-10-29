@@ -5,7 +5,10 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 ## Regras de trabalho
 - **Sempre criar um branch novo** para qualquer mudança e abrir PR para a `main`. Nunca commitar direto na `main`.
 - Conversar em português do Brasil; commits e PRs também em português.
-- Antes de abrir PR: `npm ci` + `npm run build` e, se mexer em layout, testar o build servido na raiz `/` em tamanhos de celular (390×844, 390×660, 375×560).
+- Antes de abrir PR: `npm ci` + `npm run build` + `npm test` (testes de regressão, ver `tests/README.md`) e, se mexer em layout, testar o build servido na raiz `/` em tamanhos de celular (390×844, 390×660, 375×560).
+- **Todo bug corrigido ganha um teste de regressão** em `tests/` (com o número do PR no nome) que falha sem a correção. Mudança de regra do jogo atualiza o teste correspondente.
+- **Antes de começar cada sprint/PR, explicar o que será feito e esperar o OK do Feijão.**
+- **O Feijão testa localmente antes de mesclar.** No PR, dizer o nome do branch e o que conferir à mão.
 
 ## Estrutura
 - `App.tsx` (raiz: alterna entrada/jogo, abre "Como jogar", guarda o modo de controle) e `src/main.tsx` (entrada)
@@ -29,6 +32,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - `hooks/useAppUpdate.ts` + `components/UpdateBanner.tsx` — detecta versão nova e mostra botão "Atualizar"
 - `styles/globals.css` — tema Tailwind e regras de altura/safe-area
 - `components/ui/` — componentes shadcn gerados; evitar mexer
+- `tests/` + `playwright.config.ts` — testes de regressão (lógica sem navegador e o jogo no Chromium/WebKit); `.github/workflows/testes.yml` roda em todo PR
 
 ## Decisões já tomadas (não desfazer)
 - **Deploy:** `.github/workflows/deploy.yml` faz build e publica `dist/` no branch `gh-pages` a cada push na `main`. `npm run deploy` manual não é mais necessário.
@@ -50,6 +54,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Altura no mobile:** `body` com `position: fixed; inset: 0`; área do jogo `h-full` com classe `.safe-area` (env(safe-area-inset-*)). Não usar `h-screen`, `100vh`, `max-h-screen` nem `-webkit-fill-available`.
 - **Ícone:** o oficial é `public/pwa-512x512.png` (blocos coloridos formando LETRIS). `pwa-192x192.png`, `apple-touch-icon.png` (180), `favicon-32x32.png` e `favicon.ico` são gerados a partir dele; não usar outro desenho.
 - **Tamanho do tabuleiro:** calculado em px com ResizeObserver. Não voltar para container queries (`cqh`): o Safari do iPhone não atualizava quando a lista de palavras crescia e o tabuleiro cobria as palavras.
+- **Testes:** Playwright (`@playwright/test` com versão fixa). Os testes do jogo usam o build com `LETRIS_E2E=1` (`dist-e2e/`), que expõe `window.__letris` (estado, montar tabuleiro, trocar peça e lista do nível); no build publicado `__E2E__` é `false` e o gancho some. Não testar mexendo nos internos do React.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** em `data/words.json`, MAIÚSCULAS sem acento/Ç (o jogo ignora acentos), ordem alfabética, só português, sem marcas; o build falha se alguma regra quebrar ou se um nível não tiver palavras suficientes.
 
@@ -61,6 +66,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #22: testes de regressão automáticos (Playwright) e workflow de testes nos PRs
 - PR #21: tabuleiro ficava por cima da lista de palavras no iPhone
 - PR #20: só valem palavras da lista (caça-palavras), comemoração de fim de nível com anúncio, link da Vitrine
 - PR #19: Google Analytics 4 com consentimento (LGPD), eventos do jogo e política de privacidade
