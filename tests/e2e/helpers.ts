@@ -41,10 +41,16 @@ export const test = base.extend<Options & Fixtures>({
       if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text())) problems.push(`CSP: ${msg.text()}`);
     });
     await page.addInitScript(({ consent, controlMode }) => {
-      if (sessionStorage.getItem('letris:test-init')) return; // só na primeira carga
-      sessionStorage.setItem('letris:test-init', '1');
-      if (consent) localStorage.setItem('letris:consent', JSON.stringify(consent));
-      localStorage.setItem('letris:controlMode', JSON.stringify(controlMode));
+      // try: páginas internas do navegador (ex.: erro de rede no teste
+      // offline) não deixam ler o armazenamento e não devem contar como erro
+      try {
+        if (sessionStorage.getItem('letris:test-init')) return; // só na primeira carga
+        sessionStorage.setItem('letris:test-init', '1');
+        if (consent) localStorage.setItem('letris:consent', JSON.stringify(consent));
+        localStorage.setItem('letris:controlMode', JSON.stringify(controlMode));
+      } catch {
+        // sem armazenamento nesta página
+      }
     }, { consent, controlMode });
     await use(page);
     expect(problems, 'a página não pode ter erros de JavaScript nem de CSP').toEqual([]);
