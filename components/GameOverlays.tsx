@@ -4,6 +4,7 @@ import {
   ControlModeToggle, IconStar, Label, Logo, Panel, StatCard, Tile, TILE_COLORS, WordChip,
   type ControlMode,
 } from './LetrisUI';
+import { useI18n } from '../lib/i18n';
 
 // Telas que aparecem por cima do jogo: pausa, fim de nível e fim de jogo.
 
@@ -52,29 +53,30 @@ interface PauseMenuProps {
 }
 
 export function PauseMenu({ controlMode, onControlModeChange, onResume, onHelp, onRestart, onHome }: PauseMenuProps) {
+  const { t } = useI18n();
   return (
     <Screen dim>
       <div className="flex-1" />
       <div className="bg-ink border border-line rounded-3xl px-5 py-6 flex flex-col gap-5">
         <div className="flex justify-center"><Logo size={30} gap={4} /></div>
-        <h2 className="m-0 text-center text-[26px] font-black">Pausado</h2>
+        <h2 className="m-0 text-center text-[26px] font-black">{t('pause.title')}</h2>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-xs">COMO VOCÊ QUER JOGAR?</Label>
+          <Label className="text-xs">{t('pause.howToPlayQuestion')}</Label>
           <ControlModeToggle value={controlMode} onChange={onControlModeChange} />
           <span className="text-[13px] font-semibold text-soft text-center">
-            Dá para trocar a qualquer momento. O jogo lembra a sua escolha.
+            {t('pause.controlsHint')}
           </span>
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <PrimaryButton onClick={onResume}>Continuar</PrimaryButton>
+          <PrimaryButton onClick={onResume}>{t('pause.resume')}</PrimaryButton>
           <div className="grid grid-cols-2 gap-2.5">
-            <SecondaryButton onClick={onHelp}>Como jogar</SecondaryButton>
-            <SecondaryButton onClick={onRestart}>Novo jogo</SecondaryButton>
+            <SecondaryButton onClick={onHelp}>{t('common.howToPlay')}</SecondaryButton>
+            <SecondaryButton onClick={onRestart}>{t('pause.newGame')}</SecondaryButton>
           </div>
           <button type="button" onClick={onHome} className="h-11 text-soft text-[15px] font-extrabold">
-            Voltar ao início
+            {t('pause.home')}
           </button>
         </div>
       </div>
@@ -86,6 +88,7 @@ export function PauseMenu({ controlMode, onControlModeChange, onResume, onHelp, 
 // ---------- Comemoração (entre a última palavra e o resumo) ----------
 
 export function LevelSplash({ level, words }: { level: number; words: string[] }) {
+  const { t } = useI18n();
   const last = words[words.length - 1];
   return (
     <div className="fixed inset-0 z-30 bg-ink/85 safe-area flex items-center justify-center px-6 animate-[fade-in_.25s_ease-out]">
@@ -98,8 +101,8 @@ export function LevelSplash({ level, words }: { level: number; words: string[] }
           ))}
         </div>
         <div>
-          <h1 className="m-0 text-[34px] font-black leading-tight">Meta batida!</h1>
-          <span className="text-base font-bold text-soft">Nível {level} concluído</span>
+          <h1 className="m-0 text-[34px] font-black leading-tight">{t('levelSplash.title')}</h1>
+          <span className="text-base font-bold text-soft">{t('levelSplash.subtitle', { level })}</span>
         </div>
         <div className="flex flex-wrap justify-center gap-1.5">
           {words.map((word, i) => (
@@ -134,6 +137,7 @@ interface LevelCompleteProps {
 }
 
 export function LevelComplete(p: LevelCompleteProps) {
+  const { t, n, rich } = useI18n();
   return (
     <Screen>
       <div className="flex flex-col items-center gap-1.5 pt-2">
@@ -144,28 +148,30 @@ export function LevelComplete(p: LevelCompleteProps) {
             </div>
           ))}
         </div>
-        <h1 className="m-0 text-[28px] font-black text-center">Nível {p.level} concluído!</h1>
-        <span className="text-[15px] font-bold text-soft">Você bateu a meta de {p.requiredWords} palavras</span>
+        <h1 className="m-0 text-[28px] font-black text-center">{t('levelComplete.title', { level: p.level })}</h1>
+        <span className="text-[15px] font-bold text-soft">{t('levelComplete.subtitle', { count: p.requiredWords })}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="PALAVRAS" value={p.words} />
-        <StatCard label="PONTOS" value={p.points.toLocaleString('pt-BR')} />
-        <StatCard label="LINHAS" value={p.lines} />
+        <StatCard label={t('levelComplete.words')} value={p.words} />
+        <StatCard label={t('levelComplete.points')} value={n(p.points)} />
+        <StatCard label={t('levelComplete.lines')} value={p.lines} />
       </div>
       {p.levelBonus > 0 && (
         <span className="-mt-1.5 text-center text-[13px] font-bold text-soft">
-          inclui <span className="text-tile-yellow font-black">+{p.levelBonus.toLocaleString('pt-BR')}</span> de bônus por concluir o nível
+          {rich('levelComplete.bonus', { bonus: <span className="text-tile-yellow font-black">+{n(p.levelBonus)}</span> })}
         </span>
       )}
 
       <Panel className="p-3 flex flex-col gap-2">
         <span className="text-[13px] font-extrabold text-soft">
-          Próximo: <span className="text-white font-black">Nível {p.nextLevel} · {p.nextPoolName}</span> · meta {p.nextRequiredWords} palavras
+          {t('levelComplete.nextLabel')}{' '}
+          <span className="text-white font-black">{t('levelComplete.nextLevel', { level: p.nextLevel, pool: p.nextPoolName })}</span>
+          {' · '}{t('levelComplete.nextGoal', { count: p.nextRequiredWords })}
         </span>
         {p.newLetters.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-extrabold text-soft">Letras novas</span>
+            <span className="text-xs font-extrabold text-soft">{t('levelComplete.newLetters')}</span>
             {p.newLetters.map((letter, i) => (
               <Tile key={letter} letter={letter} color={TILE_COLORS[i % TILE_COLORS.length]} size={26} />
             ))}
@@ -176,7 +182,7 @@ export function LevelComplete(p: LevelCompleteProps) {
       <AdBanner />
 
       <div className="flex-1" />
-      <PrimaryButton onClick={p.onContinue}>Próximo nível</PrimaryButton>
+      <PrimaryButton onClick={p.onContinue}>{t('levelComplete.continue')}</PrimaryButton>
     </Screen>
   );
 }
@@ -196,29 +202,30 @@ interface GameOverProps {
 }
 
 export function GameOver({ score, level, words, isNewRecord, busy, onRestart, onHome }: GameOverProps) {
+  const { t, n } = useI18n();
   return (
     <Screen>
       <div className="flex flex-col items-center gap-1 pt-2">
-        <h1 className="m-0 text-[28px] font-black">Fim de jogo</h1>
-        <span className="text-[15px] font-bold text-soft">As peças chegaram ao topo no nível {level}</span>
+        <h1 className="m-0 text-[28px] font-black">{t('gameOver.title')}</h1>
+        <span className="text-[15px] font-bold text-soft">{t('gameOver.subtitle', { level })}</span>
       </div>
 
       <Panel className="p-4 flex flex-col items-center gap-1">
-        <Label className="text-xs">PONTUAÇÃO</Label>
-        <span className="text-[44px] font-black leading-none">{score.toLocaleString('pt-BR')}</span>
+        <Label className="text-xs">{t('gameOver.score')}</Label>
+        <span className="text-[44px] font-black leading-none">{n(score)}</span>
         {isNewRecord && (
-          <span className="mt-1 px-3 py-1 rounded-full bg-tile-yellow text-ink text-[13px] font-black">Novo recorde!</span>
+          <span className="mt-1 px-3 py-1 rounded-full bg-tile-yellow text-ink text-[13px] font-black">{t('gameOver.newRecord')}</span>
         )}
       </Panel>
 
       <div className="flex flex-col gap-1.5">
-        <Label className="text-xs">PALAVRAS QUE VOCÊ FORMOU · {words.length}</Label>
+        <Label className="text-xs">{t('gameOver.wordsFormed', { count: words.length })}</Label>
         {words.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {words.map(word => <WordChip key={word} word={word} found />)}
           </div>
         ) : (
-          <span className="text-sm font-semibold text-faint">Nenhuma desta vez. Na próxima!</span>
+          <span className="text-sm font-semibold text-faint">{t('gameOver.noWords')}</span>
         )}
       </div>
 
@@ -226,8 +233,8 @@ export function GameOver({ score, level, words, isNewRecord, busy, onRestart, on
 
       <div className="flex-1" />
       <div className="flex flex-col gap-2.5">
-        <PrimaryButton onClick={onRestart} disabled={busy}>Jogar de novo</PrimaryButton>
-        <SecondaryButton onClick={onHome}>Início</SecondaryButton>
+        <PrimaryButton onClick={onRestart} disabled={busy}>{t('gameOver.playAgain')}</PrimaryButton>
+        <SecondaryButton onClick={onHome}>{t('gameOver.home')}</SecondaryButton>
       </div>
     </Screen>
   );

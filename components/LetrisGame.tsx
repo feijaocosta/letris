@@ -3,7 +3,7 @@ import type { PointerEvent } from 'react';
 import { GameBoard, type Cell } from './GameBoard';
 import { createRandomPiece, canPlacePiece, rotatePiece, type TetrisPiece } from './TetrisPieces';
 import { findWords, removeWords, highlightWords } from './WordDetector';
-import { ScoreSystem, type ScoredWord } from './ScoreSystem';
+import { ScoreSystem, type ScoreLabel, type ScoredWord } from './ScoreSystem';
 import { WordLibrary } from './WordLibrary';
 import { GameOver, LevelComplete, LevelSplash, PauseMenu } from './GameOverlays';
 import {
@@ -14,6 +14,7 @@ import { useBoardGestures } from '../hooks/useBoardGestures';
 import { adBreakNext } from '../lib/ads';
 import { track } from '../lib/analytics';
 import { KEYS, load, save } from '../lib/storage';
+import { useI18n, type MessageKey } from '../lib/i18n';
 
 const GRID_WIDTH = 10;
 const GRID_HEIGHT = 20;
@@ -74,6 +75,7 @@ interface LetrisGameProps {
 }
 
 export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
+  const { t, n } = useI18n();
   const [grid, setGrid] = useState<Cell[][]>(createEmptyGrid);
   const [currentPiece, setCurrentPiece] = useState<TetrisPiece | null>(null);
   const [nextPiece, setNextPiece] = useState<TetrisPiece | null>(null);
@@ -88,7 +90,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
   // Lista sorteada do nível (as que contam para a meta)
   const [levelWords, setLevelWords] = useState<string[]>([]);
   // Aviso de pontos na tela ("+150", "Combo ×1,5"...)
-  const [popup, setPopup] = useState<{ id: number; points: number; labels: string[] } | null>(null);
+  const [popup, setPopup] = useState<{ id: number; points: number; labels: ScoreLabel[] } | null>(null);
   const [levelBonus, setLevelBonus] = useState(0);
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
   // playing → ending (palavra brilhando) → splash (comemoração) → summary (resumo)
@@ -160,7 +162,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
   const newPiece = () => createRandomPiece(() => letterGenRef.current());
 
-  const showPopup = useCallback((points: number, labels: string[]) => {
+  const showPopup = useCallback((points: number, labels: ScoreLabel[]) => {
     setPopup({ id: Date.now(), points, labels });
     if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
     popupTimeoutRef.current = setTimeout(() => setPopup(null), 1400);
@@ -615,13 +617,13 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
         <div className="flex items-center gap-2 h-11 shrink-0">
           <Logo size={20} />
           <div className="flex-1 flex justify-end gap-2.5 text-sm font-extrabold text-soft whitespace-nowrap">
-            <span>Nv <span className="text-white font-black">{level}</span></span>
-            <span><span className="text-white font-black">{score.toLocaleString('pt-BR')}</span> pts</span>
-            <span><span className="text-white font-black">{linesCleared}</span> lin</span>
+            <span>{t('game.levelShort')} <span className="text-white font-black">{level}</span></span>
+            <span><span className="text-white font-black">{n(score)}</span> {t('game.pointsShort')}</span>
+            <span><span className="text-white font-black">{linesCleared}</span> {t('game.linesShort')}</span>
           </div>
           <button
             type="button"
-            aria-label="Pausar"
+            aria-label={t('game.pause')}
             onClick={() => { if (levelPhase === 'playing') setIsPaused(true); }}
             className="w-11 h-11 rounded-full bg-panel flex items-center justify-center shrink-0"
           >
@@ -631,7 +633,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
         {/* Meta do nível */}
         <div className="flex items-center gap-2.5 h-5 shrink-0">
-          <Label className="text-xs">META</Label>
+          <Label className="text-xs">{t('game.goal')}</Label>
           <div className="flex-1 h-2.5 rounded-full bg-panel overflow-hidden">
             <div className="h-full rounded-full bg-tile-green transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
@@ -645,11 +647,11 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
             {popup && (
               <div key={popup.id} className="pointer-events-none absolute inset-x-0 top-1/3 flex flex-col items-center gap-1">
                 <span className="px-4 py-1.5 rounded-full bg-tile-yellow text-ink text-xl font-black shadow-lg">
-                  +{popup.points.toLocaleString('pt-BR')}
+                  +{n(popup.points)}
                 </span>
                 {popup.labels.length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full bg-ink/90 text-white text-xs font-extrabold">
-                    {popup.labels.join(' · ')}
+                    {popup.labels.map(label => t(label.key, label.vars)).join(' · ')}
                   </span>
                 )}
               </div>
@@ -658,7 +660,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
           <aside className={`${controlMode === 'gestures' ? 'w-[68px]' : 'w-[84px]'} shrink-0 flex flex-col gap-2.5`}>
             <Panel className="py-2.5 px-1.5 flex flex-col items-center gap-2">
-              <span className="text-[10px] font-extrabold tracking-wide text-soft">PRÓXIMA</span>
+              <span className="text-[10px] font-extrabold tracking-wide text-soft">{t('game.next')}</span>
               {nextPiece && (
                 <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${nextPiece.shape[0].length}, 16px)` }}>
                   {nextPiece.shape.flatMap((row, r) => row.map((filled, c) => filled
@@ -668,7 +670,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
               )}
             </Panel>
             <Panel className="py-2.5 px-1.5 flex flex-col items-center gap-2 min-h-0 overflow-hidden">
-              <span className="text-[10px] font-extrabold tracking-wide text-soft">LETRAS</span>
+              <span className="text-[10px] font-extrabold tracking-wide text-soft">{t('game.letters')}</span>
               <div className="grid grid-cols-3 gap-0.5">
                 {currentLetters.map((letter, i) => (
                   <Tile key={letter} letter={letter} color={TILE_COLORS[i % TILE_COLORS.length]} size={controlMode === 'gestures' ? 16 : 18} />
@@ -687,25 +689,25 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
         {controlMode === 'buttons' ? (
           <div className="flex items-center justify-between h-[72px] shrink-0 select-none game-controls">
             <div className="flex gap-[3px]">
-              <button aria-label="Mover para a esquerda" {...controlButton(() => movePiece(-1, 0))}
+              <button aria-label={t('game.moveLeft')} {...controlButton(() => movePiece(-1, 0))}
                 className="btn-3d w-16 h-16 rounded-l-[20px] rounded-r-md bg-panel text-white flex items-center justify-center">
                 <IconLeft size={28} />
               </button>
-              <button aria-label="Descer" {...softDropButton}
+              <button aria-label={t('game.moveDown')} {...softDropButton}
                 className="btn-3d w-16 h-16 rounded-md bg-panel text-white flex items-center justify-center">
                 <IconDown size={28} />
               </button>
-              <button aria-label="Mover para a direita" {...controlButton(() => movePiece(1, 0))}
+              <button aria-label={t('game.moveRight')} {...controlButton(() => movePiece(1, 0))}
                 className="btn-3d w-16 h-16 rounded-r-[20px] rounded-l-md bg-panel text-white flex items-center justify-center">
                 <IconRight size={28} />
               </button>
             </div>
             <div className="flex gap-3">
-              <button aria-label="Girar" {...controlButton(rotatePieceHandler)}
+              <button aria-label={t('game.rotate')} {...controlButton(rotatePieceHandler)}
                 className="btn-3d w-[66px] h-[66px] rounded-full bg-tile-yellow text-ink flex items-center justify-center">
                 <IconRotate size={30} />
               </button>
-              <button aria-label="Soltar peça" {...controlButton(dropPiece)}
+              <button aria-label={t('game.drop')} {...controlButton(dropPiece)}
                 className="btn-3d w-[66px] h-[66px] rounded-full bg-tile-red text-white flex items-center justify-center">
                 <IconDrop size={30} />
               </button>
@@ -713,9 +715,9 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           </div>
         ) : (
           <div className="flex justify-center gap-3.5 h-6 items-center shrink-0 text-xs font-extrabold text-soft">
-            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconSwipe size={16} /></span>deslize: mover</span>
-            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconTap size={16} /></span>toque: girar</span>
-            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconSwipeDown size={16} /></span>arraste ↓: acelerar</span>
+            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconSwipe size={16} /></span>{t('game.hintSwipe')}</span>
+            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconTap size={16} /></span>{t('game.hintTap')}</span>
+            <span className="flex items-center gap-1"><span className="text-tile-yellow"><IconSwipeDown size={16} /></span>{t('game.hintDrag')}</span>
           </div>
         )}
       </div>
@@ -742,7 +744,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           lines={linesCleared - levelStart.lines}
           levelBonus={levelBonus}
           nextLevel={nextLevel}
-          nextPoolName={WordLibrary.getPoolNameForLevel(nextLevel)}
+          nextPoolName={t(`pools.${WordLibrary.getPoolNameForLevel(nextLevel)}` as MessageKey)}
           nextRequiredWords={WordLibrary.getRequiredWordsForLevel(nextLevel)}
           newLetters={newLetters}
           onContinue={continueToNextLevel}

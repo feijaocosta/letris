@@ -1,5 +1,6 @@
 import { ControlModeToggle, IconPlay, Label, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
 import { KEYS, load } from '../lib/storage';
+import { useI18n } from '../lib/i18n';
 
 // Letras soltas de enfeite: [letra, cor, tamanho, esquerda %, topo %, rotação]
 const DECOR: Array<[string, TileColor, number, number, number, number]> = [
@@ -20,6 +21,7 @@ interface HomeScreenProps {
 export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
   const bestScore = load(KEYS.bestScore, 0);
   const bestLevel = load(KEYS.bestLevel, 1);
+  const { t, n } = useI18n();
 
   return (
     <div className="h-full w-full bg-ink text-white safe-area overflow-hidden">
@@ -33,20 +35,20 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
 
         <div className="relative flex-1 min-h-[140px] flex flex-col items-center justify-center gap-3.5">
           <Logo size={48} gap={6} />
-          <p className="m-0 text-[17px] font-bold text-soft text-center">Encaixe as peças e forme palavras</p>
+          <p className="m-0 text-[17px] font-bold text-soft text-center">{t('home.tagline')}</p>
           {!isOnline && (
-            <span className="px-3 py-1 rounded-full bg-panel text-xs font-extrabold text-soft">Sem internet · o jogo funciona offline</span>
+            <span className="px-3 py-1 rounded-full bg-panel text-xs font-extrabold text-soft">{t('home.offline')}</span>
           )}
         </div>
 
         <div className="relative flex flex-col gap-3.5">
           <div className="grid grid-cols-2 gap-2.5">
-            <StatCard label="RECORDE" value={bestScore.toLocaleString('pt-BR')} />
-            <StatCard label="MELHOR NÍVEL" value={bestLevel} />
+            <StatCard label={t('home.bestScore')} value={n(bestScore)} />
+            <StatCard label={t('home.bestLevel')} value={bestLevel} />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-center">CONTROLES</Label>
+            <Label className="text-xs text-center">{t('home.controls')}</Label>
             <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
           </div>
 
@@ -56,16 +58,16 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
             className="btn-3d h-[68px] rounded-[20px] bg-tile-green text-white text-2xl font-black tracking-wide flex items-center justify-center gap-2.5"
           >
             <IconPlay size={26} />
-            JOGAR
+            {t('home.play')}
           </button>
           <button type="button" onClick={onHelp} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
-            Como jogar
+            {t('common.howToPlay')}
           </button>
           <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint">
-            <span>Versão {__APP_VERSION__}</span>
+            <span>{t('home.version', { version: __APP_VERSION__ })}</span>
             <span aria-hidden="true">·</span>
             <button type="button" onClick={onPrivacy} className="min-h-0 min-w-0 py-1 underline font-extrabold text-soft">
-              Privacidade
+              {t('home.privacy')}
             </button>
           </div>
         </div>

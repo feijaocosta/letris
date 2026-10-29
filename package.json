@@ -6,10 +6,10 @@
   "homepage": "https://letris.kingdomapps.net",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-words.mjs && vite build",
+    "build": "node scripts/check-words.mjs && node scripts/check-locales.mjs && vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
-    "build:e2e": "node scripts/check-words.mjs && LETRIS_E2E=1 vite build --outDir dist-e2e",
+    "build:e2e": "node scripts/check-words.mjs && node scripts/check-locales.mjs && LETRIS_E2E=1 vite build --outDir dist-e2e",
     "test": "playwright test --project=logica --project=chromium",
     "test:safari": "playwright test --project=safari",
     "test:ui": "playwright test --ui --project=logica --project=chromium"
