@@ -1,6 +1,7 @@
 import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import pt from '../locales/pt.json';
 import { KEYS, load, save } from './storage';
+import { DEFAULT_LANG, LANGUAGE_CONFIGS, LANGUAGE_LIST, type Lang } from '../config/languages';
 
 // Textos da interface. Cada idioma é um JSON em locales/ com as MESMAS chaves
 // (em inglês, agrupadas por tela: "home.play", "pause.resume"...). O
@@ -11,36 +12,28 @@ import { KEYS, load, save } from './storage';
 //
 // Idioma ao abrir: ?lang= na URL → escolha salva no aparelho → idiomas do
 // navegador → inglês (se existir) → português. Só entram idiomas prontos
-// (que estão em LANGS).
+// (config/languages.json).
 
-export type Lang = 'pt';
-
-interface LangInfo {
-  /** Locale para números e datas (Intl) e para o atributo lang do HTML */
-  locale: string;
-  /** Nome no próprio idioma (seletor) */
-  label: string;
-  messages: Messages;
-}
+export type { Lang };
 
 type Messages = { [key: string]: string | Messages };
 
-const LANGS: Record<Lang, LangInfo> = {
-  pt: { locale: 'pt-BR', label: 'Português', messages: pt },
-};
+// Textos de cada idioma (o build confere que todo idioma de
+// config/languages.json tem o seu locale)
+const MESSAGES: Record<Lang, Messages> = { pt };
 
-const FALLBACK: Lang = 'pt';
+const FALLBACK: Lang = DEFAULT_LANG;
 
 /** Idiomas prontos, na ordem do seletor */
-export const LANGUAGES = (Object.keys(LANGS) as Lang[]).map(code => ({ code, label: LANGS[code].label }));
+export const LANGUAGES = LANGUAGE_LIST.map(({ code, label }) => ({ code, label }));
 
-const isLang = (value: string): value is Lang => value in LANGS;
+const isLang = (value: string): value is Lang => value in LANGUAGE_CONFIGS;
 const baseOf = (tag: string) => tag.toLowerCase().split(/[-_]/)[0];
 
 /** Escolhe o idioma entre os disponíveis (função pura, testada em tests/logica). */
 export function detectLanguage(
   { param, saved, browser }: { param?: string | null; saved?: string | null; browser?: readonly string[] },
-  available: readonly string[] = Object.keys(LANGS),
+  available: readonly string[] = Object.keys(LANGUAGE_CONFIGS),
 ): string {
   const pick = (tag?: string | null) => (tag && available.includes(baseOf(tag)) ? baseOf(tag) : null);
   return pick(param) ?? pick(saved) ?? (browser ?? []).map(pick).find(Boolean)
@@ -83,7 +76,7 @@ function lookup(messages: Messages, key: string): string | undefined {
 }
 
 export function translate(lang: Lang, key: MessageKey, vars?: Vars): string {
-  const text = lookup(LANGS[lang].messages, key) ?? lookup(LANGS[FALLBACK].messages, key) ?? key;
+  const text = lookup(MESSAGES[lang], key) ?? lookup(MESSAGES[FALLBACK], key) ?? key;
   if (!vars) return text;
   return text.replace(/\{(\w+)\}/g, (match, name) => (name in vars ? formatValue(lang, vars[name]) : match));
 }
@@ -103,7 +96,7 @@ function formatValue(lang: Lang, value: string | number): string {
 }
 
 export function formatNumber(lang: Lang, value: number): string {
-  return value.toLocaleString(LANGS[lang].locale);
+  return value.toLocaleString(LANGUAGE_CONFIGS[lang].locale);
 }
 
 // ---------- React ----------
@@ -123,7 +116,7 @@ function makeI18n(lang: Lang, setLang: (lang: Lang) => void = () => {}): I18n {
   return {
     lang,
     setLang,
-    locale: LANGS[lang].locale,
+    locale: LANGUAGE_CONFIGS[lang].locale,
     t: (key, vars) => translate(lang, key, vars),
     rich: (key, vars) => translateRich(lang, key, vars),
     n: value => formatNumber(lang, value),
@@ -142,7 +135,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = LANGS[lang].locale;
+    document.documentElement.lang = LANGUAGE_CONFIGS[lang].locale;
     document.title = translate(lang, 'meta.title');
   }, [lang]);
 

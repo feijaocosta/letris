@@ -4,7 +4,7 @@ import { GameBoard, type Cell } from './GameBoard';
 import { createRandomPiece, canPlacePiece, rotatePiece, type TetrisPiece } from './TetrisPieces';
 import { findWords, removeWords, highlightWords } from './WordDetector';
 import { ScoreSystem, type ScoreLabel, type ScoredWord } from './ScoreSystem';
-import { WordLibrary } from './WordLibrary';
+import type { WordLibrary } from './WordLibrary';
 import { GameOver, LevelComplete, LevelSplash, PauseMenu } from './GameOverlays';
 import {
   IconDown, IconDrop, IconLeft, IconPause, IconRight, IconRotate, IconSwipe, IconSwipeDown, IconTap,
@@ -68,13 +68,15 @@ const LEVEL_SPLASH_MS = 1600;
 const ROTATION_KICKS = [0, -1, 1, -2, 2];
 
 interface LetrisGameProps {
+  /** Banco de palavras do idioma da partida */
+  library: WordLibrary;
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onHome: () => void;
   onHelp: () => void;
 }
 
-export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
+export function LetrisGame({ library, controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
   const { t, n, lang } = useI18n();
   const bestScoreKey = recordKey('bestScore', lang);
   const bestLevelKey = recordKey('bestLevel', lang);
@@ -149,14 +151,14 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
   // Sorteia a lista do nível e prepara o gerador de letras com peso
   const setupLevel = (lvl: number) => {
-    const words = WordLibrary.drawWordsForLevel(lvl, usedWordsRef.current);
+    const words = library.drawWordsForLevel(lvl, usedWordsRef.current);
     words.forEach(w => usedWordsRef.current.add(w));
     levelWordsRef.current = words;
     setLevelWords(words);
     validWordsRef.current = new Set(words);
     foundTargetsRef.current = new Set();
     formedInLevelRef.current = new Set();
-    letterGenRef.current = WordLibrary.createLetterGenerator(
+    letterGenRef.current = library.createLetterGenerator(
       lvl,
       () => levelWordsRef.current.filter(w => !foundTargetsRef.current.has(w)),
     );
@@ -447,7 +449,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
   // Meta do nível atingida: congela o jogo com a palavra brilhando, mostra a
   // comemoração, chama o anúncio entre rodadas (se houver) e abre o resumo.
-  const requiredWords = WordLibrary.getRequiredWordsForLevel(level);
+  const requiredWords = library.getRequiredWordsForLevel(level);
   useEffect(() => {
     if (levelPhase === 'playing' && foundWordsList.length >= requiredWords) {
       const bonus = ScoreSystem.levelCompletePoints(level);
@@ -608,8 +610,8 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
 
   const progress = Math.min(100, (foundWordsList.length / requiredWords) * 100);
   const nextLevel = level + 1;
-  const currentLetters = WordLibrary.getAvailableLettersForLevel(level);
-  const newLetters = WordLibrary.getAvailableLettersForLevel(nextLevel).filter(l => !currentLetters.includes(l));
+  const currentLetters = library.getAvailableLettersForLevel(level);
+  const newLetters = library.getAvailableLettersForLevel(nextLevel).filter(l => !currentLetters.includes(l));
 
   return (
     <div className="h-full w-full bg-ink text-white flex justify-center game-area safe-area">
@@ -746,8 +748,8 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
           lines={linesCleared - levelStart.lines}
           levelBonus={levelBonus}
           nextLevel={nextLevel}
-          nextPoolName={t(`pools.${WordLibrary.getPoolNameForLevel(nextLevel)}` as MessageKey)}
-          nextRequiredWords={WordLibrary.getRequiredWordsForLevel(nextLevel)}
+          nextPoolName={t(`pools.${library.getPoolNameForLevel(nextLevel)}` as MessageKey)}
+          nextRequiredWords={library.getRequiredWordsForLevel(nextLevel)}
           newLetters={newLetters}
           onContinue={continueToNextLevel}
         />

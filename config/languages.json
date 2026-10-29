@@ -1,0 +1,12 @@
+{
+  "_comment": "Idiomas do jogo, na ordem do seletor. Cada um precisa de locales/<code>.json (textos) e data/words/<code>.json (banco). alphabet: letras válidas no banco; vowels: vogais para o sorteio de letras (regra de no máximo N consoantes seguidas). Validado por scripts/check-words.mjs.",
+  "languages": [
+    {
+      "code": "pt",
+      "label": "Português",
+      "locale": "pt-BR",
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "vowels": "AEIOU"
+    }
+  ]
+}

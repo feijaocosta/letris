@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { findWords } from '../../components/WordDetector';
 import { ScoreSystem } from '../../components/ScoreSystem';
 import { WordLibrary } from '../../components/WordLibrary';
+import { LANGUAGE_CONFIGS } from '../../config/languages';
+import ptBank from '../../data/words/pt.json';
 import { SPEED } from '../../config/gameplay';
 
 // Regras do jogo testadas sem navegador. Cada teste cita o PR que corrigiu
@@ -9,6 +11,7 @@ import { SPEED } from '../../config/gameplay';
 
 const board = (...rows: string[]) => rows.map(r => r.split('').map(c => ({ letter: c === '.' ? null : c })));
 const VOWELS = new Set('AEIOU');
+const library = new WordLibrary(ptBank, LANGUAGE_CONFIGS.pt);
 
 test.describe('palavras', () => {
   test('vale só a maior quando uma palavra está dentro de outra (PR #17)', () => {
@@ -31,7 +34,7 @@ test.describe('sorteio das palavras (PR #17)', () => {
   test('não repete palavras entre níveis da mesma partida', () => {
     const used = new Set<string>();
     for (let level = 1; level <= 10; level++) {
-      const words = WordLibrary.drawWordsForLevel(level, used);
+      const words = library.drawWordsForLevel(level, used);
       for (const w of words) {
         expect(used.has(w), `${w} repetida no nível ${level}`).toBe(false);
         used.add(w);
@@ -41,9 +44,9 @@ test.describe('sorteio das palavras (PR #17)', () => {
 
   test('cada nível sorteia palavras suficientes para a meta e só com letras liberadas', () => {
     for (let level = 1; level <= 12; level++) {
-      const words = WordLibrary.drawWordsForLevel(level, new Set());
-      const letters = new Set(WordLibrary.getAvailableLettersForLevel(level));
-      expect(words.length).toBeGreaterThanOrEqual(WordLibrary.getRequiredWordsForLevel(level));
+      const words = library.drawWordsForLevel(level, new Set());
+      const letters = new Set(library.getAvailableLettersForLevel(level));
+      expect(words.length).toBeGreaterThanOrEqual(library.getRequiredWordsForLevel(level));
       for (const w of words) {
         expect([...w].every(l => letters.has(l)), `${w} no nível ${level}`).toBe(true);
       }
@@ -52,15 +55,15 @@ test.describe('sorteio das palavras (PR #17)', () => {
 
   test('a partir do nível 2 já aparecem palavras maiores', () => {
     for (let level = 2; level <= 10; level++) {
-      const words = WordLibrary.drawWordsForLevel(level, new Set());
+      const words = library.drawWordsForLevel(level, new Set());
       expect(words.some(w => w.length >= 4), `nível ${level}: ${words.join(' ')}`).toBe(true);
     }
   });
 
   test('nunca saem mais de 3 consoantes seguidas', () => {
     for (const level of [1, 3, 6, 10]) {
-      const words = WordLibrary.drawWordsForLevel(level, new Set());
-      const next = WordLibrary.createLetterGenerator(level, () => words);
+      const words = library.drawWordsForLevel(level, new Set());
+      const next = library.createLetterGenerator(level, () => words);
       let run = 0;
       for (let i = 0; i < 1000; i++) {
         run = VOWELS.has(next()) ? 0 : run + 1;

@@ -11,6 +11,9 @@ import { initAds } from './lib/ads';
 import { track } from './lib/analytics';
 import { applyConsent, getConsent, setConsent, type Consent } from './lib/consent';
 import { KEYS, load, save } from './lib/storage';
+import { useI18n } from './lib/i18n';
+import { loadWordLibrary } from './lib/wordBanks';
+import type { WordLibrary } from './components/WordLibrary';
 
 export default function App() {
   const { isOnline, isStandalone } = usePWA();
@@ -21,6 +24,9 @@ export default function App() {
   const [controlMode, setControlModeState] = useState<ControlMode>(() => load(KEYS.controlMode, 'buttons'));
   const [consent, setConsentState] = useState<Consent>(getConsent);
   const [consentOpen, setConsentOpen] = useState(() => getConsent() === null);
+  const { lang } = useI18n();
+  // Banco de palavras da partida (do idioma escolhido)
+  const [library, setLibrary] = useState<WordLibrary | null>(null);
 
   const setControlMode = (mode: ControlMode) => {
     if (mode !== controlMode) track('control_mode_change', { control_mode: mode });
@@ -85,8 +91,20 @@ export default function App() {
     };
   }, []);
 
-  const play = () => {
+  // Já carrega o banco do idioma na entrada, para o JOGAR começar na hora
+  useEffect(() => {
+    loadWordLibrary(lang).catch(() => {});
+  }, [lang]);
+
+  const play = async () => {
+    let words: WordLibrary;
+    try {
+      words = await loadWordLibrary(lang);
+    } catch {
+      return; // sem banco (offline antes do primeiro carregamento): fica na entrada
+    }
     track('game_start', { control_mode: controlMode });
+    setLibrary(words);
     setConsentOpen(false);
     setShowInstallPrompt(false);
     setGameKey(k => k + 1);
@@ -104,9 +122,10 @@ export default function App() {
           onPrivacy={() => setConsentOpen(true)}
           isOnline={isOnline}
         />
-      ) : (
+      ) : library && (
         <LetrisGame
           key={gameKey}
+          library={library}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onHome={() => setScreen('home')}
