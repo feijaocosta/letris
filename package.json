@@ -1,7 +1,7 @@
 {
   "name": "letris-game",
   "version": "1.0.0",
-  "description": "LETRIS - Jogo que combina Tetris com formação de palavras em português",
+  "description": "LETRIS - Jogo que mistura Tetris com caça-palavras, em português, inglês, espanhol e francês",
   "main": "index.js",
   "homepage": "https://letris.kingdomapps.net",
   "scripts": {
@@ -40,11 +40,13 @@
   "keywords": [
     "tetris",
     "palavras",
-    "português",
+    "caça-palavras",
+    "word game",
     "jogo",
+    "pwa",
     "react",
     "typescript"
   ],
-  "author": "Seu Nome",
+  "author": "Kingdom Apps",
   "license": "MIT"
 }

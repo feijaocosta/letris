@@ -96,9 +96,11 @@ export default defineConfig({
         navigateFallbackDenylist: [/version\.json/, /ads\.txt/],
       },
       manifest: {
-        name: 'Letris - O Jogo de Palavras',
+        // Um manifest só para todos os idiomas: nome igual em todos e
+        // descrição em inglês, citando os idiomas do jogo
+        name: 'LETRIS',
         short_name: 'Letris',
-        description: 'Um jogo divertido que combina Tetris com formação de palavras em português.',
+        description: 'Fit the falling pieces and make words. Play in Portuguese, English, Spanish or French.',
         theme_color: '#2a1f38',
         background_color: '#2a1f38',
         display: 'standalone',

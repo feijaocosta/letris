@@ -21,10 +21,10 @@ export function AdBanner() {
   const insRef = useRef<HTMLModElement>(null);
   const live = adsEnabled && ADS.bannerSlot !== '';
   const [status, setStatus] = useState<Status>(live ? 'pending' : 'unfilled');
-  const { t, lang } = useI18n();
-  // O anúncio próprio só existe em português por enquanto: em outro idioma
-  // cai no espaço reservado (nunca mostrar a arte em PT para quem joga em EN)
-  const houseAd = lang === 'pt' ? HOUSE_AD : null;
+  const { t } = useI18n();
+  // Por enquanto o anúncio próprio (arte em português) aparece em todos os
+  // idiomas. Quando houver arte por idioma, escolher aqui pelo idioma.
+  const houseAd = HOUSE_AD;
 
   useEffect(() => {
     if (!live) return;
