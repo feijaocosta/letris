@@ -2,7 +2,8 @@ import data from './languages.json';
 
 // Idiomas do jogo (regras em config/languages.json, que também é lido pelos
 // scripts de validação). Para um idioma novo: entrada no JSON, código no tipo
-// Lang, locales/<code>.json e data/words/<code>.json.
+// Lang, locales/<code>.json, data/words/<code>.json e a página de privacidade
+// em public/.
 
 export type Lang = 'pt' | 'en';
 
@@ -22,6 +23,8 @@ export interface LanguageConfig {
    * quando o jogo força uma vogal
    */
   extraVowels?: string;
+  /** Política de privacidade do idioma, em public/ */
+  privacyPage: string;
 }
 
 export const LANGUAGE_LIST = data.languages as LanguageConfig[];

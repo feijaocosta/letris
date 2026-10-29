@@ -123,3 +123,29 @@ test.describe('métricas', () => {
     }
   });
 });
+
+// Política de privacidade no idioma do jogo (sprint 4)
+test.describe('política de privacidade', () => {
+  test.use({ consent: null });
+
+  for (const [lang, file, heading] of [['pt', 'privacidade.html', 'Política de privacidade'], ['en', 'privacy.html', 'Privacy policy']] as const) {
+    test(`em ${lang}, o aviso de cookies leva para ${file}`, async ({ page }) => {
+      await page.goto(`/?lang=${lang}`);
+      const link = page.getByRole('link', { name: lang === 'pt' ? pt.consent.policy : en.consent.policy });
+      await expect(link).toHaveAttribute('href', new RegExp(`${file}$`));
+      await link.click();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+      expect(await page.evaluate(() => document.documentElement.lang)).toBe(lang === 'pt' ? 'pt-BR' : 'en');
+    });
+  }
+
+  test('as duas páginas apontam uma para a outra e voltam para o jogo', async ({ page }) => {
+    await page.goto('/privacidade.html');
+    await page.getByRole('link', { name: 'English' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Privacy policy');
+    await page.getByRole('link', { name: 'Português' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Política de privacidade');
+    await page.getByRole('link', { name: /Voltar ao jogo/ }).click();
+    await expect(page.getByRole('button', { name: pt.home.play, exact: true })).toBeVisible();
+  });
+});

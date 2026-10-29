@@ -28,3 +28,11 @@ test('idioma que ainda não está pronto é ignorado', () => {
   expect(detectLanguage({ param: 'en', saved: 'es', browser: ['fr'] }, ['pt'])).toBe('pt');
   expect(detectLanguage({ param: 'xx', saved: 'en' }, ['pt', 'en'])).toBe('en');
 });
+
+test('todo idioma tem política de privacidade em public/', async () => {
+  const { existsSync } = await import('node:fs');
+  const { LANGUAGE_LIST } = await import('../../config/languages');
+  for (const lang of LANGUAGE_LIST) {
+    expect(existsSync(`public/${lang.privacyPage}`), `${lang.code}: public/${lang.privacyPage}`).toBe(true);
+  }
+});

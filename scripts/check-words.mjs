@@ -4,7 +4,8 @@
 //
 // Regras de cada idioma (letras válidas, ordem alfabética) em
 // config/languages.json. Também confere que todo idioma tem banco e
-// textos (locales/<idioma>.json) e que não sobra arquivo de idioma sem uso.
+// textos (locales/<idioma>.json) e política de privacidade (public/), e que
+// não sobra arquivo de idioma sem uso.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { normalizeWord } from '../lib/normalize.mjs';
 
@@ -14,8 +15,13 @@ const errors = [];
 const warnings = [];
 const summary = [];
 
-// Idiomas, bancos e textos andam juntos
+// Idiomas, bancos, textos e política de privacidade andam juntos
 const codes = languages.map(l => l.code);
+for (const lang of languages) {
+  if (!lang.privacyPage || !existsSync(new URL(`../public/${lang.privacyPage}`, import.meta.url))) {
+    errors.push(`${lang.code}: falta a política de privacidade public/${lang.privacyPage ?? '(privacyPage)'}`);
+  }
+}
 for (const dir of ['data/words', 'locales']) {
   const files = readdirSync(new URL(`../${dir}`, import.meta.url)).filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
   for (const code of codes) if (!files.includes(code)) errors.push(`${code}: falta ${dir}/${code}.json`);
