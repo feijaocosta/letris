@@ -1,5 +1,6 @@
 import { test, expect, startGame, setLevelWords, type GameState } from './helpers';
 import type { Page } from '@playwright/test';
+import { LOCALES } from '../locales';
 
 // PR #7 (layout cortado no iPhone) e PR #21 (tabuleiro por cima das palavras).
 const SIZES = [
@@ -14,7 +15,7 @@ async function measure(page: Page) {
     const board = rect(document.querySelector('.bg-deep'))!;
     const words = rect(document.querySelector('.game-area .flex-wrap'))!;
     const controls = rect(document.querySelector('.game-controls'));
-    const pause = rect(document.querySelector('[aria-label="Pausar"]'))!;
+    const pause = rect(document.querySelector('.game-area .h-11 button'))!;
     return {
       board, words, controls, pause,
       scrollWidth: document.documentElement.scrollWidth,
@@ -48,6 +49,42 @@ for (const mode of ['buttons', 'gestures'] as const) {
         checkLayout(await measure(page));
       });
     }
+  });
+}
+
+// Sprint 2 do multilíngue: o seletor de idioma deixa a entrada mais alta
+for (const size of SIZES) {
+  test(`entrada em ${size.width}×${size.height}: tudo cabe, até a linha de versão e privacidade`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.goto('/');
+    const privacy = page.getByRole('button', { name: 'Privacidade' });
+    await expect(privacy).toBeVisible();
+    const box = (await privacy.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(size.width);
+  });
+}
+
+// Sprints 4 a 6: textos em outros idiomas (o francês é o mais longo) cabem
+// na tela menor, na entrada, no jogo e na pausa
+for (const [lang, locale] of Object.entries(LOCALES)) {
+  test(`375×560 em ${lang}: entrada, jogo e pausa sem nada cortado`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 560 });
+    await page.goto(`/?lang=${lang}`);
+    const privacy = page.getByRole('button', { name: locale.home.privacy });
+    const box = (await privacy.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(560);
+    await page.getByRole('button', { name: locale.home.play, exact: true }).click();
+    checkLayout(await measure(page));
+    // Placar do topo numa linha só
+    const header = await page.locator('.game-area .h-11').first().boundingBox();
+    expect(header!.height).toBeLessThanOrEqual(44);
+    await page.getByRole('button', { name: locale.game.pause }).click();
+    for (const name of [locale.pause.resume, locale.pause.newGame, locale.common.howToPlay]) {
+      const b = (await page.getByRole('button', { name, exact: true }).boundingBox())!;
+      expect(b.x + b.width, name).toBeLessThanOrEqual(375);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
   });
 }
 

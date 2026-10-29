@@ -1,0 +1,39 @@
+{
+  "_comment": "Idiomas do jogo, na ordem do seletor. Cada um precisa de locales/<code>.json (textos), data/words/<code>.json (banco) e da página de privacidade em public/ (privacyPage). alphabet: letras válidas no banco; vowels: vogais para o sorteio de letras; extraVowels (opcional): letras que contam como vogal só na regra de no máximo N consoantes seguidas (ex.: Y em inglês). Validado por scripts/check-words.mjs.",
+  "languages": [
+    {
+      "code": "pt",
+      "label": "Português",
+      "locale": "pt-BR",
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "privacyPage": "privacidade.html"
+    },
+    {
+      "code": "en",
+      "label": "English",
+      "locale": "en",
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "extraVowels": "Y",
+      "privacyPage": "privacy.html"
+    },
+    {
+      "code": "es",
+      "label": "Español",
+      "locale": "es",
+      "alphabet": "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "privacyPage": "privacidad.html"
+    },
+    {
+      "code": "fr",
+      "label": "Français",
+      "locale": "fr",
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "extraVowels": "Y",
+      "privacyPage": "confidentialite.html"
+    }
+  ]
+}

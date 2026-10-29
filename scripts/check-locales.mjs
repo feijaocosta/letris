@@ -3,7 +3,7 @@
 //  - um idioma não tiver exatamente as mesmas chaves do pt.json (referência)
 //  - um texto estiver vazio ou usar variáveis ({level}...) diferentes do PT
 //  - o código usar uma chave que não existe (ex.: t('home.plya'))
-//  - um grupo de níveis do data/words.json não tiver nome em "pools"
+//  - um grupo de níveis de data/words/*.json não tiver nome em "pools"
 // Avisa sobre chaves que ninguém usa.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -52,11 +52,14 @@ for (const file of sources) {
   }
 }
 
-// Nomes dos grupos de níveis vêm do banco de palavras e são traduzidos em "pools.*"
-const words = JSON.parse(readFileSync(join(root, 'data/words.json'), 'utf8'));
-for (const name of new Set(words.levels.map(l => l.name))) {
-  used.add(`pools.${name}`);
-  if (!pt.has(`pools.${name}`)) errors.push(`data/words.json: grupo "${name}" sem texto em "pools.${name}"`);
+// Nomes dos grupos de níveis vêm dos bancos de palavras e são traduzidos em "pools.*"
+const banksDir = join(root, 'data/words');
+for (const file of readdirSync(banksDir).filter(f => f.endsWith('.json'))) {
+  const bank = JSON.parse(readFileSync(join(banksDir, file), 'utf8'));
+  for (const name of new Set(bank.levels.map(l => l.name))) {
+    used.add(`pools.${name}`);
+    if (!pt.has(`pools.${name}`)) errors.push(`data/words/${file}: grupo "${name}" sem texto em "pools.${name}"`);
+  }
 }
 
 for (const key of pt.keys()) if (!used.has(key)) warnings.push(`"${key}" não é usada no código`);

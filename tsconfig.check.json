@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "allowJs": false },
+  "include": ["src", "*.tsx", "components/**/*", "lib/**/*", "hooks/**/*", "config/**/*"],
+  "exclude": ["components/ui/**/*"]
+}

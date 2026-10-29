@@ -28,12 +28,12 @@ export default defineConfig({
     {
       name: 'chromium',
       testDir: 'tests/e2e',
-      use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } },
+      use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, locale: 'pt-BR' },
     },
     {
       name: 'safari',
       testDir: 'tests/e2e',
-      use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } },
+      use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 }, locale: 'pt-BR' },
     },
   ],
 });

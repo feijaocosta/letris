@@ -108,6 +108,41 @@ export function ControlModeToggle({ value, onChange, compact = false }: {
   );
 }
 
+// Seletor de idioma discreto (canto da entrada): siglas PT, EN... com o nome
+// completo para leitores de tela
+export function LanguagePicker<T extends string>({ value, options, onChange }: {
+  value: T;
+  options: ReadonlyArray<{ code: T; label: string }>;
+  onChange: (code: T) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div
+      className="inline-flex gap-0.5 bg-deep rounded-full p-0.5"
+      role="radiogroup"
+      aria-label={t('home.language')}
+    >
+      {options.map(({ code, label }) => {
+        const selected = value === code;
+        return (
+          <button
+            key={code}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-label={label}
+            title={label}
+            onClick={() => onChange(code)}
+            className={`h-9 min-h-0 min-w-0 w-11 rounded-full text-xs font-black tracking-wide ${selected ? 'bg-panel text-white' : 'text-faint'}`}
+          >
+            {code.toUpperCase()}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WordChip({ word, found }: { word: string; found: boolean }) {
   return (
     <span

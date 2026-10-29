@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "title": "LETRIS - Tetris con Palabras"
+  },
+  "common": {
+    "back": "Volver",
+    "howToPlay": "Cómo jugar",
+    "gotIt": "Entendido"
+  },
+  "home": {
+    "tagline": "Encaja las piezas y forma palabras",
+    "offline": "Sin internet · el juego funciona sin conexión",
+    "bestScore": "RÉCORD",
+    "bestLevel": "MEJOR NIVEL",
+    "controls": "CONTROLES",
+    "language": "IDIOMA",
+    "play": "JUGAR",
+    "version": "Versión {version}",
+    "privacy": "Privacidad"
+  },
+  "controls": {
+    "label": "Controles",
+    "buttons": "Botones",
+    "gestures": "Gestos"
+  },
+  "game": {
+    "levelShort": "Nv",
+    "pointsShort": "pts",
+    "linesShort": "lín",
+    "pause": "Pausa",
+    "goal": "META",
+    "next": "SIGUIENTE",
+    "letters": "LETRAS",
+    "moveLeft": "Mover a la izquierda",
+    "moveDown": "Bajar",
+    "moveRight": "Mover a la derecha",
+    "rotate": "Girar",
+    "drop": "Soltar pieza",
+    "hintSwipe": "desliza: mover",
+    "hintTap": "toca: girar",
+    "hintDrag": "arrastra ↓: acelerar"
+  },
+  "score": {
+    "combo": "Combo ×{factor}",
+    "repeated": "Repetida",
+    "line1": "¡Línea!",
+    "line2": "¡Doble!",
+    "line3": "¡Triple!",
+    "line4": "¡TETRIS!",
+    "wordAndLine": "Palabra + línea",
+    "cascade": "Cascada"
+  },
+  "pools": {
+    "basic": "Básico",
+    "intermediate": "Intermedio",
+    "advanced": "Avanzado",
+    "expert": "Experto"
+  },
+  "pause": {
+    "title": "En pausa",
+    "howToPlayQuestion": "¿CÓMO QUIERES JUGAR?",
+    "controlsHint": "Puedes cambiarlo cuando quieras. El juego recuerda tu elección.",
+    "resume": "Continuar",
+    "newGame": "Nueva partida",
+    "home": "Volver al inicio"
+  },
+  "levelSplash": {
+    "title": "¡Meta cumplida!",
+    "subtitle": "Nivel {level} completado"
+  },
+  "levelComplete": {
+    "title": "¡Nivel {level} completado!",
+    "subtitle": "Cumpliste la meta de {count} palabras",
+    "words": "PALABRAS",
+    "points": "PUNTOS",
+    "lines": "LÍNEAS",
+    "bonus": "incluye {bonus} de bono por completar el nivel",
+    "nextLabel": "Siguiente:",
+    "nextLevel": "Nivel {level} · {pool}",
+    "nextGoal": "meta {count} palabras",
+    "newLetters": "Letras nuevas",
+    "continue": "Siguiente nivel"
+  },
+  "gameOver": {
+    "title": "Fin del juego",
+    "subtitle": "Las piezas llegaron arriba en el nivel {level}",
+    "score": "PUNTUACIÓN",
+    "newRecord": "¡Nuevo récord!",
+    "wordsFormed": "PALABRAS QUE FORMASTE · {count}",
+    "noWords": "Ninguna esta vez. ¡A la próxima!",
+    "playAgain": "Jugar de nuevo",
+    "home": "Inicio"
+  },
+  "help": {
+    "wordsTitle": "Forma palabras",
+    "wordsExample": "SOL",
+    "wordsText": "Como en una sopa de letras: solo valen las palabras de la lista, en horizontal o en vertical. Las más largas valen más.",
+    "linesTitle": "Completa líneas",
+    "linesText": "Una línea llena desaparece como en el Tetris y da puntos extra. Palabra y línea juntas cuentan las dos.",
+    "goalTitle": "Cumple la meta",
+    "goalText": "Encuentra las palabras de la lista para subir de nivel. Cada nivel trae letras y palabras nuevas.",
+    "controlsTitle": "Controles",
+    "buttonsTitle": "BOTONES",
+    "buttonsMove": "← → mover",
+    "buttonsDown": "↓ acelerar (mantén)",
+    "buttonsRotate": "Amarillo: girar",
+    "buttonsDrop": "Rojo: soltar",
+    "gesturesTitle": "GESTOS",
+    "gesturesMove": "Desliza ← →: mover",
+    "gesturesRotate": "Toca: girar",
+    "gesturesDown": "Arrastra ↓: acelerar",
+    "gesturesAlso": "También funcionan en el modo botones",
+    "keyboard": "Con teclado: flechas, espacio para soltar y P para pausar.",
+    "close": "¡Entendido!"
+  },
+  "consent": {
+    "label": "Privacidad y cookies",
+    "text": "Usamos cookies para medir cómo se usa el juego y para personalizar los anuncios. Tus récords se quedan solo en tu dispositivo.",
+    "policy": "Política de privacidad",
+    "decline": "Rechazar",
+    "accept": "Aceptar"
+  },
+  "update": {
+    "available": "¡Hay una nueva versión!",
+    "update": "Actualizar",
+    "updating": "Actualizando…"
+  },
+  "install": {
+    "title": "Instala LETRIS",
+    "text": "Ábrelo directo desde la pantalla de inicio y juega incluso sin internet.",
+    "iosTitle": "En iPhone o iPad:",
+    "iosStep1": "Toca el botón Compartir de Safari",
+    "iosStep2": "Elige \"Añadir a pantalla de inicio\"",
+    "iosStep3": "Toca \"Añadir\"",
+    "install": "Instalar",
+    "notNow": "Ahora no"
+  },
+  "ads": {
+    "label": "PUBLICIDAD",
+    "placeholder": "Espacio publicitario"
+  }
+}

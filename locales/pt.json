@@ -1,4 +1,7 @@
 {
+  "meta": {
+    "title": "LETRIS - Tetris com Palavras"
+  },
   "common": {
     "back": "Voltar",
     "howToPlay": "Como jogar",
@@ -10,6 +13,7 @@
     "bestScore": "RECORDE",
     "bestLevel": "MELHOR NÍVEL",
     "controls": "CONTROLES",
+    "language": "IDIOMA",
     "play": "JOGAR",
     "version": "Versão {version}",
     "privacy": "Privacidade"

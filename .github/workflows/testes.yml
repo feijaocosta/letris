@@ -31,6 +31,9 @@ jobs:
       - name: Instalar o navegador dos testes
         run: npx playwright install --with-deps chromium
 
+      - name: Tipos (TypeScript)
+        run: npm run typecheck
+
       - name: Build de produção
         run: npm run build
 

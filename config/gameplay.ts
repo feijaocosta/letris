@@ -1,6 +1,6 @@
 // Números de velocidade e pontuação do LETRIS, num lugar só para ajustar
 // depois de jogar. As palavras e a progressão de níveis ficam em
-// data/words.json.
+// data/words/<idioma>.json.
 
 export const SPEED = {
   /** Tempo (ms) para a peça descer uma linha no nível 1 */

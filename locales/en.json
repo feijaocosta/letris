@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "title": "LETRIS - Tetris with Words"
+  },
+  "common": {
+    "back": "Back",
+    "howToPlay": "How to play",
+    "gotIt": "Got it"
+  },
+  "home": {
+    "tagline": "Fit the pieces and make words",
+    "offline": "No internet · the game works offline",
+    "bestScore": "BEST SCORE",
+    "bestLevel": "BEST LEVEL",
+    "controls": "CONTROLS",
+    "language": "LANGUAGE",
+    "play": "PLAY",
+    "version": "Version {version}",
+    "privacy": "Privacy"
+  },
+  "controls": {
+    "label": "Controls",
+    "buttons": "Buttons",
+    "gestures": "Gestures"
+  },
+  "game": {
+    "levelShort": "Lv",
+    "pointsShort": "pts",
+    "linesShort": "ln",
+    "pause": "Pause",
+    "goal": "GOAL",
+    "next": "NEXT",
+    "letters": "LETTERS",
+    "moveLeft": "Move left",
+    "moveDown": "Move down",
+    "moveRight": "Move right",
+    "rotate": "Rotate",
+    "drop": "Drop piece",
+    "hintSwipe": "swipe: move",
+    "hintTap": "tap: rotate",
+    "hintDrag": "drag ↓: speed up"
+  },
+  "score": {
+    "combo": "Combo ×{factor}",
+    "repeated": "Repeat",
+    "line1": "Line!",
+    "line2": "Double!",
+    "line3": "Triple!",
+    "line4": "TETRIS!",
+    "wordAndLine": "Word + line",
+    "cascade": "Cascade"
+  },
+  "pools": {
+    "basic": "Basic",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+  "pause": {
+    "title": "Paused",
+    "howToPlayQuestion": "HOW DO YOU WANT TO PLAY?",
+    "controlsHint": "You can switch at any time. The game remembers your choice.",
+    "resume": "Resume",
+    "newGame": "New game",
+    "home": "Back to start"
+  },
+  "levelSplash": {
+    "title": "Goal reached!",
+    "subtitle": "Level {level} complete"
+  },
+  "levelComplete": {
+    "title": "Level {level} complete!",
+    "subtitle": "You reached the goal of {count} words",
+    "words": "WORDS",
+    "points": "POINTS",
+    "lines": "LINES",
+    "bonus": "includes a {bonus} bonus for finishing the level",
+    "nextLabel": "Next:",
+    "nextLevel": "Level {level} · {pool}",
+    "nextGoal": "goal {count} words",
+    "newLetters": "New letters",
+    "continue": "Next level"
+  },
+  "gameOver": {
+    "title": "Game over",
+    "subtitle": "The pieces reached the top on level {level}",
+    "score": "SCORE",
+    "newRecord": "New best score!",
+    "wordsFormed": "WORDS YOU MADE · {count}",
+    "noWords": "None this time. Next time!",
+    "playAgain": "Play again",
+    "home": "Start"
+  },
+  "help": {
+    "wordsTitle": "Make words",
+    "wordsExample": "SUN",
+    "wordsText": "Like a word search: only the words on the list count, across or down. Longer words are worth more.",
+    "linesTitle": "Complete lines",
+    "linesText": "A full line disappears like in Tetris and gives extra points. A word and a line together both count.",
+    "goalTitle": "Reach the goal",
+    "goalText": "Find the words on the list to move up a level. Each level brings new letters and words.",
+    "controlsTitle": "Controls",
+    "buttonsTitle": "BUTTONS",
+    "buttonsMove": "← → move",
+    "buttonsDown": "↓ speed up (hold)",
+    "buttonsRotate": "Yellow: rotate",
+    "buttonsDrop": "Red: drop",
+    "gesturesTitle": "GESTURES",
+    "gesturesMove": "Swipe ← →: move",
+    "gesturesRotate": "Tap: rotate",
+    "gesturesDown": "Drag ↓: speed up",
+    "gesturesAlso": "They also work in buttons mode",
+    "keyboard": "On a keyboard: arrows, space to drop and P to pause.",
+    "close": "Got it!"
+  },
+  "consent": {
+    "label": "Privacy and cookies",
+    "text": "We use cookies to see how the game is played and to personalize ads. Your scores stay on your device only.",
+    "policy": "Privacy policy",
+    "decline": "Decline",
+    "accept": "Accept"
+  },
+  "update": {
+    "available": "A new version is available!",
+    "update": "Update",
+    "updating": "Updating…"
+  },
+  "install": {
+    "title": "Install LETRIS",
+    "text": "Open it right from your home screen and play even without internet.",
+    "iosTitle": "On iPhone or iPad:",
+    "iosStep1": "Tap the Share button in Safari",
+    "iosStep2": "Choose \"Add to Home Screen\"",
+    "iosStep3": "Tap \"Add\"",
+    "install": "Install",
+    "notNow": "Not now"
+  },
+  "ads": {
+    "label": "ADVERTISEMENT",
+    "placeholder": "Ad space"
+  }
+}
