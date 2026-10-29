@@ -5,7 +5,7 @@ import data from './languages.json';
 // Lang, locales/<code>.json, data/words/<code>.json e a página de privacidade
 // em public/.
 
-export type Lang = 'pt' | 'en' | 'es';
+export type Lang = 'pt' | 'en' | 'es' | 'fr';
 
 export interface LanguageConfig {
   code: Lang;

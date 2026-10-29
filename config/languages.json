@@ -25,6 +25,15 @@
       "alphabet": "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
       "vowels": "AEIOU",
       "privacyPage": "privacidad.html"
+    },
+    {
+      "code": "fr",
+      "label": "Français",
+      "locale": "fr",
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "vowels": "AEIOU",
+      "extraVowels": "Y",
+      "privacyPage": "confidentialite.html"
     }
   ]
 }

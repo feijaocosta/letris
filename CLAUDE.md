@@ -66,6 +66,7 @@ Jogo que mistura Tetris com formação de palavras, em português, inglês, espa
 - **Palavras:** em `data/words/<idioma>.json`, MAIÚSCULAS sem acento (Ç→C; Ñ é letra própria no espanhol; Œ→OE no francês), igual a `normalizeWord`, só letras do `alphabet` do idioma, em NFC, ordem alfabética do idioma (`localeCompare` com o locale), sem marcas nem nomes próprios; o build falha se alguma regra quebrar, se um nível não tiver palavras suficientes ou se um idioma de `config/languages.json` não tiver banco e locale.
 - **Inglês:** progressão de letras AEIOURSTNL → D → HM → CY → PB → GW → FK → V → JZ → QX, mesma mistura de tamanhos e metas do PT. `Y` é `extraVowels`: quebra a sequência de consoantes (SKY, FLY, GYM), mas não é sorteado como vogal forçada.
 - **Espanhol:** Ñ é letra própria (entra no nível 5, com G). Progressão AEIOURSTNL → D → CM → PB → GÑ → VY → FH → Z → JQ → X; como há poucas palavras de 3 letras, a mistura começa com mais palavras de 4. Nunca incluir ANO (sem Ñ).
+- **Francês:** sem acentos, Ç→C e Œ→OE (CŒUR = COEUR, 5 letras). Progressão AEIOURSTNL → D → CM → PV → BG → FH → Q → J → ZY → XKW. Textos franceses são os mais longos: conferir layout em 375×560 (há teste para isso em todos os idiomas).
 - **Testes por idioma:** `tests/locales.ts` reúne textos e bancos de todos os idiomas; os testes de sorteio, textos e privacidade rodam para cada um. Idioma novo entra lá também.
 - **Banco por idioma:** carregado com `import()` antes da partida (pré-carregado na entrada); nunca ler o JSON com `fetch` (`.json` não entra no precache). Use `Array.from(palavra)` para contar/separar letras.
 
@@ -77,7 +78,7 @@ Jogo que mistura Tetris com formação de palavras, em português, inglês, espa
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
-- PR #24: multilíngue — escolha de idioma e recordes por idioma (sprint 2), banco por idioma (sprint 3) e inglês (sprint 4); idioma e versão em todos os eventos do Analytics
+- PR #24: multilíngue — escolha de idioma e recordes por idioma (sprint 2), banco por idioma (sprint 3), inglês (sprint 4), espanhol (sprint 5) e francês (sprint 6), com política de privacidade em cada idioma; idioma e versão em todos os eventos do Analytics
 - PR #23: textos da interface em `locales/pt.json` com `t()` (início do multilíngue)
 - PR #22: testes de regressão automáticos (Playwright) e workflow de testes nos PRs
 - PR #21: tabuleiro ficava por cima da lista de palavras no iPhone
