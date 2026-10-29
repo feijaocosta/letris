@@ -2,6 +2,7 @@
 // Centraliza a lógica de pontos e velocidade; os números ficam em config/gameplay.ts
 
 import { SCORING, SPEED } from '../config/gameplay';
+import type { MessageKey, Vars } from '../lib/i18n';
 
 export interface ScoredWord {
   word: string;
@@ -11,11 +12,16 @@ export interface ScoredWord {
 
 export interface ClearResult {
   points: number;
-  /** Rótulos para o aviso na tela ("Combo ×1,5", "Cascata"...) */
-  labels: string[];
+  /** Rótulos para o aviso na tela ("Combo ×1,5", "Cascata"...), como chaves de texto */
+  labels: ScoreLabel[];
 }
 
-const fmt = (n: number) => n.toLocaleString('pt-BR');
+export interface ScoreLabel {
+  key: MessageKey;
+  vars?: Vars;
+}
+
+const LINE_LABELS: MessageKey[] = ['score.line1', 'score.line2', 'score.line3', 'score.line4'];
 
 export class ScoreSystem {
   static levelMultiplier(level: number): number {
@@ -31,7 +37,7 @@ export class ScoreSystem {
    * Pontos de uma rodada de limpeza (palavras e linhas eliminadas juntas).
    */
   static scoreClear(words: ScoredWord[], lines: number, level: number, cascade: boolean): ClearResult {
-    const labels: string[] = [];
+    const labels: ScoreLabel[] = [];
 
     let wordPoints = words.reduce(
       (sum, w) => sum + ScoreSystem.wordValue(w.word) * (w.repeated ? SCORING.repeatedWordFactor : 1),
@@ -40,21 +46,21 @@ export class ScoreSystem {
     if (words.length >= 2) {
       const factor = SCORING.multiWordFactor[Math.min(words.length, 3) - 2];
       wordPoints *= factor;
-      labels.push(`Combo ×${fmt(factor)}`);
+      labels.push({ key: 'score.combo', vars: { factor } });
     }
-    if (words.some(w => w.repeated)) labels.push('Repetida');
+    if (words.some(w => w.repeated)) labels.push({ key: 'score.repeated' });
 
     const linePoints = lines > 0 ? SCORING.lines[Math.min(lines, SCORING.lines.length - 1)] : 0;
-    if (lines > 0) labels.push(['', 'Linha!', 'Duplo!', 'Triplo!', 'TETRIS!'][Math.min(lines, 4)]);
+    if (lines > 0) labels.push({ key: LINE_LABELS[Math.min(lines, 4) - 1] });
 
     let total = wordPoints + linePoints;
     if (words.length > 0 && lines > 0) {
       total *= 1 + SCORING.wordAndLineBonus;
-      labels.push('Palavra + linha');
+      labels.push({ key: 'score.wordAndLine' });
     }
     if (cascade) {
       total *= 1 + SCORING.cascadeBonus;
-      labels.push('Cascata');
+      labels.push({ key: 'score.cascade' });
     }
 
     return { points: Math.round(total * ScoreSystem.levelMultiplier(level)), labels };

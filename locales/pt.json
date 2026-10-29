@@ -1,0 +1,138 @@
+{
+  "common": {
+    "back": "Voltar",
+    "howToPlay": "Como jogar",
+    "gotIt": "Entendi"
+  },
+  "home": {
+    "tagline": "Encaixe as peças e forme palavras",
+    "offline": "Sem internet · o jogo funciona offline",
+    "bestScore": "RECORDE",
+    "bestLevel": "MELHOR NÍVEL",
+    "controls": "CONTROLES",
+    "play": "JOGAR",
+    "version": "Versão {version}",
+    "privacy": "Privacidade"
+  },
+  "controls": {
+    "label": "Controles",
+    "buttons": "Botões",
+    "gestures": "Gestos"
+  },
+  "game": {
+    "levelShort": "Nv",
+    "pointsShort": "pts",
+    "linesShort": "lin",
+    "pause": "Pausar",
+    "goal": "META",
+    "next": "PRÓXIMA",
+    "letters": "LETRAS",
+    "moveLeft": "Mover para a esquerda",
+    "moveDown": "Descer",
+    "moveRight": "Mover para a direita",
+    "rotate": "Girar",
+    "drop": "Soltar peça",
+    "hintSwipe": "deslize: mover",
+    "hintTap": "toque: girar",
+    "hintDrag": "arraste ↓: acelerar"
+  },
+  "score": {
+    "combo": "Combo ×{factor}",
+    "repeated": "Repetida",
+    "line1": "Linha!",
+    "line2": "Duplo!",
+    "line3": "Triplo!",
+    "line4": "TETRIS!",
+    "wordAndLine": "Palavra + linha",
+    "cascade": "Cascata"
+  },
+  "pools": {
+    "basic": "Básico",
+    "intermediate": "Intermediário",
+    "advanced": "Avançado",
+    "expert": "Expert"
+  },
+  "pause": {
+    "title": "Pausado",
+    "howToPlayQuestion": "COMO VOCÊ QUER JOGAR?",
+    "controlsHint": "Dá para trocar a qualquer momento. O jogo lembra a sua escolha.",
+    "resume": "Continuar",
+    "newGame": "Novo jogo",
+    "home": "Voltar ao início"
+  },
+  "levelSplash": {
+    "title": "Meta batida!",
+    "subtitle": "Nível {level} concluído"
+  },
+  "levelComplete": {
+    "title": "Nível {level} concluído!",
+    "subtitle": "Você bateu a meta de {count} palavras",
+    "words": "PALAVRAS",
+    "points": "PONTOS",
+    "lines": "LINHAS",
+    "bonus": "inclui {bonus} de bônus por concluir o nível",
+    "nextLabel": "Próximo:",
+    "nextLevel": "Nível {level} · {pool}",
+    "nextGoal": "meta {count} palavras",
+    "newLetters": "Letras novas",
+    "continue": "Próximo nível"
+  },
+  "gameOver": {
+    "title": "Fim de jogo",
+    "subtitle": "As peças chegaram ao topo no nível {level}",
+    "score": "PONTUAÇÃO",
+    "newRecord": "Novo recorde!",
+    "wordsFormed": "PALAVRAS QUE VOCÊ FORMOU · {count}",
+    "noWords": "Nenhuma desta vez. Na próxima!",
+    "playAgain": "Jogar de novo",
+    "home": "Início"
+  },
+  "help": {
+    "wordsTitle": "Forme palavras",
+    "wordsExample": "SOL",
+    "wordsText": "Como num caça-palavras: só valem as palavras da lista, na horizontal ou na vertical. As maiores valem mais.",
+    "linesTitle": "Complete linhas",
+    "linesText": "Linha cheia some como no Tetris e dá pontos extras. Palavra e linha juntas contam as duas.",
+    "goalTitle": "Bata a meta",
+    "goalText": "Encontre as palavras pedidas para passar de nível. Os níveis trazem letras e palavras novas.",
+    "controlsTitle": "Controles",
+    "buttonsTitle": "BOTÕES",
+    "buttonsMove": "← → mover",
+    "buttonsDown": "↓ acelerar (segure)",
+    "buttonsRotate": "Amarelo: girar",
+    "buttonsDrop": "Vermelho: soltar",
+    "gesturesTitle": "GESTOS",
+    "gesturesMove": "Deslize ← →: mover",
+    "gesturesRotate": "Toque: girar",
+    "gesturesDown": "Arraste ↓: acelerar",
+    "gesturesAlso": "Funcionam também no modo botões",
+    "keyboard": "No teclado: setas, espaço para soltar e P para pausar.",
+    "close": "Entendi!"
+  },
+  "consent": {
+    "label": "Privacidade e cookies",
+    "text": "Usamos cookies para medir como o jogo é usado e para personalizar os anúncios. Seus recordes ficam só no seu aparelho.",
+    "policy": "Política de privacidade",
+    "decline": "Recusar",
+    "accept": "Aceitar"
+  },
+  "update": {
+    "available": "Nova versão disponível!",
+    "update": "Atualizar",
+    "updating": "Atualizando…"
+  },
+  "install": {
+    "title": "Instale o LETRIS",
+    "text": "Abra direto da tela inicial e jogue mesmo sem internet.",
+    "iosTitle": "No iPhone ou iPad:",
+    "iosStep1": "Toque no botão Compartilhar do Safari",
+    "iosStep2": "Escolha \"Adicionar à Tela de Início\"",
+    "iosStep3": "Toque em \"Adicionar\"",
+    "install": "Instalar",
+    "notNow": "Agora não"
+  },
+  "ads": {
+    "label": "PUBLICIDADE",
+    "placeholder": "Espaço do anúncio"
+  }
+}

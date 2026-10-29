@@ -1,7 +1,9 @@
 import { useAppUpdate } from '../hooks/useAppUpdate';
+import { useI18n } from '../lib/i18n';
 
 export function UpdateBanner() {
   const { updateAvailable, isUpdating, applyUpdate } = useAppUpdate();
+  const { t } = useI18n();
 
   if (!updateAvailable) {
     return null;
@@ -13,13 +15,13 @@ export function UpdateBanner() {
       style={{ top: 'calc(env(safe-area-inset-top) + 0.5rem)' }}
       role="status"
     >
-      <span>🚀 Nova versão disponível!</span>
+      <span>{t('update.available')}</span>
       <button
         onClick={applyUpdate}
         disabled={isUpdating}
         className="bg-ink text-white px-3 py-1 rounded-md text-xs font-bold disabled:opacity-60"
       >
-        {isUpdating ? 'Atualizando…' : 'Atualizar'}
+        {isUpdating ? t('update.updating') : t('update.update')}
       </button>
     </div>
   );

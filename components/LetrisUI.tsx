@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useI18n } from '../lib/i18n';
 
 // Peças visuais compartilhadas pelas telas: blocos de letra, logo, cartões,
 // seletor de controle e ícones (SVG inline, sem emoji).
@@ -80,12 +81,13 @@ export function ControlModeToggle({ value, onChange, compact = false }: {
   onChange: (mode: ControlMode) => void;
   compact?: boolean;
 }) {
+  const { t } = useI18n();
   const options: Array<[ControlMode, string, ReactNode]> = [
-    ['buttons', 'Botões', <IconGamepad key="g" />],
-    ['gestures', 'Gestos', <IconHand key="h" />],
+    ['buttons', t('controls.buttons'), <IconGamepad key="g" />],
+    ['gestures', t('controls.gestures'), <IconHand key="h" />],
   ];
   return (
-    <div className="grid grid-cols-2 gap-1.5 bg-deep rounded-2xl p-1.5" role="radiogroup" aria-label="Controles">
+    <div className="grid grid-cols-2 gap-1.5 bg-deep rounded-2xl p-1.5" role="radiogroup" aria-label={t('controls.label')}>
       {options.map(([mode, label, icon]) => {
         const selected = value === mode;
         return (

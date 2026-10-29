@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Logo } from './LetrisUI';
+import { useI18n } from '../lib/i18n';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -21,6 +22,7 @@ export function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPromptProps
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     // Check if app is already installed or running as PWA
@@ -130,17 +132,17 @@ export function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPromptProps
       <div className="bg-ink border border-line rounded-3xl p-6 w-full max-w-sm flex flex-col gap-4">
         <div className="flex justify-center"><Logo size={30} gap={4} /></div>
         <div className="text-center">
-          <h2 className="m-0 text-2xl font-black">Instale o LETRIS</h2>
-          <p className="m-0 mt-1 text-[15px] font-bold text-soft">Abra direto da tela inicial e jogue mesmo sem internet.</p>
+          <h2 className="m-0 text-2xl font-black">{t('install.title')}</h2>
+          <p className="m-0 mt-1 text-[15px] font-bold text-soft">{t('install.text')}</p>
         </div>
 
         {isIOS && !isStandalone ? (
           <div className="bg-panel rounded-2xl p-4 text-sm font-semibold text-chip">
-            <p className="m-0 mb-2 font-black text-white">No iPhone ou iPad:</p>
+            <p className="m-0 mb-2 font-black text-white">{t('install.iosTitle')}</p>
             <ol className="m-0 pl-5 flex flex-col gap-1">
-              <li>Toque no botão Compartilhar do Safari</li>
-              <li>Escolha "Adicionar à Tela de Início"</li>
-              <li>Toque em "Adicionar"</li>
+              <li>{t('install.iosStep1')}</li>
+              <li>{t('install.iosStep2')}</li>
+              <li>{t('install.iosStep3')}</li>
             </ol>
           </div>
         ) : null}
@@ -149,17 +151,17 @@ export function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPromptProps
           {deferredPrompt && !isIOS ? (
             <button type="button" onClick={handleInstallClick}
               className="btn-3d flex-1 h-12 rounded-2xl bg-tile-green text-white font-black">
-              Instalar
+              {t('install.install')}
             </button>
           ) : (
             <button type="button" onClick={handleDismiss}
               className="btn-3d flex-1 h-12 rounded-2xl bg-tile-green text-white font-black">
-              Entendi
+              {t('common.gotIt')}
             </button>
           )}
           <button type="button" onClick={handleDismiss}
             className="flex-1 h-12 rounded-2xl bg-panel text-white font-extrabold">
-            Agora não
+            {t('install.notNow')}
           </button>
         </div>
       </div>

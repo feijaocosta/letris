@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ADS, HOUSE_AD, adsEnabled } from '../config/ads';
 import { fillBanner } from '../lib/ads';
 import { track } from '../lib/analytics';
+import { useI18n } from '../lib/i18n';
 
 // Banner 300×250 das telas de fim de rodada.
 // Se o AdSense preencher o bloco, mostra o anúncio dele; se não preencher
@@ -20,6 +21,7 @@ export function AdBanner() {
   const insRef = useRef<HTMLModElement>(null);
   const live = adsEnabled && ADS.bannerSlot !== '';
   const [status, setStatus] = useState<Status>(live ? 'pending' : 'unfilled');
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!live) return;
@@ -54,7 +56,7 @@ export function AdBanner() {
 
   return (
     <div className="flex flex-col items-center gap-1 shrink-0">
-      <span className="text-[10px] font-extrabold tracking-wider text-faint">PUBLICIDADE</span>
+      <span className="text-[10px] font-extrabold tracking-wider text-faint">{t('ads.label')}</span>
       <div className="relative w-[300px] h-[250px] rounded-lg overflow-hidden">
         {showHouse && HOUSE_AD ? (
           <a
@@ -74,7 +76,7 @@ export function AdBanner() {
           </a>
         ) : status !== 'filled' && (
           <div className="w-full h-full border-2 border-dashed border-line bg-deep/60 rounded-lg flex flex-col items-center justify-center gap-1 text-faint">
-            <span className="text-[15px] font-extrabold">Espaço do anúncio</span>
+            <span className="text-[15px] font-extrabold">{t('ads.placeholder')}</span>
             <span className="text-xs font-semibold">300 × 250</span>
           </div>
         )}

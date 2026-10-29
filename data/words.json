@@ -2,7 +2,7 @@
   "_comment": "Banco de palavras e progressão de níveis do LETRIS. Palavras em MAIÚSCULAS, sem acento nem Ç (o jogo ignora acentos), em ordem alfabética por tamanho. Uma palavra é usada em um nível quando todas as suas letras estão nas letras do nível. Validado por scripts/check-words.mjs no build.",
   "levels": [
     {
-      "name": "Básico",
+      "name": "basic",
       "addLetters": "AEIOURSTNL",
       "mix": {
         "3": 12
@@ -10,7 +10,7 @@
       "goal": 5
     },
     {
-      "name": "Básico",
+      "name": "basic",
       "addLetters": "",
       "mix": {
         "3": 10,
@@ -19,7 +19,7 @@
       "goal": 5
     },
     {
-      "name": "Básico",
+      "name": "basic",
       "addLetters": "M",
       "mix": {
         "3": 9,
@@ -28,7 +28,7 @@
       "goal": 6
     },
     {
-      "name": "Intermediário",
+      "name": "intermediate",
       "addLetters": "DC",
       "mix": {
         "3": 8,
@@ -38,7 +38,7 @@
       "goal": 6
     },
     {
-      "name": "Intermediário",
+      "name": "intermediate",
       "addLetters": "PB",
       "mix": {
         "3": 6,
@@ -48,7 +48,7 @@
       "goal": 7
     },
     {
-      "name": "Intermediário",
+      "name": "intermediate",
       "addLetters": "GV",
       "mix": {
         "3": 5,
@@ -58,7 +58,7 @@
       "goal": 8
     },
     {
-      "name": "Avançado",
+      "name": "advanced",
       "addLetters": "FH",
       "mix": {
         "3": 4,
@@ -69,7 +69,7 @@
       "goal": 9
     },
     {
-      "name": "Avançado",
+      "name": "advanced",
       "addLetters": "JZ",
       "mix": {
         "3": 3,
@@ -80,7 +80,7 @@
       "goal": 10
     },
     {
-      "name": "Expert",
+      "name": "expert",
       "addLetters": "XQ",
       "mix": {
         "3": 3,
@@ -91,7 +91,7 @@
       "goal": 11
     },
     {
-      "name": "Expert",
+      "name": "expert",
       "addLetters": "",
       "mix": {
         "3": 2,

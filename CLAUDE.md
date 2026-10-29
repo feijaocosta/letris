@@ -23,6 +23,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - `config/ads.ts` + `lib/ads.ts` + `components/AdBanner.tsx` — AdSense (Ad Placement API entre rodadas + banner 300×250)
 - `config/analytics.ts` + `lib/analytics.ts` — Google Analytics 4 (`G-1YMLTC0J79`) e `track()` dos eventos
 - `lib/consent.ts` + `components/ConsentBanner.tsx` + `public/privacidade.html` — consentimento de cookies (LGPD) e política de privacidade
+- `lib/i18n.tsx` + `locales/pt.json` — textos da interface: `useI18n()` devolve `t('grupo.chave', { variáveis })`, `rich()` (texto com destaque) e `n()` (números no formato do idioma); validados por `scripts/check-locales.mjs` no `npm run build`
 - `lib/storage.ts` — preferências e recordes no localStorage (prefixo `letris:`)
 - `data/words.json` — banco de palavras (por tamanho) e progressão dos níveis (letras novas, mistura de tamanhos, meta); validado por `scripts/check-words.mjs` no `npm run build`
 - `components/WordLibrary.tsx` — lê o banco: letras do nível, sorteio da lista do nível e gerador de letras com peso
@@ -55,6 +56,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - **Ícone:** o oficial é `public/pwa-512x512.png` (blocos coloridos formando LETRIS). `pwa-192x192.png`, `apple-touch-icon.png` (180), `favicon-32x32.png` e `favicon.ico` são gerados a partir dele; não usar outro desenho.
 - **Tamanho do tabuleiro:** calculado em px com ResizeObserver. Não voltar para container queries (`cqh`): o Safari do iPhone não atualizava quando a lista de palavras crescia e o tabuleiro cobria as palavras.
 - **Testes:** Playwright (`@playwright/test` com versão fixa). Os testes do jogo usam o build com `LETRIS_E2E=1` (`dist-e2e/`), que expõe `window.__letris` (estado, montar tabuleiro, trocar peça e lista do nível); no build publicado `__E2E__` é `false` e o gancho some. Não testar mexendo nos internos do React.
+- **Textos (i18n):** nenhum texto de interface escrito direto nos componentes; tudo em `locales/pt.json` (idioma de referência) e lido com `t()`. Chaves em inglês, camelCase, agrupadas por tela (`home.play`, `levelComplete.title`). Solução própria, sem biblioteca. Rótulos da pontuação saem do `ScoreSystem` como chaves; os nomes dos grupos de níveis em `data/words.json` (`basic`, `intermediate`...) são traduzidos em `pools.*`. O build falha com chave inexistente, chave faltando em outro idioma ou variáveis diferentes do PT. Valores de métricas (ex.: `navegador`) são dados, não texto de tela.
 - **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** em `data/words.json`, MAIÚSCULAS sem acento/Ç (o jogo ignora acentos), ordem alfabética, só português, sem marcas; o build falha se alguma regra quebrar ou se um nível não tiver palavras suficientes.
 
@@ -66,6 +68,7 @@ Jogo que mistura Tetris com formação de palavras em português. React 18 + Typ
 - PR #8: POOL mostrava só 6 letras; palavras impossíveis; ordem alfabética; remoção de palavras em inglês
 - PR #10: toque duplo (parcial), palavra + linha juntas, aviso de nova versão
 - PR #11: toque duplo (de vez: só pointerdown) e domínio letris.kingdomapps.net
+- PR #23: textos da interface em `locales/pt.json` com `t()` (início do multilíngue)
 - PR #22: testes de regressão automáticos (Playwright) e workflow de testes nos PRs
 - PR #21: tabuleiro ficava por cima da lista de palavras no iPhone
 - PR #20: só valem palavras da lista (caça-palavras), comemoração de fim de nível com anúncio, link da Vitrine
