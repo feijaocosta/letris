@@ -1,6 +1,7 @@
-import { ControlModeToggle, IconPlay, Label, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
-import { KEYS, load } from '../lib/storage';
-import { useI18n } from '../lib/i18n';
+import { ControlModeToggle, IconPlay, Label, LanguagePicker, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
+import { load, recordKey } from '../lib/storage';
+import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
+import { track } from '../lib/analytics';
 
 // Letras soltas de enfeite: [letra, cor, tamanho, esquerda %, topo %, rotação]
 const DECOR: Array<[string, TileColor, number, number, number, number]> = [
@@ -19,9 +20,15 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
-  const bestScore = load(KEYS.bestScore, 0);
-  const bestLevel = load(KEYS.bestLevel, 1);
-  const { t, n } = useI18n();
+  const { t, n, lang, setLang } = useI18n();
+  const bestScore = load(recordKey('bestScore', lang), 0);
+  const bestLevel = load(recordKey('bestLevel', lang), 1);
+
+  const changeLanguage = (next: Lang) => {
+    if (next === lang) return;
+    track('language_change', { from: lang, to: next });
+    setLang(next);
+  };
 
   return (
     <div className="h-full w-full bg-ink text-white safe-area overflow-hidden">
@@ -33,7 +40,7 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
           ))}
         </div>
 
-        <div className="relative flex-1 min-h-[140px] flex flex-col items-center justify-center gap-3.5">
+        <div className="relative flex-1 min-h-[100px] flex flex-col items-center justify-center gap-3.5">
           <Logo size={48} gap={6} />
           <p className="m-0 text-[17px] font-bold text-soft text-center">{t('home.tagline')}</p>
           {!isOnline && (
@@ -46,6 +53,13 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
             <StatCard label={t('home.bestScore')} value={n(bestScore)} />
             <StatCard label={t('home.bestLevel')} value={bestLevel} />
           </div>
+
+          {LANGUAGES.length > 1 && (
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-center">{t('home.language')}</Label>
+              <LanguagePicker value={lang} options={LANGUAGES} onChange={changeLanguage} />
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs text-center">{t('home.controls')}</Label>

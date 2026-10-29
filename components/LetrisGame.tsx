@@ -13,7 +13,7 @@ import {
 import { useBoardGestures } from '../hooks/useBoardGestures';
 import { adBreakNext } from '../lib/ads';
 import { track } from '../lib/analytics';
-import { KEYS, load, save } from '../lib/storage';
+import { load, recordKey, save } from '../lib/storage';
 import { useI18n, type MessageKey } from '../lib/i18n';
 
 const GRID_WIDTH = 10;
@@ -75,7 +75,9 @@ interface LetrisGameProps {
 }
 
 export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
-  const { t, n } = useI18n();
+  const { t, n, lang } = useI18n();
+  const bestScoreKey = recordKey('bestScore', lang);
+  const bestLevelKey = recordKey('bestLevel', lang);
   const [grid, setGrid] = useState<Cell[][]>(createEmptyGrid);
   const [currentPiece, setCurrentPiece] = useState<TetrisPiece | null>(null);
   const [nextPiece, setNextPiece] = useState<TetrisPiece | null>(null);
@@ -465,16 +467,16 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
         words: foundWordsList.length,
         points: score + bonus - levelStart.score,
       });
-      save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level + 1));
+      save(bestLevelKey, Math.max(load(bestLevelKey, 1), level + 1));
     }
   }, [foundWordsList.length, requiredWords, level, levelPhase]);
 
   // Fim de jogo: atualiza o recorde
   useEffect(() => {
     if (!isGameOver) return;
-    const newRecord = score > load(KEYS.bestScore, 0);
+    const newRecord = score > load(bestScoreKey, 0);
     if (newRecord) {
-      save(KEYS.bestScore, score);
+      save(bestScoreKey, score);
       setIsNewRecord(true);
     }
     track('game_over', {
@@ -484,7 +486,7 @@ export function LetrisGame({ controlMode, onControlModeChange, onHome, onHelp }:
       duration_s: Math.round((gamePlayedMsRef.current + getPlayedMs()) / 1000),
       new_record: newRecord,
     });
-    save(KEYS.bestLevel, Math.max(load(KEYS.bestLevel, 1), level));
+    save(bestLevelKey, Math.max(load(bestLevelKey, 1), level));
   }, [isGameOver]);
 
   const continueToNextLevel = () => {

@@ -51,6 +51,19 @@ for (const mode of ['buttons', 'gestures'] as const) {
   });
 }
 
+// Sprint 2 do multilíngue: o seletor de idioma deixa a entrada mais alta
+for (const size of SIZES) {
+  test(`entrada em ${size.width}×${size.height}: tudo cabe, até a linha de versão e privacidade`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.goto('/');
+    const privacy = page.getByRole('button', { name: 'Privacidade' });
+    await expect(privacy).toBeVisible();
+    const box = (await privacy.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(size.width);
+  });
+}
+
 test('as cinco cores dos blocos existem no CSS (PR #12: Tailwind apagava as não usadas)', async ({ page }) => {
   await page.goto('/');
   const colors = await page.evaluate(() =>

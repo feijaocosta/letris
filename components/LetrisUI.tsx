@@ -108,6 +108,41 @@ export function ControlModeToggle({ value, onChange, compact = false }: {
   );
 }
 
+// Seletor de idioma: sigla grande (PT, EN...) com o nome completo para leitores de tela
+export function LanguagePicker<T extends string>({ value, options, onChange }: {
+  value: T;
+  options: ReadonlyArray<{ code: T; label: string }>;
+  onChange: (code: T) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div
+      className="grid gap-1.5 bg-deep rounded-2xl p-1.5"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      role="radiogroup"
+      aria-label={t('home.language')}
+    >
+      {options.map(({ code, label }) => {
+        const selected = value === code;
+        return (
+          <button
+            key={code}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-label={label}
+            title={label}
+            onClick={() => onChange(code)}
+            className={`h-10 rounded-xl text-[15px] font-black tracking-wide ${selected ? 'bg-tile-yellow text-ink' : 'text-chip'}`}
+          >
+            {code.toUpperCase()}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WordChip({ word, found }: { word: string; found: boolean }) {
   return (
     <span

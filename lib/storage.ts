@@ -22,6 +22,27 @@ export function save(key: string, value: unknown): void {
 
 export const KEYS = {
   controlMode: 'controlMode',
-  bestScore: 'bestScore',
-  bestLevel: 'bestLevel',
+  lang: 'lang',
 } as const;
+
+// Recordes separados por idioma: "bestScore:pt", "bestLevel:en"...
+export type RecordKey = 'bestScore' | 'bestLevel';
+export const recordKey = (record: RecordKey, lang: string) => `${record}:${lang}`;
+
+/**
+ * Recordes de antes do multilíngue ("bestScore", "bestLevel") eram do jogo em
+ * português: passam para ":pt" uma vez e a chave antiga é apagada.
+ */
+export function migrateRecords(lang: string) {
+  for (const record of ['bestScore', 'bestLevel'] as const) {
+    const old = load<number | null>(record, null);
+    if (old === null) continue;
+    const key = recordKey(record, lang);
+    if (load<number | null>(key, null) === null) save(key, old);
+    try {
+      localStorage.removeItem(PREFIX + record);
+    } catch {
+      // sem armazenamento: nada a migrar
+    }
+  }
+}
