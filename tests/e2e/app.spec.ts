@@ -67,3 +67,11 @@ test('anúncio próprio clicável mesmo com o bloco do Google por cima (PR #14 e
   });
   expect(onTop, 'o toque no centro do anúncio cai no link').toBe(true);
 });
+
+test('manifest do app instalado vale para todos os idiomas (sprint 8)', async ({ request }) => {
+  const manifest = await (await request.get('/manifest.webmanifest')).json();
+  expect(manifest.name).toBe('LETRIS');
+  expect(manifest.short_name).toBe('Letris');
+  expect(manifest.description).not.toMatch(/português/i);
+  expect(manifest.start_url).toBe('/');
+});

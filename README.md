@@ -1,111 +1,55 @@
-# LETRIS - Tetris com Palavras em Português
+# LETRIS
 
-Um jogo inovador que combina a mecânica clássica do Tetris com formação de palavras em português. As peças caem com letras aleatórias e o objetivo é formar palavras válidas para eliminá-las.
+Jogo que mistura Tetris com caça-palavras: as peças caem com letras e você encaixa os blocos para formar as palavras da lista do nível. Joga-se em **português, inglês, espanhol e francês**.
 
-## 🎮 Como Jogar
+Jogue em **https://letris.kingdomapps.net** (funciona no navegador e pode ser instalado como app no celular).
 
-- **Objetivo**: Forme palavras válidas em português para eliminar as peças do tabuleiro
-- **Movimento**: Use WASD ou setas para mover e rotacionar as peças
-- **Soltar**: Pressione ESPAÇO para soltar a peça rapidamente
-- **Pausar**: Pressione P para pausar o jogo
-- **Palavras**: Forme palavras com mínimo de 3 letras em qualquer direção (horizontal, vertical, diagonal)
+## Como jogar
 
-## 🌟 Características
+- **Forme palavras:** só valem as palavras da lista do nível, na horizontal ou na vertical. As maiores valem mais.
+- **Complete linhas:** linha cheia some como no Tetris e dá pontos extras. Palavra e linha juntas contam as duas.
+- **Bata a meta:** encontre as palavras pedidas para passar de nível. Cada nível traz letras e palavras novas.
+- **Controles:** modo **Botões** (← ↓ →, girar e soltar) ou modo **Gestos** (deslizar move, tocar gira, arrastar ↓ acelera). No teclado: setas, espaço para soltar e P para pausar.
+- **Idioma:** pela pílula no canto da tela de entrada ou com `?lang=pt`, `?lang=en`, `?lang=es` ou `?lang=fr` no endereço. Cada idioma tem o seu recorde.
 
-- **Sistema de Níveis Progressivo**: Comece com palavras simples e progrida para mais complexas
-- **Letras Inteligentes**: Apenas letras que podem formar palavras válidas aparecem em cada nível
-- **Visualização de Ajuda**: Veja todas as palavras válidas e letras disponíveis
-- **Detecção Multidirecional**: Palavras são detectadas em todas as direções
-- **Efeito Gravidade**: Após remover palavras, as peças caem naturalmente
-- **Sistema de Pontuação**: Ganhe pontos baseados nas palavras formadas e nível atual
+## Rodar localmente
 
-## 🚀 Instalação e Execução
+Precisa de Node.js 20 ou mais novo.
 
-### Pré-requisitos
-- Node.js (versão 18 ou superior)
-- npm ou yarn
-
-### Passos para instalar
-
-1. **Clone ou baixe os arquivos do projeto**
-
-2. **Instale as dependências:**
 ```bash
-npm install
+npm ci
+npm run dev                                # desenvolvimento em http://localhost:5173
+npm run build && npx vite preview --host   # build de produção (com PWA e CSP)
 ```
 
-3. **Execute o projeto em modo desenvolvimento:**
+## Testes
+
 ```bash
-npm run dev
+npx playwright install chromium webkit   # só na primeira vez
+npm run typecheck                        # tipos do TypeScript
+npm test                                 # regras do jogo + o jogo no Chromium
+npm run test:safari                      # o jogo no WebKit (motor do Safari)
 ```
 
-4. **Abra no navegador:**
-Acesse `http://localhost:5173` para jogar
+Cada teste guarda um problema que já foi corrigido, para ele não voltar. Os testes também rodam em todo pull request (`.github/workflows/testes.yml`). Mais detalhes em [`tests/README.md`](tests/README.md).
 
-### Para fazer build de produção:
-```bash
-npm run build
-npm run preview
-```
+## Idiomas
 
-## 📁 Estrutura do Projeto
+| O que | Onde |
+|---|---|
+| Idiomas do jogo (alfabeto, vogais, ordem do seletor) | `config/languages.json` |
+| Textos da tela | `locales/<idioma>.json` (chaves em inglês; o português é a referência) |
+| Palavras e progressão dos níveis | `data/words/<idioma>.json` |
+| Política de privacidade | `public/privacidade.html`, `privacy.html`, `privacidad.html`, `confidentialite.html` |
 
-```
-letris-game/
-├── public/
-├── src/
-│   └── main.tsx
-├── components/
-│   ├── LetrisGame.tsx      # Componente principal do jogo
-│   ├── GameBoard.tsx       # Tabuleiro do jogo
-│   ├── GameStats.tsx       # Estatísticas e controles
-│   ├── TetrisPieces.tsx    # Lógica das peças
-│   ├── WordDetector.tsx    # Detecção de palavras
-│   ├── WordList.tsx        # Lista de palavras válidas
-│   └── ui/                 # Componentes de interface
-├── styles/
-│   └── globals.css         # Estilos globais (Tailwind CSS)
-├── App.tsx                 # Componente raiz
-├── package.json
-└── README.md
-```
+O `npm run build` valida tudo isso: palavras em maiúsculas e sem acento (o Ñ do espanhol é letra própria), ordem alfabética do idioma, níveis com palavras suficientes, textos com as mesmas chaves em todos os idiomas e uma política de privacidade por idioma.
 
-## 🎯 Níveis do Jogo
+## Tecnologia
 
-- **Nível 1**: 12 palavras básicas (SOL, LUA, MAR, etc.)
-- **Nível 2**: Palavras do cotidiano (CASA, VIDA, ÁGUA, etc.)
-- **Nível 3**: Palavras mais complexas (AMOR, TEMPO, MUNDO, etc.)
-- **Nível 4**: Palavras com mais letras (CADEIRA, JANELA, etc.)
-- **Nível 5**: Palavras avançadas (PEQUENO, SALGADO, etc.)
-- **Nível 6**: Palavras complexas (DIFÍCIL, SEMPRE, etc.)
+React 18, TypeScript, Vite 5, Tailwind CSS 4 e vite-plugin-pwa (funciona offline). Publicado no GitHub Pages a cada push na `main` (`.github/workflows/deploy.yml`).
 
-## 🛠️ Tecnologias Utilizadas
-
-- **React 18** - Framework principal
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS v4** - Estilização
-- **Vite** - Build tool e desenvolvimento
-- **Radix UI** - Componentes acessíveis
-
-## 🎮 Controles
-
-| Tecla | Ação |
-|-------|------|
-| A / ← | Mover esquerda |
-| D / → | Mover direita |
-| S / ↓ | Acelerar queda |
-| W / ↑ | Rotacionar |
-| ESPAÇO | Soltar peça |
-| P | Pausar/Continuar |
-
-## 📝 Licença
-
-MIT License - Veja o arquivo LICENSE para detalhes.
-
-## 🤝 Contribuições
-
-Contribuições são bem-vindas! Sinta-se livre para abrir issues ou enviar pull requests.
+As regras de trabalho e as decisões do projeto estão em [`CLAUDE.md`](CLAUDE.md).
 
 ---
 
-**Divirta-se jogando LETRIS!** 🎮🎯
+Um jogo da [Kingdom Apps](https://kingdomapps.net).
