@@ -27,14 +27,14 @@ test('palavra em inglês da lista some e pontua', async ({ page }) => {
   await expect.poll(async () => (await state(page)).found).toEqual(['SUN']);
 });
 
-test('fim de jogo em inglês sem a arte do anúncio em português', async ({ page }) => {
+test('fim de jogo em inglês com o anúncio próprio clicável (a arte em português vale para todos os idiomas)', async ({ page }) => {
   await setLevelWords(page, ['SUN', 'TEA', 'OUR', 'NET', 'LOT']);
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
   await drop(page);
   await expect(page.getByRole('button', { name: en.gameOver.playAgain })).toBeVisible({ timeout: 5_000 });
   await expect(page.getByText(en.ads.label)).toBeVisible();
-  // Depois do tempo do AdSense, em inglês aparece o espaço reservado, não a Vitrine
-  await expect(page.getByText(en.ads.placeholder)).toBeVisible({ timeout: 8_000 });
-  await expect(page.locator('a[href="https://vitrine.kingdomapps.net"]')).toHaveCount(0);
+  // Depois do tempo do AdSense, aparece a Vitrine (por enquanto igual em todos os idiomas)
+  await expect(page.locator('a[href="https://vitrine.kingdomapps.net"]')).toBeVisible({ timeout: 8_000 });
+  await expect(page.getByText(en.ads.placeholder)).toHaveCount(0);
   expect(Number(await page.evaluate(() => localStorage.getItem('letris:bestLevel:en')))).toBe(1);
 });
