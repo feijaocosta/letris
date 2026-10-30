@@ -1,4 +1,4 @@
-import { test, expect, startGame, setBoard, setLevelWords, drop, LIST } from './helpers';
+import { test, expect, startGame, setBoard, setLevelWords, drop, LIST, simularKerux, modoKerux } from './helpers';
 
 test('abre sem erros e sem violar a CSP (PR #4)', async ({ page }) => {
   // a fixture já falha o teste se aparecer erro de JavaScript ou de CSP
@@ -46,7 +46,10 @@ test.describe('consentimento de cookies (PR #19)', () => {
   });
 });
 
-test('anúncio próprio clicável mesmo com o bloco do Google por cima (PR #14 e #15)', async ({ page }) => {
+test('anúncio próprio (Kerux) clicável mesmo com o bloco do Google por cima (PR #14 e #15)', async ({ page }) => {
+  // Só no modo fallback o bloco do Google fica na tela
+  await modoKerux(page, 'fallback');
+  await simularKerux(page);
   await startGame(page);
   await setLevelWords(page, LIST);
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
@@ -74,4 +77,13 @@ test('manifest do app instalado vale para todos os idiomas (sprint 8)', async ({
   expect(manifest.short_name).toBe('Letris');
   expect(manifest.description).not.toMatch(/português/i);
   expect(manifest.start_url).toBe('/');
+});
+
+test('pr-26 nenhum teste acessa a internet: AdSense e Kerux de produção ficam bloqueados', async ({ page }) => {
+  // Sem pedir a fixture externalRequests: o bloqueio tem de valer sozinho
+  await page.goto('/');
+  const status = await page.evaluate(() =>
+    fetch('https://kerux.kingdomapps.net/health').then(() => 'acessou', () => 'bloqueado'),
+  );
+  expect(status).toBe('bloqueado');
 });

@@ -1,4 +1,4 @@
-import { test, expect, state, setBoard, setPiece, setLevelWords, drop } from './helpers';
+import { test, expect, state, setBoard, setPiece, setLevelWords, drop, simularKerux, keruxPedidos } from './helpers';
 import en from '../../locales/en.json';
 import enBank from '../../data/words/en.json';
 
@@ -27,14 +27,16 @@ test('palavra em inglês da lista some e pontua', async ({ page }) => {
   await expect.poll(async () => (await state(page)).found).toEqual(['SUN']);
 });
 
-test('fim de jogo em inglês com o anúncio próprio clicável (a arte em português vale para todos os idiomas)', async ({ page }) => {
+test('fim de jogo em inglês com o anúncio próprio (Kerux) pedido em inglês', async ({ page }) => {
+  await simularKerux(page);
   await setLevelWords(page, ['SUN', 'TEA', 'OUR', 'NET', 'LOT']);
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
   await drop(page);
   await expect(page.getByRole('button', { name: en.gameOver.playAgain })).toBeVisible({ timeout: 5_000 });
   await expect(page.getByText(en.ads.label)).toBeVisible();
-  // Depois do tempo do AdSense, aparece a Vitrine (por enquanto igual em todos os idiomas)
+  // Depois do tempo do AdSense, o Kerux entra, pedido no idioma do jogo
   await expect(page.locator('a[href="https://vitrine.kingdomapps.net"]')).toBeVisible({ timeout: 8_000 });
+  expect((await keruxPedidos(page))?.config.idioma).toBe('en');
   await expect(page.getByText(en.ads.placeholder)).toHaveCount(0);
   expect(Number(await page.evaluate(() => localStorage.getItem('letris:bestLevel:en')))).toBe(1);
 });
