@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { ADS, KERUX, adsEnabled } from '../config/ads';
 import { fillBanner } from '../lib/ads';
-import { keruxBanner } from '../lib/kerux';
+import { keruxBanner, keruxModo } from '../lib/kerux';
 import { useI18n } from '../lib/i18n';
 
 // Banner 300×250 das telas de fim de rodada.
+// Kerux principal (config/ads.ts): pede direto ao Kerux Ads, sem AdSense.
+// Kerux fallback:
 // 1. Se o AdSense preencher o bloco, mostra o anúncio dele.
 // 2. Se não preencher (conta em revisão, sem anúncio, bloqueador, offline),
 //    chama o Kerux Ads (campanhas próprias; a Vitrine é a peça da casa).
-// 3. Sem nenhum dos dois, o espaço reservado (ou nada).
+// Sem nenhum dos dois, o espaço reservado (ou nada).
 //
 // O <ins> do AdSense fica sempre montado (invisível e sem receber toques
 // enquanto não preenche) porque o AdSense não preenche blocos sem tamanho;
@@ -22,7 +24,7 @@ export function AdBanner() {
   const filled = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
   const keruxRef = useRef<HTMLDivElement>(null);
-  const live = adsEnabled && ADS.bannerSlot !== '';
+  const live = adsEnabled && ADS.bannerSlot !== '' && keruxModo() !== 'principal';
   const [status, setStatus] = useState<Status>(live ? 'pending' : 'unfilled');
   const [kerux, setKerux] = useState<Kerux>(KERUX ? 'idle' : 'none');
   const { t, lang } = useI18n();

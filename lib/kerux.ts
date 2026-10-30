@@ -19,6 +19,18 @@ declare global {
 }
 
 const SDK_TIMEOUT_MS = 3000;
+
+/**
+ * Modo atual do Kerux. Nos testes (build E2E) dá para trocar com
+ * window.__letrisKeruxModo, para cobrir os dois modos.
+ */
+export function keruxModo(): 'principal' | 'fallback' | null {
+  if (__E2E__) {
+    const modo = (window as { __letrisKeruxModo?: 'principal' | 'fallback' }).__letrisKeruxModo;
+    if (modo && KERUX) return modo;
+  }
+  return KERUX?.modo ?? null;
+}
 let sdk: Promise<boolean> | undefined;
 
 /** Carrega o sdk.js uma vez. Se falhar, a próxima chamada tenta de novo. */
@@ -47,7 +59,6 @@ async function cliente(idioma: string): Promise<KeruxCliente | null> {
     site: KERUX.site,
     chave: KERUX.chave,
     idioma,
-    intervaloMinimo: KERUX.intervaloMinimo,
   });
 }
 

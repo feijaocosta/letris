@@ -1,7 +1,7 @@
 import { ADS, adsEnabled } from '../config/ads';
 import { track } from './analytics';
 import { getLanguage } from './i18n';
-import { keruxTelaCheia } from './kerux';
+import { keruxModo, keruxTelaCheia } from './kerux';
 
 // Integração com a Ad Placement API do AdSense (anúncios para jogos HTML5)
 // e com os banners display. Os dois usam o mesmo script adsbygoogle.js.
@@ -46,13 +46,15 @@ export function initAds() {
 }
 
 /**
- * Intervalo entre rodadas: pede um anúncio de tela cheia ao Google (adBreak
- * type 'next') e resolve quando o jogo pode seguir. Se o Google não mostrar
- * nada (sem anúncio, limite de frequência, script bloqueado, offline), o
- * Kerux mostra a tela cheia dele, que o jogador fecha.
+ * Intervalo entre rodadas: resolve quando o jogo pode seguir.
+ * - Kerux principal: mostra direto a tela cheia do Kerux, que o jogador fecha.
+ * - Kerux fallback: pede antes ao Google (adBreak type 'next'); se ele não
+ *   mostrar nada (sem anúncio, limite de frequência, script bloqueado,
+ *   offline), o Kerux mostra a tela cheia dele.
+ * O intervalo mínimo entre telas cheias é cadastrado no Kerux (posição).
  */
 export async function adBreakNext(name: string): Promise<void> {
-  if (!(await googleAdBreak(name))) await keruxTelaCheia(getLanguage());
+  if (keruxModo() === 'principal' || !(await googleAdBreak(name))) await keruxTelaCheia(getLanguage());
 }
 
 /** Resolve `true` se o Google mostrou um anúncio. */

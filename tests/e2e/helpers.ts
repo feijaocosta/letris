@@ -147,3 +147,7 @@ export async function simularKerux(page: Page, { anuncio = true } = {}) {
 /** O que o jogo pediu ao Kerux simulado. */
 export const keruxPedidos = (page: Page) =>
   page.evaluate(() => (window as any).__kerux as { config: Record<string, unknown>; pedidos: string[] } | undefined);
+
+/** Troca o modo do Kerux só neste teste (gancho do build E2E, ver lib/kerux.ts). */
+export const modoKerux = (page: Page, modo: 'principal' | 'fallback') =>
+  page.addInitScript(m => { (window as any).__letrisKeruxModo = m; }, modo);

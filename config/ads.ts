@@ -32,12 +32,14 @@ export const ADS = {
 };
 
 /**
- * Kerux Ads (servidor de anúncios próprio da Kingdom Apps): fallback do Google.
- * - Banner 300×250: quando o AdSense não preenche o bloco, mostra a posição
- *   `banner` do Kerux (a Vitrine é a peça da casa dela).
- * - Entre rodadas: quando o Google não mostra o intervalo, mostra a posição
- *   `telaCheia` em tela cheia, com botão fechar.
- * As campanhas são cadastradas no Kerux, sem deploy do jogo.
+ * Kerux Ads (servidor de anúncios próprio da Kingdom Apps).
+ * - `modo: 'principal'`: o Kerux entrega direto, sem esperar o Google (uso
+ *   atual, enquanto o Google não libera os anúncios).
+ * - `modo: 'fallback'`: o Google tenta primeiro; o Kerux entra quando o
+ *   AdSense não preenche o banner ou o intervalo entre rodadas não mostra nada.
+ * Posições: `banner` (300×250; a Vitrine é a peça da casa) e `telaCheia`
+ * (entre rodadas, com botão fechar). Campanhas, artes e o intervalo mínimo
+ * de cada posição são cadastrados no Kerux, sem deploy do jogo.
  * Guia: https://github.com/feijaocosta/kerux-ads/blob/main/docs/integracao.md
  * Para desligar, use `null`.
  */
@@ -46,17 +48,17 @@ export const KERUX: {
   site: string;
   /** Chave pública do site no Kerux (não é segredo) */
   chave: string;
+  /** 'principal' = sem Google; 'fallback' = Kerux só quando o Google não tem anúncio */
+  modo: 'principal' | 'fallback';
   posicoes: { banner: string; telaCheia: string };
-  /** Segundos mínimos entre duas telas cheias do Kerux, por jogador */
-  intervaloMinimo: number;
   /** Segundos até o botão fechar aparecer na tela cheia */
   fecharApos: number;
 } | null = {
   sdk: 'https://kerux.kingdomapps.net/sdk.js',
   site: 'letris',
   chave: 'pk_39e755b230905f7f424339b8',
+  modo: 'principal',
   posicoes: { banner: 'fim-de-fase', telaCheia: 'entre-fases' },
-  intervaloMinimo: 120,
   fecharApos: 5,
 };
 
