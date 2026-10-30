@@ -26,14 +26,17 @@ type Fixtures = { externalRequests: string[] };
 export const test = base.extend<Options & Fixtures>({
   consent: ['denied', { option: true }],
   controlMode: ['buttons', { option: true }],
-  externalRequests: async ({ page }, use) => {
+  // auto: o bloqueio vale em TODO teste, mesmo nos que não usam a lista.
+  // Sem isso (PR #26), os testes acessavam a internet de verdade: na CI
+  // carregavam o AdSense e o Kerux de produção e contavam impressões reais.
+  externalRequests: [async ({ page }, use) => {
     const requests: string[] = [];
     await page.route(url => !['localhost', '127.0.0.1'].includes(url.hostname), route => {
       requests.push(route.request().url());
       return route.abort();
     });
     await use(requests);
-  },
+  }, { auto: true }],
   page: async ({ page, consent, controlMode }, use) => {
     const problems: string[] = [];
     page.on('pageerror', e => problems.push(`erro de JavaScript: ${e.message}`));

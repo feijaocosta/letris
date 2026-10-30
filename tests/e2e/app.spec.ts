@@ -78,3 +78,12 @@ test('manifest do app instalado vale para todos os idiomas (sprint 8)', async ({
   expect(manifest.description).not.toMatch(/português/i);
   expect(manifest.start_url).toBe('/');
 });
+
+test('pr-26 nenhum teste acessa a internet: AdSense e Kerux de produção ficam bloqueados', async ({ page }) => {
+  // Sem pedir a fixture externalRequests: o bloqueio tem de valer sozinho
+  await page.goto('/');
+  const status = await page.evaluate(() =>
+    fetch('https://kerux.kingdomapps.net/health').then(() => 'acessou', () => 'bloqueado'),
+  );
+  expect(status).toBe('bloqueado');
+});
