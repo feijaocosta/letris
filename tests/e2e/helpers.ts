@@ -85,3 +85,65 @@ export const setLevelWords = (page: Page, words: string[]) =>
 export const drop = (page: Page) => page.keyboard.press('Space');
 
 export const LIST = ['LUA', 'RIO', 'SAL', 'TIA', 'REI', 'MAR'];
+
+/**
+ * Simula o Kerux Ads (sdk.js, API e CDN) seguindo a API pública do SDK
+ * (docs/integracao.md do kerux-ads). Com `anuncio: false`, o Kerux não tem
+ * campanha: chama aoFechar na hora e resolve false. Registra em
+ * window.__kerux a configuração e as posições pedidas.
+ */
+export async function simularKerux(page: Page, { anuncio = true } = {}) {
+  const sdk = `
+    window.__kerux = { config: null, pedidos: [] };
+    window.Kerux = {
+      init: function (config) {
+        window.__kerux.config = config;
+        return {
+          mostrar: function (posicao, el, op) {
+            op = op || {};
+            window.__kerux.pedidos.push(posicao);
+            if (!${anuncio}) { if (op.aoFechar) op.aoFechar(); return Promise.resolve(false); }
+            return fetch('https://kerux.kingdomapps.net/v1/serve?pos=' + posicao).then(function () {
+              var raiz = document.createElement('div');
+              raiz.setAttribute('data-kerux', posicao);
+              raiz.style.cssText = 'position:relative;width:100%;height:100%';
+              var a = document.createElement('a');
+              a.href = 'https://vitrine.kingdomapps.net';
+              a.target = '_blank';
+              a.style.cssText = 'display:block;width:100%;height:100%';
+              var img = document.createElement('img');
+              img.src = 'https://kerux-cdn.kingdomapps.net/pecas/1/1-teste.png';
+              img.alt = 'Kerux ' + posicao;
+              img.style.cssText = 'width:100%;height:100%';
+              a.appendChild(img);
+              raiz.appendChild(a);
+              if (op.aoFechar) {
+                var b = document.createElement('button');
+                b.textContent = '×';
+                b.setAttribute('aria-label', 'Fechar');
+                b.style.cssText = 'position:absolute;top:4px;right:4px';
+                b.onclick = function () { raiz.remove(); op.aoFechar(); };
+                raiz.appendChild(b);
+              }
+              el.appendChild(raiz);
+              return true;
+            });
+          }
+        };
+      }
+    };`;
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    'base64',
+  );
+  await page.route('https://kerux.kingdomapps.net/sdk.js', route =>
+    route.fulfill({ contentType: 'application/javascript', body: sdk }));
+  await page.route('https://kerux.kingdomapps.net/v1/**', route =>
+    route.fulfill({ contentType: 'application/json', body: '{}', headers: { 'Access-Control-Allow-Origin': '*' } }));
+  await page.route('https://kerux-cdn.kingdomapps.net/**', route =>
+    route.fulfill({ contentType: 'image/png', body: png }));
+}
+
+/** O que o jogo pediu ao Kerux simulado. */
+export const keruxPedidos = (page: Page) =>
+  page.evaluate(() => (window as any).__kerux as { config: Record<string, unknown>; pedidos: string[] } | undefined);

@@ -1,7 +1,7 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { ADS, adsEnabled } from './config/ads'
+import { ADS, KERUX_HOSTS, adsEnabled } from './config/ads'
 import { analyticsEnabled } from './config/analytics'
 
 // Content-Security-Policy aplicada só no build de produção: em `vite dev`
@@ -20,13 +20,18 @@ const GA_HOSTS = analyticsEnabled
   ? ' https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com'
   : ''
 
+// Kerux Ads (config/ads.ts): script e API em kerux.kingdomapps.net, artes
+// (imagem e vídeo) em kerux-cdn.kingdomapps.net.
+const [KERUX_API = '', KERUX_CDN = ''] = KERUX_HOSTS.map(host => ` ${host}`)
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self'${AD_HOSTS}${GA_HOSTS}`,
+  `script-src 'self'${AD_HOSTS}${GA_HOSTS}${KERUX_API}`,
   "style-src 'self' 'unsafe-inline'", // React usa atributos style inline
-  `img-src 'self' data: blob:${adsEnabled || analyticsEnabled ? ' https:' : ''}`,
+  `img-src 'self' data: blob:${adsEnabled || analyticsEnabled ? ' https:' : KERUX_CDN}`,
+  `media-src 'self'${KERUX_CDN}`,
   "font-src 'self' data:",
-  `connect-src 'self'${AD_HOSTS}${GA_HOSTS}`,
+  `connect-src 'self'${AD_HOSTS}${GA_HOSTS}${KERUX_API}`,
   `frame-src${adsEnabled ? AD_HOSTS : " 'none'"}`,
   "worker-src 'self'",
   "manifest-src 'self'",

@@ -1,5 +1,7 @@
 import { ADS, adsEnabled } from '../config/ads';
 import { track } from './analytics';
+import { getLanguage } from './i18n';
+import { keruxTelaCheia } from './kerux';
 
 // Integração com a Ad Placement API do AdSense (anúncios para jogos HTML5)
 // e com os banners display. Os dois usam o mesmo script adsbygoogle.js.
@@ -44,21 +46,26 @@ export function initAds() {
 }
 
 /**
- * Pede um anúncio de tela cheia entre rodadas (adBreak type 'next') e
- * resolve quando o jogo pode seguir. O Google decide se mostra ou não
- * (frequência, disponibilidade). Se o script não carregar (bloqueador,
- * offline) ou não houver anúncio, resolve logo.
+ * Intervalo entre rodadas: pede um anúncio de tela cheia ao Google (adBreak
+ * type 'next') e resolve quando o jogo pode seguir. Se o Google não mostrar
+ * nada (sem anúncio, limite de frequência, script bloqueado, offline), o
+ * Kerux mostra a tela cheia dele, que o jogador fecha.
  */
-export function adBreakNext(name: string): Promise<void> {
-  if (!adsEnabled) return Promise.resolve();
+export async function adBreakNext(name: string): Promise<void> {
+  if (!(await googleAdBreak(name))) await keruxTelaCheia(getLanguage());
+}
+
+/** Resolve `true` se o Google mostrou um anúncio. */
+function googleAdBreak(name: string): Promise<boolean> {
+  if (!adsEnabled) return Promise.resolve(false);
 
   return new Promise(resolve => {
     let finished = false;
     let started = false;
-    const finish = () => {
+    const finish = (shown: boolean) => {
       if (!finished) {
         finished = true;
-        resolve();
+        resolve(shown);
       }
     };
 
@@ -68,14 +75,17 @@ export function adBreakNext(name: string): Promise<void> {
         name,
         beforeAd: () => { started = true; track('ad_break_shown', { placement: name }); },
         afterAd: () => {},
-        adBreakDone: finish,
+        // breakStatus: viewed/dismissed = mostrou; o resto (notReady,
+        // frequencyCapped, timeout, error...) = não mostrou
+        adBreakDone: (info?: { breakStatus?: string }) =>
+          finish(started || info?.breakStatus === 'viewed' || info?.breakStatus === 'dismissed'),
       });
     } catch {
-      finish();
+      finish(false);
     }
 
     // Se nada começou em 3 s (script bloqueado/ausente), não trava o jogo
-    setTimeout(() => { if (!started) finish(); }, 3000);
+    setTimeout(() => { if (!started) finish(false); }, 3000);
   });
 }
 

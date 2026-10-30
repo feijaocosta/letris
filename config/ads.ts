@@ -24,22 +24,43 @@ export const ADS = {
   testMode: false,
   /** Intervalo mínimo sugerido entre anúncios de tela cheia */
   frequencyHint: '60s',
-  /** Mostra a moldura "Espaço do anúncio" enquanto não há bloco configurado
-   *  (só quando também não há anúncio próprio) */
+  /** Mostra a moldura "Espaço do anúncio" quando nem o AdSense nem o Kerux
+   *  têm anúncio */
   showPlaceholder: true,
-  /** Quanto esperar o AdSense preencher o banner antes de mostrar o anúncio próprio */
+  /** Quanto esperar o AdSense preencher o banner antes de chamar o Kerux */
   bannerTimeoutMs: 4000,
 };
 
 /**
- * Anúncio próprio ("da casa"): aparece no lugar do banner quando o AdSense
- * não preenche o espaço (conta em revisão, sem anúncio disponível,
- * bloqueador ou offline). Para desligar, use `null`.
+ * Kerux Ads (servidor de anúncios próprio da Kingdom Apps): fallback do Google.
+ * - Banner 300×250: quando o AdSense não preenche o bloco, mostra a posição
+ *   `banner` do Kerux (a Vitrine é a peça da casa dela).
+ * - Entre rodadas: quando o Google não mostra o intervalo, mostra a posição
+ *   `telaCheia` em tela cheia, com botão fechar.
+ * As campanhas são cadastradas no Kerux, sem deploy do jogo.
+ * Guia: https://github.com/feijaocosta/kerux-ads/blob/main/docs/integracao.md
+ * Para desligar, use `null`.
  */
-export const HOUSE_AD: { image: string; alt: string; href: string } | null = {
-  image: 'ads/vitrine-kingdomapps.png', // em public/, relativo ao base do Vite
-  alt: 'Vitrine Kingdom Apps: site pronto por assinatura para o seu negócio.',
-  href: 'https://vitrine.kingdomapps.net',
+export const KERUX: {
+  sdk: string;
+  site: string;
+  /** Chave pública do site no Kerux (não é segredo) */
+  chave: string;
+  posicoes: { banner: string; telaCheia: string };
+  /** Segundos mínimos entre duas telas cheias do Kerux, por jogador */
+  intervaloMinimo: number;
+  /** Segundos até o botão fechar aparecer na tela cheia */
+  fecharApos: number;
+} | null = {
+  sdk: 'https://kerux.kingdomapps.net/sdk.js',
+  site: 'letris',
+  chave: 'pk_39e755b230905f7f424339b8',
+  posicoes: { banner: 'fim-de-fase', telaCheia: 'entre-fases' },
+  intervaloMinimo: 120,
+  fecharApos: 5,
 };
+
+/** Domínios do Kerux liberados na CSP (vite.config.ts) */
+export const KERUX_HOSTS = KERUX ? ['https://kerux.kingdomapps.net', 'https://kerux-cdn.kingdomapps.net'] : [];
 
 export const adsEnabled = ADS.client.trim() !== '';

@@ -1,4 +1,4 @@
-import { test, expect, startGame, setBoard, setLevelWords, drop, LIST } from './helpers';
+import { test, expect, startGame, setBoard, setLevelWords, drop, LIST, simularKerux } from './helpers';
 
 test('abre sem erros e sem violar a CSP (PR #4)', async ({ page }) => {
   // a fixture já falha o teste se aparecer erro de JavaScript ou de CSP
@@ -46,7 +46,8 @@ test.describe('consentimento de cookies (PR #19)', () => {
   });
 });
 
-test('anúncio próprio clicável mesmo com o bloco do Google por cima (PR #14 e #15)', async ({ page }) => {
+test('anúncio próprio (Kerux) clicável mesmo com o bloco do Google por cima (PR #14 e #15)', async ({ page }) => {
+  await simularKerux(page);
   await startGame(page);
   await setLevelWords(page, LIST);
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
