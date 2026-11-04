@@ -16,7 +16,8 @@ test('mostra as palavras do nível e as peças não caem enquanto isso', async (
   for (const w of s.levelWords) await expect(page.getByText(w, { exact: true }).first()).toBeVisible();
 
   const y = (await state(page)).piece?.y;
-  await page.clock.runFor(4_000);
+  // 3 s simulados (o relógio do teste também anda em tempo real entre os passos)
+  await page.clock.runFor(3_000);
   expect((await state(page)).piece?.y, 'a peça não desce durante a contagem').toBe(y);
   expect((await state(page)).phase).toBe('intro');
 });
