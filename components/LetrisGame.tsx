@@ -80,6 +80,8 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
   // Aviso de pontos na tela ("+150", "Combo ×1,5"...)
   const [popup, setPopup] = useState<{ id: number; points: number; labels: ScoreLabel[] } | null>(null);
   const [levelBonus, setLevelBonus] = useState(0);
+  // Bônus por bater a meta sem fechar nenhuma linha no nível (0 = não ganhou)
+  const [noLinesBonus, setNoLinesBonus] = useState(0);
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
   // intro (palavras do nível, 5 s) → playing → ending (palavra brilhando) →
   // splash (comemoração) → summary (resumo)
@@ -443,9 +445,12 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
   const requiredWords = library.getRequiredWordsForLevel(level);
   useEffect(() => {
     if (levelPhase === 'playing' && foundWordsList.length >= requiredWords) {
+      const linesInLevel = linesCleared - levelStart.lines;
+      const noLines = linesInLevel === 0 ? ScoreSystem.noLinesBonusPoints(level) : 0;
       const bonus = ScoreSystem.levelCompletePoints(level);
-      setScore(prev => prev + bonus);
+      setScore(prev => prev + bonus + noLines);
       setLevelBonus(bonus);
+      setNoLinesBonus(noLines);
       setLevelPhase('ending');
       levelEndTimersRef.current.push(
         setTimeout(() => setLevelPhase('splash'), LEVEL_END_GLOW_MS),
@@ -458,7 +463,8 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
         level,
         duration_s: Math.round(getPlayedMs() / 1000),
         words: foundWordsList.length,
-        points: score + bonus - levelStart.score,
+        points: score + bonus + noLines - levelStart.score,
+        no_lines: noLines > 0,
       });
       save(bestLevelKey, Math.max(load(bestLevelKey, 1), level + 1));
     }
@@ -739,7 +745,7 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
           onStart={() => setLevelPhase(phase => (phase === 'intro' ? 'playing' : phase))}
         />
       ) : levelPhase === 'splash' ? (
-        <LevelSplash level={level} words={foundWordsList} />
+        <LevelSplash level={level} words={foundWordsList} noLines={noLinesBonus > 0} />
       ) : levelPhase === 'summary' ? (
         <LevelComplete
           level={level}
@@ -748,6 +754,7 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
           points={score - levelStart.score}
           lines={linesCleared - levelStart.lines}
           levelBonus={levelBonus}
+          noLinesBonus={noLinesBonus}
           nextLevel={nextLevel}
           nextPoolName={t(`pools.${library.getPoolNameForLevel(nextLevel)}` as MessageKey)}
           nextRequiredWords={library.getRequiredWordsForLevel(nextLevel)}

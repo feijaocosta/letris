@@ -33,6 +33,8 @@ export const SCORING = {
   hardDropPerRow: 1,
   /** Concluir o nível: valor × número do nível */
   levelCompletePerLevel: 300,
+  /** Bater a meta sem fechar nenhuma linha no nível: valor × número do nível */
+  noLinesPerLevel: 300,
   /** Multiplicador do nível: 1 + perLevel × (nível − 1) */
   levelMultiplierPerLevel: 0.2,
   /** Letras que vêm das palavras que faltam na lista (o resto vem de todas as letras do nível) */

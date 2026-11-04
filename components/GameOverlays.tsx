@@ -135,7 +135,7 @@ export function LevelIntro({ level, words, requiredWords, onStart }: {
 
 // ---------- Comemoração (entre a última palavra e o resumo) ----------
 
-export function LevelSplash({ level, words }: { level: number; words: string[] }) {
+export function LevelSplash({ level, words, noLines }: { level: number; words: string[]; noLines: boolean }) {
   const { t } = useI18n();
   const last = words[words.length - 1];
   return (
@@ -152,6 +152,11 @@ export function LevelSplash({ level, words }: { level: number; words: string[] }
           <h1 className="m-0 text-[34px] font-black leading-tight">{t('levelSplash.title')}</h1>
           <span className="text-base font-bold text-soft">{t('levelSplash.subtitle', { level })}</span>
         </div>
+        {noLines && (
+          <span className="px-3 py-1 rounded-full bg-tile-yellow text-ink text-[15px] font-black animate-[pop-in_.3s_ease-out_both]">
+            {t('levelSplash.noLines')}
+          </span>
+        )}
         <div className="flex flex-wrap justify-center gap-1.5">
           {words.map((word, i) => (
             <span
@@ -177,6 +182,8 @@ interface LevelCompleteProps {
   points: number;
   lines: number;
   levelBonus: number;
+  /** Bônus por bater a meta sem fechar nenhuma linha (0 = não ganhou) */
+  noLinesBonus: number;
   nextLevel: number;
   nextPoolName: string;
   nextRequiredWords: number;
@@ -208,6 +215,12 @@ export function LevelComplete(p: LevelCompleteProps) {
       {p.levelBonus > 0 && (
         <span className="-mt-1.5 text-center text-[13px] font-bold text-soft">
           {rich('levelComplete.bonus', { bonus: <span className="text-tile-yellow font-black">+{n(p.levelBonus)}</span> })}
+          {p.noLinesBonus > 0 && (
+            <>
+              <br />
+              {rich('levelComplete.noLinesBonus', { bonus: <span className="text-tile-yellow font-black">+{n(p.noLinesBonus)}</span> })}
+            </>
+          )}
         </span>
       )}
 

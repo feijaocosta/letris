@@ -70,6 +70,11 @@ export class ScoreSystem {
     return rows * SCORING.hardDropPerRow;
   }
 
+  /** Bônus por bater a meta do nível sem fechar nenhuma linha */
+  static noLinesBonusPoints(level: number): number {
+    return SCORING.noLinesPerLevel * level;
+  }
+
   static levelCompletePoints(level: number): number {
     return SCORING.levelCompletePerLevel * level;
   }

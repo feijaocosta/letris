@@ -71,7 +71,8 @@
   },
   "levelSplash": {
     "title": "Objectif atteint !",
-    "subtitle": "Niveau {level} terminé"
+    "subtitle": "Niveau {level} terminé",
+    "noLines": "Sans lignes !"
   },
   "levelComplete": {
     "title": "Niveau {level} terminé !",
@@ -80,6 +81,7 @@
     "points": "POINTS",
     "lines": "LIGNES",
     "bonus": "dont {bonus} de bonus pour le niveau terminé",
+    "noLinesBonus": "et {bonus} de bonus pour n'avoir complété aucune ligne",
     "nextLabel": "Ensuite :",
     "nextLevel": "Niveau {level} · {pool}",
     "nextGoal": "objectif {count} mots",

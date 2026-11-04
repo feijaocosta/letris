@@ -105,6 +105,11 @@ test.describe('pontuação', () => {
     expect(repeated.points).toBeLessThan(fresh.points);
   });
 
+  test('bônus sem linhas vale 300 × nível', () => {
+    expect(ScoreSystem.noLinesBonusPoints(1)).toBe(300);
+    expect(ScoreSystem.noLinesBonusPoints(4)).toBe(1200);
+  });
+
   test('palavras maiores valem mais', () => {
     expect(ScoreSystem.wordValue('SALTO')).toBeGreaterThan(ScoreSystem.wordValue('SAL'));
   });
