@@ -121,7 +121,8 @@
     "gesturesDown": "Tire ↓ : accélérer",
     "gesturesAlso": "Ils marchent aussi en mode boutons",
     "keyboard": "Au clavier : flèches, espace pour lâcher et P pour la pause.",
-    "close": "Compris !"
+    "close": "Compris !",
+    "tutorial": "Voir le tutoriel"
   },
   "consent": {
     "label": "Confidentialité et cookies",
@@ -152,5 +153,22 @@
   "rotate": {
     "title": "Tourne ton téléphone",
     "text": "LETRIS se joue avec le téléphone à la verticale. Le jeu reste en pause jusqu'à ton retour."
+  },
+  "tutorial": {
+    "counter": "Étape {n} sur {total}",
+    "skip": "Passer",
+    "retry": "Presque ! Réessaie.",
+    "moveButtons": "Utilise les boutons ← et → pour déplacer la pièce sur les côtés.",
+    "moveGestures": "Glisse le doigt sur les côtés du plateau pour déplacer la pièce.",
+    "rotateButtons": "Touche le bouton jaune pour tourner la pièce.",
+    "rotateGestures": "Touche le plateau pour tourner la pièce.",
+    "dropButtons": "Maintiens ↓ pour descendre plus vite, ou touche le bouton rouge pour la lâcher.",
+    "dropGestures": "Tire le doigt vers le bas sur le plateau pour faire descendre la pièce plus vite.",
+    "word": "Amène le {letter} à côté de {start} et pose-le pour former {word}.",
+    "line": "Maintenant, complète la ligne. Une ligne pleine disparaît et donne des points, mais le but est de former les mots : la ligne sert à libérer de la place.",
+    "goal": "Forme {word} pour atteindre l'objectif du niveau.",
+    "doneTitle": "À toi de jouer !",
+    "doneText": "Forme les mots de la liste à chaque niveau. Les pièces vont de plus en plus vite.",
+    "doneStart": "Commencer le niveau 1"
   }
 }

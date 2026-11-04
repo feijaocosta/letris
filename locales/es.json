@@ -121,7 +121,8 @@
     "gesturesDown": "Arrastra ↓: acelerar",
     "gesturesAlso": "También funcionan en el modo botones",
     "keyboard": "Con teclado: flechas, espacio para soltar y P para pausar.",
-    "close": "¡Entendido!"
+    "close": "¡Entendido!",
+    "tutorial": "Ver el tutorial"
   },
   "consent": {
     "label": "Privacidad y cookies",
@@ -152,5 +153,22 @@
   "rotate": {
     "title": "Gira el celular",
     "text": "LETRIS se juega con el celular en vertical. El juego queda en pausa hasta que vuelvas."
+  },
+  "tutorial": {
+    "counter": "Paso {n} de {total}",
+    "skip": "Saltar",
+    "retry": "¡Casi! Inténtalo de nuevo.",
+    "moveButtons": "Usa los botones ← y → para mover la pieza a los lados.",
+    "moveGestures": "Desliza el dedo a los lados en el tablero para mover la pieza.",
+    "rotateButtons": "Toca el botón amarillo para girar la pieza.",
+    "rotateGestures": "Toca el tablero para girar la pieza.",
+    "dropButtons": "Mantén ↓ para bajar más rápido, o toca el botón rojo para soltarla.",
+    "dropGestures": "Arrastra el dedo hacia abajo en el tablero para que la pieza baje más rápido.",
+    "word": "Lleva la {letter} junto a {start} y encájala para formar {word}.",
+    "line": "Ahora completa la línea. Una línea llena desaparece y da puntos, pero el objetivo es formar las palabras: la línea sirve para abrir espacio en el tablero.",
+    "goal": "Forma {word} para cumplir la meta del nivel.",
+    "doneTitle": "¡Ahora te toca a ti!",
+    "doneText": "Forma las palabras de la lista en cada nivel. Las piezas van cada vez más rápido.",
+    "doneStart": "Empezar el nivel 1"
   }
 }
