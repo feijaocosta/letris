@@ -41,24 +41,6 @@ function removeLines(grid: Cell[][], lines: number[]): Cell[][] {
   return [...emptyRows, ...kept];
 }
 
-// Gravidade por coluna: letras caem nos buracos deixados pelas palavras
-function applyGravity(grid: Cell[][]): Cell[][] {
-  const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
-  for (let col = 0; col < GRID_WIDTH; col++) {
-    let writeIndex = GRID_HEIGHT - 1;
-    for (let row = GRID_HEIGHT - 1; row >= 0; row--) {
-      if (newGrid[row][col].letter !== null) {
-        if (writeIndex !== row) {
-          newGrid[writeIndex][col] = { ...newGrid[row][col] };
-          newGrid[row][col] = createEmptyCell();
-        }
-        writeIndex--;
-      }
-    }
-  }
-  return newGrid;
-}
-
 // Fim de nível: a palavra que bateu a meta brilha por um instante, depois
 // aparece a comemoração com as palavras do nível e então o resumo.
 const LEVEL_END_GLOW_MS = 900;
@@ -260,7 +242,8 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
     resolveTimeoutRef.current = setTimeout(() => {
       let newGrid = removeWords(gridRef.current, words);
       if (lines.length > 0) newGrid = removeLines(newGrid, lines);
-      if (words.length > 0) newGrid = applyGravity(newGrid);
+      // Palavra removida deixa o buraco: as letras de cima NÃO descem (só a
+      // peça que está caindo desce). Linha completa desce as de cima, como no Tetris.
 
       setLinesToClear([]);
       updateGrid(newGrid);

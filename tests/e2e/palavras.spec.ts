@@ -50,4 +50,22 @@ test.describe('com a lista do nível fixa', () => {
     expect((await state(page)).piece).toBeNull();
     await expect.poll(async () => (await state(page)).piece !== null).toBe(true);
   });
+
+  test('letras em cima de uma palavra que some ficam no lugar (não descem)', async ({ page }) => {
+    await setBoard(page, ['ZZ........', 'RI........']);
+    await setPiece(page, 'O', 2);
+    await drop(page);
+    await expect.poll(async () => (await state(page)).found).toEqual(['RIO']);
+    await expect.poll(async () => (await state(page)).board[19]).toBe('..........');
+    expect((await state(page)).board[18]).toBe('ZZ........');
+  });
+
+  test('linha completa que some desce as de cima, como no Tetris', async ({ page }) => {
+    await setBoard(page, ['Z.........', 'ZZZZZZZZZ.']);
+    await setPiece(page, 'Z', 9);
+    await drop(page);
+    await expect.poll(async () => (await state(page)).lines).toBe(1);
+    await expect.poll(async () => (await state(page)).board[19]).toBe('Z.........');
+  });
 });
+
