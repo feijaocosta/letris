@@ -72,7 +72,7 @@ Jogo que mistura Tetris com formação de palavras, em português, inglês, espa
 - **Idioma:** idiomas prontos = os de `config/languages.json`. Ao abrir, `?lang=` (salva a escolha e sai da URL) → idioma salvo (`letris:lang`) → idiomas do navegador → inglês, se pronto → português. Só idiomas prontos (com locale e banco) entram. O seletor é uma pílula discreta (PT | EN | ES | FR) no canto superior direito da entrada e só aparece com 2 idiomas ou mais; cada idioma tem a sua política de privacidade (`privacyPage` em `config/languages.json`, arquivo em `public/`), e o aviso de cookies abre a do idioma; trocar idioma nunca no meio da partida. `<html lang>` e o título acompanham. Recordes separados por idioma; os antigos (sem idioma) foram migrados uma vez para `:pt`.
 - **Orientação:** o jogo é em pé. Manifest com `orientation: 'portrait'` (trava o app instalado no Android); no iPhone e no navegador, celular deitado (`hooks/useLandscapePhone.ts`: paisagem + toque + até 600 px de altura) mostra `RotateNotice` por cima e pausa a partida. Computador não entra.
 - **Manifest do PWA:** um só para todos os idiomas: `name: 'LETRIS'`, `short_name: 'Letris'` e descrição em inglês citando os 4 idiomas. `index.html` começa em português (`lang` e `<title>`); o app troca ao carregar.
-- **Tailwind 4:** `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
+- **Tailwind 4:** sem `tailwind.config.ts` (tudo no `@theme` do `globals.css`); `bg-opacity-*` não existe; usar `bg-cor/NN` (ex.: `bg-white/20`).
 - **Palavras:** em `data/words/<idioma>.json`, MAIÚSCULAS sem acento (Ç→C; Ñ é letra própria no espanhol; Œ→OE no francês), igual a `normalizeWord`, só letras do `alphabet` do idioma, em NFC, ordem alfabética do idioma (`localeCompare` com o locale), sem marcas nem nomes próprios; o build falha se alguma regra quebrar, se um nível não tiver palavras suficientes ou se um idioma de `config/languages.json` não tiver banco e locale.
 - **Inglês:** progressão de letras AEIOURSTNL → D → HM → CY → PB → GW → FK → V → JZ → QX, mesma mistura de tamanhos e metas do PT. `Y` é `extraVowels`: quebra a sequência de consoantes (SKY, FLY, GYM), mas não é sorteado como vogal forçada.
 - **Espanhol:** Ñ é letra própria (entra no nível 5, com G). Progressão AEIOURSTNL → D → CM → PB → GÑ → VY → FH → Z → JQ → X; como há poucas palavras de 3 letras, a mistura começa com mais palavras de 4. Nunca incluir ANO (sem Ñ).
@@ -81,6 +81,9 @@ Jogo que mistura Tetris com formação de palavras, em português, inglês, espa
 - **Banco por idioma:** carregado com `import()` antes da partida (pré-carregado na entrada); nunca ler o JSON com `fetch` (`.json` não entra no precache). Use `Array.from(palavra)` para contar/separar letras.
 
 ## Histórico
+- PR #29: limpeza da raiz (documentos e páginas de teste antigos, `tailwind.config.ts` vazio)
+- PR #28: tutorial da primeira partida
+- PR #27: aceleração perceptível, jogo em pé, palavras antes do nível, bônus sem linhas, continuar partida e descida só do que estava sobre a palavra
 - PR #26: Kerux Ads no banner e no intervalo entre rodadas, como principal por enquanto (chave para virar fallback do Google); sai o `HOUSE_AD` (a Vitrine vem do Kerux); políticas de privacidade com o Kerux
 - PR #4: issues #1 (SW duplicado), #2 (CSP) e #3 (node_modules commitado)
 - PR #5: deploy automático
