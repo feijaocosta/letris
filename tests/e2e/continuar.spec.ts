@@ -36,7 +36,7 @@ test('pausar, fechar e abrir de novo: "Continuar" volta a partida igual, pausada
   expect(after.found).toEqual(['RIO']);
   expect(after.levelWords).toEqual(before.levelWords);
   expect(after.board).toEqual(before.board);
-  expect(after.board[18]).toBe('ZZ........');
+  expect(after.board[19]).toBe('ZZ........');
 
   // e segue jogando normalmente
   await page.getByRole('button', { name: pt.pause.resume }).click();

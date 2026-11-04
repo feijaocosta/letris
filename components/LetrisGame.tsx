@@ -42,6 +42,41 @@ function removeLines(grid: Cell[][], lines: number[]): Cell[][] {
   return [...emptyRows, ...kept];
 }
 
+// Letras que estavam apoiadas nas letras de uma palavra removida: em cada
+// casa que a palavra deixou vazia, a pilha de letras logo acima dela (até o
+// primeiro espaço vazio). Só elas vão descer; o resto do tabuleiro, mesmo
+// com buraco embaixo, fica onde está.
+function findLettersOnRemoved(grid: Cell[][], removed: { row: number; col: number }[]): Set<Cell> {
+  const removedSet = new Set(removed.map(p => `${p.row},${p.col}`));
+  const falling = new Set<Cell>();
+  for (const { row, col } of removed) {
+    for (let r = row - 1; r >= 0; r--) {
+      if (removedSet.has(`${r},${col}`)) continue; // outra letra da palavra
+      if (grid[r][col].letter === null) break;
+      falling.add(grid[r][col]);
+    }
+  }
+  return falling;
+}
+
+// Desce só as letras marcadas, cada uma na sua coluna, até encostar em algo
+function dropLetters(grid: Cell[][], falling: Set<Cell>): Cell[][] {
+  const newGrid = grid.map(row => [...row]);
+  for (let col = 0; col < GRID_WIDTH; col++) {
+    for (let row = GRID_HEIGHT - 2; row >= 0; row--) {
+      const cell = newGrid[row][col];
+      if (!falling.has(cell)) continue;
+      let target = row;
+      while (target + 1 < GRID_HEIGHT && newGrid[target + 1][col].letter === null) target++;
+      if (target !== row) {
+        newGrid[target][col] = cell;
+        newGrid[row][col] = createEmptyCell();
+      }
+    }
+  }
+  return newGrid;
+}
+
 // Fim de nível: a palavra que bateu a meta brilha por um instante, depois
 // aparece a comemoração com as palavras do nível e então o resumo.
 const LEVEL_END_GLOW_MS = 900;
@@ -285,9 +320,12 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
 
     resolveTimeoutRef.current = setTimeout(() => {
       let newGrid = removeWords(gridRef.current, words);
+      // Só desce o que estava apoiado nas letras da palavra; letras de outras
+      // partes do tabuleiro não se mexem, mesmo com buraco embaixo.
+      const falling = findLettersOnRemoved(newGrid, words.flatMap(w => w.positions));
+      // Linha completa desce as de cima, como no Tetris
       if (lines.length > 0) newGrid = removeLines(newGrid, lines);
-      // Palavra removida deixa o buraco: as letras de cima NÃO descem (só a
-      // peça que está caindo desce). Linha completa desce as de cima, como no Tetris.
+      if (falling.size > 0) newGrid = dropLetters(newGrid, falling);
 
       setLinesToClear([]);
       updateGrid(newGrid);

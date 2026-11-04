@@ -51,13 +51,26 @@ test.describe('com a lista do nível fixa', () => {
     await expect.poll(async () => (await state(page)).piece !== null).toBe(true);
   });
 
-  test('letras em cima de uma palavra que some ficam no lugar (não descem)', async ({ page }) => {
-    await setBoard(page, ['ZZ........', 'RI........']);
+  test('o que estava apoiado na palavra desce; o resto do tabuleiro fica onde está', async ({ page }) => {
+    // A em cima de Z em cima de R; Q flutuando longe da palavra (buraco embaixo)
+    await setBoard(page, ['A.........', 'ZZ.....Q..', 'RI........']);
     await setPiece(page, 'O', 2);
     await drop(page);
     await expect.poll(async () => (await state(page)).found).toEqual(['RIO']);
-    await expect.poll(async () => (await state(page)).board[19]).toBe('..........');
-    expect((await state(page)).board[18]).toBe('ZZ........');
+    await expect.poll(async () => (await state(page)).board[19]).toBe('ZZ........');
+    const s = await state(page);
+    expect(s.board[18], 'a pilha em cima da palavra desce junto').toBe('A......Q..');
+    expect(s.board[17], 'nada sobrou no alto').toBe('..........');
+  });
+
+  test('letra ao lado da palavra (sem nada da palavra embaixo) não desce', async ({ page }) => {
+    // Z na coluna 3, ao lado do RIO, apoiado em outra letra que fica
+    await setBoard(page, ['...Z......', 'RI.L......']);
+    await setPiece(page, 'O', 2);
+    await drop(page);
+    await expect.poll(async () => (await state(page)).found).toEqual(['RIO']);
+    await expect.poll(async () => (await state(page)).board[19]).toBe('...L......');
+    expect((await state(page)).board[18]).toBe('...Z......');
   });
 
   test('linha completa que some desce as de cima, como no Tetris', async ({ page }) => {
