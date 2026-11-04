@@ -70,13 +70,15 @@ const ROTATION_KICKS = [0, -1, 1, -2, 2];
 interface LetrisGameProps {
   /** Banco de palavras do idioma da partida */
   library: WordLibrary;
+  /** Celular deitado (aviso "Gire o celular" por cima): o jogo pausa */
+  blocked?: boolean;
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onHome: () => void;
   onHelp: () => void;
 }
 
-export function LetrisGame({ library, controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
+export function LetrisGame({ library, blocked = false, controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
   const { t, n, lang } = useI18n();
   const bestScoreKey = recordKey('bestScore', lang);
   const bestLevelKey = recordKey('bestLevel', lang);
@@ -399,6 +401,11 @@ export function LetrisGame({ library, controlMode, onControlModeChange, onHome, 
       spawnNewPiece();
     }
   }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving, levelPhase]);
+
+  // Pausa sozinho com o celular deitado (o aviso fica por cima)
+  useEffect(() => {
+    if (blocked) setIsPaused(true);
+  }, [blocked]);
 
   // Pausa sozinho quando o app vai para o segundo plano
   useEffect(() => {

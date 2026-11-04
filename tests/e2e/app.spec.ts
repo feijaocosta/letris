@@ -77,6 +77,7 @@ test('manifest do app instalado vale para todos os idiomas (sprint 8)', async ({
   expect(manifest.short_name).toBe('Letris');
   expect(manifest.description).not.toMatch(/português/i);
   expect(manifest.start_url).toBe('/');
+  expect(manifest.orientation).toBe('portrait');
 });
 
 test('pr-26 nenhum teste acessa a internet: AdSense e Kerux de produção ficam bloqueados', async ({ page }) => {

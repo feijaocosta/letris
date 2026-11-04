@@ -7,6 +7,8 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { ConsentBanner } from './components/ConsentBanner';
 import type { ControlMode } from './components/LetrisUI';
 import { usePWA } from './hooks/usePWA';
+import { useLandscapePhone } from './hooks/useLandscapePhone';
+import { RotateNotice } from './components/RotateNotice';
 import { initAds } from './lib/ads';
 import { track } from './lib/analytics';
 import { applyConsent, getConsent, setConsent, type Consent } from './lib/consent';
@@ -25,6 +27,7 @@ export default function App() {
   const [consent, setConsentState] = useState<Consent>(getConsent);
   const [consentOpen, setConsentOpen] = useState(() => getConsent() === null);
   const { lang } = useI18n();
+  const landscape = useLandscapePhone();
   // Banco de palavras da partida (do idioma escolhido)
   const [library, setLibrary] = useState<WordLibrary | null>(null);
 
@@ -126,6 +129,7 @@ export default function App() {
         <LetrisGame
           key={gameKey}
           library={library}
+          blocked={landscape}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onHome={() => setScreen('home')}
@@ -145,6 +149,8 @@ export default function App() {
           onDismiss={() => setShowInstallPrompt(false)}
         />
       )}
+
+      {landscape && <RotateNotice />}
 
       <UpdateBanner />
     </>

@@ -138,5 +138,9 @@
   "ads": {
     "label": "PUBLICIDADE",
     "placeholder": "Espaço do anúncio"
+  },
+  "rotate": {
+    "title": "Gire o celular",
+    "text": "O LETRIS é jogado com o celular em pé. O jogo fica pausado até você voltar."
   }
 }

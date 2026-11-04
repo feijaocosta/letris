@@ -138,5 +138,9 @@
   "ads": {
     "label": "PUBLICITÉ",
     "placeholder": "Espace publicitaire"
+  },
+  "rotate": {
+    "title": "Tourne ton téléphone",
+    "text": "LETRIS se joue avec le téléphone à la verticale. Le jeu reste en pause jusqu'à ton retour."
   }
 }

@@ -138,5 +138,9 @@
   "ads": {
     "label": "ADVERTISEMENT",
     "placeholder": "Ad space"
+  },
+  "rotate": {
+    "title": "Turn your phone",
+    "text": "LETRIS is played with the phone upright. The game stays paused until you turn it back."
   }
 }

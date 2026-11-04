@@ -138,5 +138,9 @@
   "ads": {
     "label": "PUBLICIDAD",
     "placeholder": "Espacio publicitario"
+  },
+  "rotate": {
+    "title": "Gira el celular",
+    "text": "LETRIS se juega con el celular en vertical. El juego queda en pausa hasta que vuelvas."
   }
 }
