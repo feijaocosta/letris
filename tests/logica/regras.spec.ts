@@ -127,6 +127,13 @@ test.describe('velocidade (PR #16 e #17)', () => {
     expect(start - late).toBe(SPEED.maxTimeReductionMs);
   });
 
+  test('a aceleração dentro do nível dá para sentir: 20% mais rápido em ~3 min no nível 1', () => {
+    expect(ScoreSystem.calculateFallSpeed(1, 0)).toBe(1000);
+    expect(ScoreSystem.calculateFallSpeed(1, 60_000)).toBeLessThan(950);
+    expect(ScoreSystem.calculateFallSpeed(1, 3 * 60_000)).toBe(800);
+    expect(ScoreSystem.calculateFallSpeed(5, 0)).toBe(720);
+  });
+
   test('nunca fica mais rápido que o mínimo', () => {
     expect(ScoreSystem.calculateFallSpeed(99, 60 * 60 * 1000)).toBe(SPEED.minMs);
   });
