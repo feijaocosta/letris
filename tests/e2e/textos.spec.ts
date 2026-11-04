@@ -1,4 +1,4 @@
-import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
+import { test, expect, skipIntro, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
 import { LOCALES } from '../locales';
@@ -54,6 +54,7 @@ test('nenhuma tela mostra chave de texto sem tradução', async ({ page }) => {
   await expect(page.getByText('Nível 2 · Básico')).toBeVisible();
   await expectNoRawKeys(page, 'nível concluído');
   await page.getByRole('button', { name: pt.levelComplete.continue }).click();
+  await skipIntro(page);
 
   // Fim de jogo
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
@@ -72,6 +73,9 @@ for (const [lang, locale] of Object.entries(LOCALES).filter(([l]) => l !== 'pt')
     await expectNoRawKeys(page, `como jogar ${lang}`);
     await page.getByRole('button', { name: locale.help.close }).click();
     await page.getByRole('button', { name: locale.home.play, exact: true }).click();
+    await expect(page.getByRole('button', { name: locale.levelIntro.start })).toBeVisible();
+    await expectNoRawKeys(page, `palavras do nível ${lang}`);
+    await skipIntro(page);
     await page.getByRole('button', { name: locale.game.pause }).click();
     await expect(page.getByText(locale.pause.title, { exact: true })).toBeVisible();
     await expectNoRawKeys(page, `pausa ${lang}`);

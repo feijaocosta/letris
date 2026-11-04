@@ -64,6 +64,11 @@
     "newGame": "Nueva partida",
     "home": "Volver al inicio"
   },
+  "levelIntro": {
+    "title": "Nivel {level}",
+    "subtitle": "Forma {count} de estas palabras",
+    "start": "Empezar ya"
+  },
   "levelSplash": {
     "title": "¡Meta cumplida!",
     "subtitle": "Nivel {level} completado"

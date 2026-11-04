@@ -1,4 +1,4 @@
-import { test, expect, startGame, setLevelWords, type GameState } from './helpers';
+import { test, expect, skipIntro, startGame, setLevelWords, type GameState } from './helpers';
 import type { Page } from '@playwright/test';
 import { LOCALES } from '../locales';
 
@@ -75,6 +75,7 @@ for (const [lang, locale] of Object.entries(LOCALES)) {
     const box = (await privacy.boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(560);
     await page.getByRole('button', { name: locale.home.play, exact: true }).click();
+    await skipIntro(page);
     checkLayout(await measure(page));
     // Placar do topo numa linha só
     const header = await page.locator('.game-area .h-11').first().boundingBox();

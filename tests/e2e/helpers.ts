@@ -66,7 +66,17 @@ export { expect };
 export async function startGame(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: /JOGAR/ }).click();
-  await expect.poll(() => state(page).then(s => s.piece !== null)).toBe(true);
+  await skipIntro(page);
+}
+
+/**
+ * Pula a tela com as palavras do nível (5 s antes das peças caírem) e espera
+ * o nível começar. Usar depois de JOGAR e de "Próximo nível".
+ */
+export async function skipIntro(page: Page) {
+  await expect.poll(() => page.evaluate(() => typeof (window as any).__letris?.skipIntro)).toBe('function');
+  await page.evaluate(() => (window as any).__letris.skipIntro());
+  await expect.poll(() => state(page).then(s => s.phase === 'playing' && s.piece !== null)).toBe(true);
 }
 
 export const state = (page: Page) =>

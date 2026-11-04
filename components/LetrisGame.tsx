@@ -5,7 +5,7 @@ import { createRandomPiece, canPlacePiece, rotatePiece, type TetrisPiece } from 
 import { findWords, removeWords, highlightWords } from './WordDetector';
 import { ScoreSystem, type ScoreLabel, type ScoredWord } from './ScoreSystem';
 import type { WordLibrary } from './WordLibrary';
-import { GameOver, LevelComplete, LevelSplash, PauseMenu } from './GameOverlays';
+import { GameOver, LevelComplete, LevelIntro, LevelSplash, PauseMenu } from './GameOverlays';
 import {
   IconDown, IconDrop, IconLeft, IconPause, IconRight, IconRotate, IconSwipe, IconSwipeDown, IconTap,
   Label, Logo, Panel, Tile, TILE_COLORS, WordChip, type ControlMode,
@@ -81,8 +81,9 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
   const [popup, setPopup] = useState<{ id: number; points: number; labels: ScoreLabel[] } | null>(null);
   const [levelBonus, setLevelBonus] = useState(0);
   const [linesToClear, setLinesToClear] = useState<number[]>([]);
-  // playing → ending (palavra brilhando) → splash (comemoração) → summary (resumo)
-  const [levelPhase, setLevelPhase] = useState<'playing' | 'ending' | 'splash' | 'summary'>('playing');
+  // intro (palavras do nível, 5 s) → playing → ending (palavra brilhando) →
+  // splash (comemoração) → summary (resumo)
+  const [levelPhase, setLevelPhase] = useState<'intro' | 'playing' | 'ending' | 'splash' | 'summary'>('intro');
   const levelEndTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [adBusy, setAdBusy] = useState(false);
   // Pontos e linhas no início do nível, para o resumo de "nível concluído"
@@ -185,11 +186,11 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
     setGameWords([]);
     setPopup(null);
     clearLevelEndTimers();
-    setLevelPhase('playing');
+    setLevelPhase('intro');
     setLevelStart({ score: 0, lines: 0 });
     playedMsRef.current = 0;
     gamePlayedMsRef.current = 0;
-    runningSinceRef.current = Date.now();
+    runningSinceRef.current = null; // o relógio liga quando o nível começa
   };
 
   useEffect(() => {
@@ -491,10 +492,10 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
     setLevelStart({ ...totalsRef.current });
     gamePlayedMsRef.current += getPlayedMs();
     playedMsRef.current = 0;
-    runningSinceRef.current = Date.now();
+    runningSinceRef.current = null; // o relógio liga quando o nível começa
     updatePiece(newPiece());
     setNextPiece(newPiece());
-    setLevelPhase('playing');
+    setLevelPhase('intro');
     setIsPaused(false);
   };
 
@@ -545,6 +546,8 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
         x,
         y,
       }),
+      // Pula a tela de palavras do nível (o teste dela é feito pela tela)
+      skipIntro: () => setLevelPhase(phase => (phase === 'intro' ? 'playing' : phase)),
       setLevelWords: (words: string[]) => {
         levelWordsRef.current = words;
         validWordsRef.current = new Set(words);
@@ -726,6 +729,14 @@ export function LetrisGame({ library, blocked = false, controlMode, onControlMod
           busy={adBusy}
           onRestart={restartAfterGameOver}
           onHome={onHome}
+        />
+      ) : levelPhase === 'intro' ? (
+        <LevelIntro
+          key={level}
+          level={level}
+          words={levelWords}
+          requiredWords={requiredWords}
+          onStart={() => setLevelPhase(phase => (phase === 'intro' ? 'playing' : phase))}
         />
       ) : levelPhase === 'splash' ? (
         <LevelSplash level={level} words={foundWordsList} />

@@ -64,6 +64,11 @@
     "newGame": "New game",
     "home": "Back to start"
   },
+  "levelIntro": {
+    "title": "Level {level}",
+    "subtitle": "Make {count} of these words",
+    "start": "Start now"
+  },
   "levelSplash": {
     "title": "Goal reached!",
     "subtitle": "Level {level} complete"

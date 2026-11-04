@@ -23,7 +23,8 @@ test('fim de nível: comemoração, resumo e próximo nível na hora', async ({ 
   await next.click();
   await expect.poll(async () => (await state(page)).level, { timeout: 1_000 }).toBe(2);
   const s = await state(page);
-  expect(s.phase).toBe('playing');
+  // O nível 2 começa pela tela com as palavras do nível
+  expect(s.phase).toBe('intro');
   expect(s.found).toEqual([]);
   expect(s.board.every(row => row === '..........')).toBe(true);
 });
