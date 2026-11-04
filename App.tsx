@@ -12,7 +12,7 @@ import { RotateNotice } from './components/RotateNotice';
 import { initAds } from './lib/ads';
 import { track } from './lib/analytics';
 import { applyConsent, getConsent, setConsent, type Consent } from './lib/consent';
-import { KEYS, load, save } from './lib/storage';
+import { KEYS, hasAnyRecord, load, save } from './lib/storage';
 import { useI18n } from './lib/i18n';
 import { loadWordLibrary } from './lib/wordBanks';
 import type { WordLibrary } from './components/WordLibrary';
@@ -33,6 +33,8 @@ export default function App() {
   const [library, setLibrary] = useState<WordLibrary | null>(null);
   // Partida guardada a retomar na próxima tela de jogo
   const [resume, setResume] = useState<SavedGame | null>(null);
+  // A próxima partida começa pelo tutorial
+  const [withTutorial, setWithTutorial] = useState(false);
   // Partida guardada do idioma atual, para o "Continuar" da entrada
   const saved = useMemo(() => (screen === 'home' ? loadSavedGame(lang) : null), [screen, lang]);
 
@@ -104,7 +106,12 @@ export default function App() {
     loadWordLibrary(lang).catch(() => {});
   }, [lang]);
 
-  const play = async (game: SavedGame | null = null) => {
+  /**
+   * Começa a partida: a guardada (Continuar), uma nova, ou o tutorial. O
+   * tutorial aparece sozinho só na primeira vez de quem nunca jogou (sem
+   * recorde); "Ver tutorial" no Como jogar força.
+   */
+  const play = async (game: SavedGame | null = null, forceTutorial = false) => {
     let words: WordLibrary;
     try {
       words = await loadWordLibrary(lang);
@@ -114,6 +121,7 @@ export default function App() {
     if (!game) clearSavedGame(lang); // JOGAR/Novo jogo descarta a guardada
     track('game_start', { control_mode: controlMode, resumed: game !== null });
     setResume(game);
+    setWithTutorial(!game && (forceTutorial || (!load(KEYS.tutorialDone, false) && !hasAnyRecord())));
     setLibrary(words);
     setConsentOpen(false);
     setShowInstallPrompt(false);
@@ -140,6 +148,7 @@ export default function App() {
           library={library}
           blocked={landscape}
           resume={resume}
+          tutorial={withTutorial}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onHome={() => setScreen('home')}
@@ -147,7 +156,13 @@ export default function App() {
         />
       )}
 
-      {helpOpen && <HelpScreen onClose={() => setHelpOpen(false)} />}
+      {helpOpen && (
+        <HelpScreen
+          onClose={() => setHelpOpen(false)}
+          // Só na entrada: no meio de uma partida o tutorial a abandonaria
+          onTutorial={screen === 'home' ? () => { setHelpOpen(false); play(null, true); } : undefined}
+        />
+      )}
 
       {consentOpen && screen === 'home' && !helpOpen && (
         <ConsentBanner onAccept={() => chooseConsent('granted')} onDecline={() => chooseConsent('denied')} />

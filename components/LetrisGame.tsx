@@ -13,8 +13,12 @@ import {
 import { useBoardGestures } from '../hooks/useBoardGestures';
 import { adBreakNext } from '../lib/ads';
 import { track } from '../lib/analytics';
-import { load, recordKey, save } from '../lib/storage';
+import { KEYS, load, recordKey, save } from '../lib/storage';
 import { clearSavedGame, saveGame, type SavedGame } from '../lib/savedGame';
+import {
+  TUTORIAL_GRAVITY, TUTORIAL_LINE_FILLER, TUTORIAL_MOVES, TUTORIAL_STEPS, TUTORIAL_WORDS, type TutorialStep,
+} from '../config/tutorial';
+import { TutorialCoach, TutorialDone } from './TutorialCoach';
 import { useI18n, type MessageKey } from '../lib/i18n';
 
 const GRID_WIDTH = 10;
@@ -92,13 +96,15 @@ interface LetrisGameProps {
   blocked?: boolean;
   /** Partida guardada para continuar (em vez de começar uma nova) */
   resume?: SavedGame | null;
+  /** Começa pelo tutorial (primeira partida ou "Ver tutorial") */
+  tutorial?: boolean;
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onHome: () => void;
   onHelp: () => void;
 }
 
-export function LetrisGame({ library, blocked = false, resume = null, controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
+export function LetrisGame({ library, blocked = false, resume = null, tutorial = false, controlMode, onControlModeChange, onHome, onHelp }: LetrisGameProps) {
   const { t, n, lang } = useI18n();
   const bestScoreKey = recordKey('bestScore', lang);
   const bestLevelKey = recordKey('bestLevel', lang);
@@ -128,6 +134,14 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
   const [adBusy, setAdBusy] = useState(false);
   // Pontos e linhas no início do nível, para o resumo de "nível concluído"
   const [levelStart, setLevelStart] = useState({ score: 0, lines: 0 });
+
+  // Tutorial: passo atual (null = partida normal), se o passo está sendo
+  // repetido ("Quase! Tente de novo") e o progresso do passo em uma ref
+  // (lida nos eventos de mover/girar/encaixar).
+  const [tutorialStep, setTutorialStep] = useState<TutorialStep | null>(null);
+  const [tutorialRetry, setTutorialRetry] = useState(false);
+  const tutorialRef = useRef<{ step: TutorialStep | null; count: number; done: boolean }>({ step: null, count: 0, done: false });
+  const tutorialEventRef = useRef<(event: 'move' | 'rotate' | 'place' | 'line' | { word: string }) => void>(() => {});
 
   const resolveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const popupTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -211,6 +225,9 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
 
   const startNewGame = () => {
     clearSavedGame(lang);
+    tutorialRef.current = { step: null, count: 0, done: false };
+    setTutorialStep(null);
+    setTutorialRetry(false);
     cancelResolution();
     usedWordsRef.current = new Set();
     setupLevel(1);
@@ -272,6 +289,7 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
 
   useEffect(() => {
     if (resume) restoreGame(resume);
+    else if (tutorial) startTutorial();
     else startNewGame();
   }, []);
 
@@ -293,12 +311,15 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     setIsResolving(true);
 
     // Palavra nova ou repetida (já formada antes neste nível)
+    const inTutorial = tutorialRef.current.step !== null;
     const scored: ScoredWord[] = words.map(({ word }) => {
       const result = { word, repeated: formedInLevelRef.current.has(word) };
       formedInLevelRef.current.add(word);
-      track('word_formed', { length: word.length, repeated: result.repeated, level: currentLevel });
+      if (inTutorial) tutorialEventRef.current({ word });
+      else track('word_formed', { length: word.length, repeated: result.repeated, level: currentLevel });
       return result;
     });
+    if (lines.length > 0 && inTutorial) tutorialEventRef.current('line');
 
     if (words.length > 0) {
       updateGrid(highlightWords(currentGrid, words));
@@ -361,6 +382,7 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     }
 
     updateGrid(newGrid);
+    tutorialEventRef.current('place');
     resolveBoard(newGrid);
   }, [updateGrid, resolveBoard]);
 
@@ -386,6 +408,7 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     const newY = piece.y + deltaY;
     if (canPlacePiece(piece, gridRef.current, newX, newY)) {
       updatePiece({ ...piece, x: newX, y: newY });
+      if (deltaX !== 0) tutorialEventRef.current('move');
       return false;
     }
     if (deltaY > 0) {
@@ -405,6 +428,7 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     for (const kick of ROTATION_KICKS) {
       if (canPlacePiece(rotated, gridRef.current, rotated.x + kick, rotated.y)) {
         updatePiece({ ...rotated, x: rotated.x + kick });
+        tutorialEventRef.current('rotate');
         return;
       }
     }
@@ -448,8 +472,9 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
 
   // Gravidade: um relógio por peça, que NÃO recomeça quando a peça gira ou
   // anda para os lados (senão girar sem parar segurava a peça no ar).
+  const gravityOn = tutorialStep === null || TUTORIAL_GRAVITY.has(tutorialStep);
   useEffect(() => {
-    if (!running || !hasPiece) return;
+    if (!running || !hasPiece || !gravityOn) return;
     const fallSpeed = () => ScoreSystem.calculateFallSpeed(levelRef.current, getPlayedMs());
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
@@ -458,20 +483,20 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     };
     timer = setTimeout(tick, fallSpeed());
     return () => clearTimeout(timer);
-  }, [running, hasPiece, level]);
+  }, [running, hasPiece, level, gravityOn]);
 
   // Nasce a próxima peça quando não há peça ativa nem limpeza em andamento
   useEffect(() => {
-    if (!currentPiece && !isGameOver && nextPiece && !isResolving && levelPhase === 'playing') {
+    if (!currentPiece && !isGameOver && nextPiece && !isResolving && levelPhase === 'playing' && tutorialStep === null) {
       spawnNewPiece();
     }
-  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving, levelPhase]);
+  }, [currentPiece, isGameOver, spawnNewPiece, nextPiece, isResolving, levelPhase, tutorialStep]);
 
   // ---------- Partida guardada no aparelho ----------
   // Só nos momentos estáveis: tela de palavras do nível, jogando (fora da
   // limpeza de palavras/linhas) e resumo do nível.
   const snapshot = (): Omit<SavedGame, 'v' | 'savedAt'> | null => {
-    if (isGameOver || levelWordsRef.current.length === 0) return null;
+    if (isGameOver || levelWordsRef.current.length === 0 || tutorialRef.current.step !== null) return null;
     const phase = levelPhase === 'intro' || levelPhase === 'summary' ? levelPhase
       : levelPhase === 'playing' && !isResolvingRef.current ? 'playing' : null;
     if (!phase) return null;
@@ -574,9 +599,9 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
 
   // Meta do nível atingida: congela o jogo com a palavra brilhando, mostra a
   // comemoração, chama o anúncio entre rodadas (se houver) e abre o resumo.
-  const requiredWords = library.getRequiredWordsForLevel(level);
+  const requiredWords = tutorialStep !== null ? TUTORIAL_WORDS[lang].length : library.getRequiredWordsForLevel(level);
   useEffect(() => {
-    if (levelPhase === 'playing' && foundWordsList.length >= requiredWords) {
+    if (levelPhase === 'playing' && tutorialStep === null && foundWordsList.length >= requiredWords) {
       const linesInLevel = linesCleared - levelStart.lines;
       const noLines = linesInLevel === 0 ? ScoreSystem.noLinesBonusPoints(level) : 0;
       const bonus = ScoreSystem.levelCompletePoints(level);
@@ -695,6 +720,124 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
     };
   }
 
+  // ---------- Tutorial (primeira partida) ----------
+  // Roteiro com tabuleiro e peças fixos (config/tutorial.ts). Cada passo
+  // espera a ação certa; nos passos de encaixe, se a peça cair no lugar
+  // errado, o passo recomeça. No fim, "Agora é com você!" limpa o tabuleiro e
+  // começa o nível 1.
+  const tutorialWords = TUTORIAL_WORDS[lang];
+
+  const tutorialBoard = (step: TutorialStep): Cell[][] => {
+    const board = createEmptyGrid();
+    const bottom = GRID_HEIGHT - 1;
+    const put = (col: number, letter: string, color: Cell['color']) => {
+      board[bottom][col] = { letter, color, isActive: false, isHighlighted: false };
+    };
+    const [first, second] = tutorialWords;
+    if (step === 'word') { put(0, first[0], 'green'); put(1, first[1], 'green'); }
+    if (step === 'line') Array.from(TUTORIAL_LINE_FILLER).forEach((l, col) => put(col, l, 'blue'));
+    if (step === 'goal') { put(6, second[0], 'green'); put(7, second[1], 'green'); }
+    return board;
+  };
+
+  const tutorialPiece = (step: TutorialStep): TetrisPiece | null => {
+    const [first, second] = tutorialWords;
+    const single = (letter: string): TetrisPiece => ({ shape: [[true]], letters: [[letter]], color: 'orange', x: 4, y: 0 });
+    if (step === 'move' || step === 'rotate' || step === 'drop') {
+      const letters = Array.from(first);
+      return { shape: [letters.map(() => true)], letters: [letters], color: 'blue', x: 3, y: 1 };
+    }
+    if (step === 'word') return single(first[2]);
+    if (step === 'line') return single(TUTORIAL_LINE_FILLER[0]);
+    if (step === 'goal') return single(second[2]);
+    return null;
+  };
+
+  const enterTutorialStep = (step: TutorialStep, retry = false) => {
+    tutorialRef.current = { step, count: 0, done: false };
+    setTutorialStep(step);
+    setTutorialRetry(retry);
+    updateGrid(tutorialBoard(step));
+    updatePiece(tutorialPiece(step));
+    if (!retry) track(step === 'done' ? 'tutorial_complete' : 'tutorial_step', { step, control_mode: controlMode });
+    if (step === 'done') save(KEYS.tutorialDone, true);
+  };
+
+  const advanceTutorial = (from: TutorialStep) => {
+    if (tutorialRef.current.step !== from) return; // já avançou
+    const next = TUTORIAL_STEPS[TUTORIAL_STEPS.indexOf(from) + 1];
+    if (next) enterTutorialStep(next);
+  };
+
+  function startTutorial() {
+    clearSavedGame(lang);
+    cancelResolution();
+    usedWordsRef.current = new Set();
+    levelWordsRef.current = [...tutorialWords];
+    setLevelWords([...tutorialWords]);
+    validWordsRef.current = new Set(tutorialWords);
+    foundTargetsRef.current = new Set();
+    formedInLevelRef.current = new Set();
+    setNextPiece(null);
+    setScore(0);
+    setLevel(1);
+    setLinesCleared(0);
+    setIsGameOver(false);
+    setIsPaused(false);
+    setFoundWordsList([]);
+    setGameWords([]);
+    setPopup(null);
+    clearLevelEndTimers();
+    setLevelPhase('playing');
+    setLevelStart({ score: 0, lines: 0 });
+    playedMsRef.current = 0;
+    gamePlayedMsRef.current = 0;
+    runningSinceRef.current = null;
+    track('tutorial_start', { control_mode: controlMode });
+    enterTutorialStep(TUTORIAL_STEPS[0]);
+  }
+
+  const skipTutorial = () => {
+    track('tutorial_skip', { step: tutorialRef.current.step ?? '', control_mode: controlMode });
+    save(KEYS.tutorialDone, true);
+    startNewGame();
+  };
+
+  // O que conta como "fez o passo"
+  tutorialEventRef.current = event => {
+    const progress = tutorialRef.current;
+    if (!progress.step || progress.done) return;
+    const step = progress.step;
+    const done = () => { progress.done = true; };
+    if (step === 'move' && event === 'move' && ++progress.count >= TUTORIAL_MOVES) {
+      done();
+      setTimeout(() => advanceTutorial('move'), 400);
+    } else if (step === 'rotate' && event === 'rotate') {
+      done();
+      setTimeout(() => advanceTutorial('rotate'), 500);
+    } else if (step === 'drop' && event === 'place') done();
+    else if (step === 'word' && typeof event === 'object' && event.word === tutorialWords[0]) done();
+    else if (step === 'line' && event === 'line') done();
+    else if (step === 'goal' && typeof event === 'object' && event.word === tutorialWords[1]) done();
+  };
+
+  // Peça encaixada e tabuleiro parado: passa para o próximo passo, ou
+  // repete o passo se a peça caiu no lugar errado
+  useEffect(() => {
+    if (!tutorialStep || tutorialStep === 'done' || currentPiece || isResolving) return;
+    if (tutorialRef.current.done) advanceTutorial(tutorialStep);
+    else enterTutorialStep(tutorialStep, true);
+  }, [tutorialStep, currentPiece, isResolving]);
+
+  /** Botão que o tutorial pede para usar (modo Botões) */
+  const highlight = (button: 'left' | 'right' | 'down' | 'rotate' | 'drop') => {
+    if (controlMode !== 'buttons' || !tutorialStep) return '';
+    const wanted: Partial<Record<TutorialStep, string[]>> = {
+      move: ['left', 'right'], rotate: ['rotate'], drop: ['down', 'drop'],
+    };
+    return wanted[tutorialStep]?.includes(button) ? ' tutorial-highlight' : '';
+  };
+
   // ---------- Controles ----------
 
   const gestures = useBoardGestures({ move: movePiece, rotate: rotatePieceHandler });
@@ -777,7 +920,7 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
         </div>
 
         {/* Tabuleiro + lateral */}
-        <div className="flex-1 min-h-0 flex gap-3">
+        <div className="relative flex-1 min-h-0 flex gap-3">
           <div className="relative flex-1 min-w-0 min-h-0 touch-none" {...gestures}>
             <GameBoard grid={grid} activePiece={currentPiece} ghostY={ghostY} linesToClear={linesToClear} />
             {popup && (
@@ -814,6 +957,20 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
               </div>
             </Panel>
           </aside>
+
+          {tutorialStep && tutorialStep !== 'done' && (
+            <TutorialCoach
+              step={tutorialStep}
+              controlMode={controlMode}
+              retry={tutorialRetry}
+              vars={{
+                word: tutorialWords[tutorialStep === 'goal' ? 1 : 0],
+                letter: tutorialWords[0][2],
+                start: tutorialWords[0].slice(0, 2),
+              }}
+              onSkip={skipTutorial}
+            />
+          )}
         </div>
 
         {/* Palavras do nível */}
@@ -826,25 +983,25 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
           <div className="flex items-center justify-between h-[72px] shrink-0 select-none game-controls">
             <div className="flex gap-[3px]">
               <button aria-label={t('game.moveLeft')} {...controlButton(() => movePiece(-1, 0))}
-                className="btn-3d w-16 h-16 rounded-l-[20px] rounded-r-md bg-panel text-white flex items-center justify-center">
+                className={`btn-3d${highlight('left')} w-16 h-16 rounded-l-[20px] rounded-r-md bg-panel text-white flex items-center justify-center`}>
                 <IconLeft size={28} />
               </button>
               <button aria-label={t('game.moveDown')} {...softDropButton}
-                className="btn-3d w-16 h-16 rounded-md bg-panel text-white flex items-center justify-center">
+                className={`btn-3d${highlight('down')} w-16 h-16 rounded-md bg-panel text-white flex items-center justify-center`}>
                 <IconDown size={28} />
               </button>
               <button aria-label={t('game.moveRight')} {...controlButton(() => movePiece(1, 0))}
-                className="btn-3d w-16 h-16 rounded-r-[20px] rounded-l-md bg-panel text-white flex items-center justify-center">
+                className={`btn-3d${highlight('right')} w-16 h-16 rounded-r-[20px] rounded-l-md bg-panel text-white flex items-center justify-center`}>
                 <IconRight size={28} />
               </button>
             </div>
             <div className="flex gap-3">
               <button aria-label={t('game.rotate')} {...controlButton(rotatePieceHandler)}
-                className="btn-3d w-[66px] h-[66px] rounded-full bg-tile-yellow text-ink flex items-center justify-center">
+                className={`btn-3d${highlight('rotate')} w-[66px] h-[66px] rounded-full bg-tile-yellow text-ink flex items-center justify-center`}>
                 <IconRotate size={30} />
               </button>
               <button aria-label={t('game.drop')} {...controlButton(dropPiece)}
-                className="btn-3d w-[66px] h-[66px] rounded-full bg-tile-red text-white flex items-center justify-center">
+                className={`btn-3d${highlight('drop')} w-[66px] h-[66px] rounded-full bg-tile-red text-white flex items-center justify-center`}>
                 <IconDrop size={30} />
               </button>
             </div>
@@ -869,6 +1026,8 @@ export function LetrisGame({ library, blocked = false, resume = null, controlMod
           onRestart={restartAfterGameOver}
           onHome={onHome}
         />
+      ) : tutorialStep === 'done' ? (
+        <TutorialDone onStart={startNewGame} />
       ) : levelPhase === 'intro' ? (
         <LevelIntro
           key={level}

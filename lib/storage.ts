@@ -31,7 +31,18 @@ export function remove(key: string): void {
 export const KEYS = {
   controlMode: 'controlMode',
   lang: 'lang',
+  /** Tutorial visto (ou pulado): não aparece mais sozinho */
+  tutorialDone: 'tutorialDone',
 } as const;
+
+/** Já jogou alguma vez (tem recorde em algum idioma)? */
+export function hasAnyRecord(): boolean {
+  try {
+    return Object.keys(localStorage).some(k => k.startsWith(`${PREFIX}bestScore`) && Number(localStorage.getItem(k)) > 0);
+  } catch {
+    return false;
+  }
+}
 
 // Recordes separados por idioma: "bestScore:pt", "bestLevel:en"...
 export type RecordKey = 'bestScore' | 'bestLevel';

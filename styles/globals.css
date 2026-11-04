@@ -263,6 +263,30 @@
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Gestos animados do tutorial (modo Gestos) */
+@keyframes tutorial-swipe {
+  0%, 100% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+}
+@keyframes tutorial-tap {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.8); }
+}
+@keyframes tutorial-drag {
+  0% { transform: translateY(-6px); opacity: 1; }
+  100% { transform: translateY(6px); opacity: 0.4; }
+}
+
+/* Botão que o tutorial pede para usar */
+.tutorial-highlight {
+  animation: tutorial-pulse 1s ease-in-out infinite;
+}
+/* Só o brilho pulsa: o botão não muda de tamanho nem de lugar */
+@keyframes tutorial-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-tile-yellow), 0 0 8px 2px rgb(245 179 1 / 0.35); }
+  50% { box-shadow: 0 0 0 5px var(--color-tile-yellow), 0 0 22px 6px rgb(245 179 1 / 0.65); }
+}
+
 /* Animations */
 @keyframes pulse {
   0%, 100% {

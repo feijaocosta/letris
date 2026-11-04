@@ -20,12 +20,14 @@ export interface GameState {
   board: string[];
 }
 
-type Options = { consent: 'granted' | 'denied' | null; controlMode: 'buttons' | 'gestures' };
+type Options = { consent: 'granted' | 'denied' | null; controlMode: 'buttons' | 'gestures'; tutorialSeen: boolean };
 type Fixtures = { externalRequests: string[] };
 
 export const test = base.extend<Options & Fixtures>({
   consent: ['denied', { option: true }],
   controlMode: ['buttons', { option: true }],
+  // O tutorial da primeira partida já visto (os testes dele usam false)
+  tutorialSeen: [true, { option: true }],
   // auto: o bloqueio vale em TODO teste, mesmo nos que não usam a lista.
   // Sem isso (PR #26), os testes acessavam a internet de verdade: na CI
   // carregavam o AdSense e o Kerux de produção e contavam impressões reais.
@@ -37,13 +39,13 @@ export const test = base.extend<Options & Fixtures>({
     });
     await use(requests);
   }, { auto: true }],
-  page: async ({ page, consent, controlMode }, use) => {
+  page: async ({ page, consent, controlMode, tutorialSeen }, use) => {
     const problems: string[] = [];
     page.on('pageerror', e => problems.push(`erro de JavaScript: ${e.message}`));
     page.on('console', msg => {
       if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text())) problems.push(`CSP: ${msg.text()}`);
     });
-    await page.addInitScript(({ consent, controlMode }) => {
+    await page.addInitScript(({ consent, controlMode, tutorialSeen }) => {
       // try: páginas internas do navegador (ex.: erro de rede no teste
       // offline) não deixam ler o armazenamento e não devem contar como erro
       try {
@@ -51,10 +53,11 @@ export const test = base.extend<Options & Fixtures>({
         sessionStorage.setItem('letris:test-init', '1');
         if (consent) localStorage.setItem('letris:consent', JSON.stringify(consent));
         localStorage.setItem('letris:controlMode', JSON.stringify(controlMode));
+        if (tutorialSeen) localStorage.setItem('letris:tutorialDone', 'true');
       } catch {
         // sem armazenamento nesta página
       }
-    }, { consent, controlMode });
+    }, { consent, controlMode, tutorialSeen });
     await use(page);
     expect(problems, 'a página não pode ter erros de JavaScript nem de CSP').toEqual([]);
   },

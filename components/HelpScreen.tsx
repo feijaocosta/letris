@@ -14,7 +14,7 @@ function HelpCard({ visual, title, children }: { visual: ReactNode; title: strin
   );
 }
 
-export function HelpScreen({ onClose }: { onClose: () => void }) {
+export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTutorial?: () => void }) {
   const { t } = useI18n();
   return (
     <div className="fixed inset-0 z-40 bg-ink text-white safe-area">
@@ -86,6 +86,12 @@ export function HelpScreen({ onClose }: { onClose: () => void }) {
           </Panel>
 
           <div className="flex-1" />
+          {onTutorial && (
+            <button type="button" onClick={onTutorial}
+              className="h-12 rounded-2xl bg-panel text-white text-[15px] font-extrabold">
+              {t('help.tutorial')}
+            </button>
+          )}
           <button type="button" onClick={onClose}
             className="btn-3d h-14 rounded-[18px] bg-tile-green text-white text-lg font-black mb-2">
             {t('help.close')}

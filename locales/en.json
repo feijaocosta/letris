@@ -121,7 +121,8 @@
     "gesturesDown": "Drag ↓: speed up",
     "gesturesAlso": "They also work in buttons mode",
     "keyboard": "On a keyboard: arrows, space to drop and P to pause.",
-    "close": "Got it!"
+    "close": "Got it!",
+    "tutorial": "Watch the tutorial"
   },
   "consent": {
     "label": "Privacy and cookies",
@@ -152,5 +153,22 @@
   "rotate": {
     "title": "Turn your phone",
     "text": "LETRIS is played with the phone upright. The game stays paused until you turn it back."
+  },
+  "tutorial": {
+    "counter": "Step {n} of {total}",
+    "skip": "Skip",
+    "retry": "Almost! Try again.",
+    "moveButtons": "Use the ← and → buttons to move the piece sideways.",
+    "moveGestures": "Swipe sideways on the board to move the piece.",
+    "rotateButtons": "Tap the yellow button to rotate the piece.",
+    "rotateGestures": "Tap the board to rotate the piece.",
+    "dropButtons": "Hold ↓ to move down faster, or tap the red button to drop it.",
+    "dropGestures": "Drag down on the board to make the piece fall faster.",
+    "word": "Move the {letter} next to {start} and drop it to make {word}.",
+    "line": "Now complete the line. A full line disappears and gives points, but the goal is to make the words: lines just free up space on the board.",
+    "goal": "Make {word} to reach the level goal.",
+    "doneTitle": "Now it's your turn!",
+    "doneText": "Make the words on the list in each level. The pieces get faster as you go.",
+    "doneStart": "Start level 1"
   }
 }

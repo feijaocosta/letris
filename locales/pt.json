@@ -121,7 +121,8 @@
     "gesturesDown": "Arraste ↓: acelerar",
     "gesturesAlso": "Funcionam também no modo botões",
     "keyboard": "No teclado: setas, espaço para soltar e P para pausar.",
-    "close": "Entendi!"
+    "close": "Entendi!",
+    "tutorial": "Ver tutorial"
   },
   "consent": {
     "label": "Privacidade e cookies",
@@ -152,5 +153,22 @@
   "rotate": {
     "title": "Gire o celular",
     "text": "O LETRIS é jogado com o celular em pé. O jogo fica pausado até você voltar."
+  },
+  "tutorial": {
+    "counter": "Passo {n} de {total}",
+    "skip": "Pular",
+    "retry": "Quase! Tente de novo.",
+    "moveButtons": "Use os botões ← e → para mover a peça para os lados.",
+    "moveGestures": "Deslize o dedo para os lados no tabuleiro para mover a peça.",
+    "rotateButtons": "Toque no botão amarelo para girar a peça.",
+    "rotateGestures": "Toque no tabuleiro para girar a peça.",
+    "dropButtons": "Segure ↓ para descer mais rápido, ou toque no botão vermelho para soltar de vez.",
+    "dropGestures": "Arraste o dedo para baixo no tabuleiro para a peça descer mais rápido.",
+    "word": "Leve o {letter} até o lado de {start} e encaixe para formar {word}.",
+    "line": "Agora complete a linha. Linha cheia some e dá pontos, mas o objetivo é formar as palavras: a linha serve para abrir espaço no tabuleiro.",
+    "goal": "Forme {word} para bater a meta do nível.",
+    "doneTitle": "Agora é com você!",
+    "doneText": "Forme as palavras da lista em cada nível. As peças vão ficando mais rápidas.",
+    "doneStart": "Começar o nível 1"
   }
 }
