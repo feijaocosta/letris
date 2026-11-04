@@ -15,6 +15,9 @@
     "controls": "COMMANDES",
     "language": "LANGUE",
     "play": "JOUER",
+    "continue": "CONTINUER",
+    "continueInfo": "Niveau {level} · {score} pts",
+    "newGame": "Nouvelle partie",
     "version": "Version {version}",
     "privacy": "Confidentialité"
   },

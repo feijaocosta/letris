@@ -2,6 +2,7 @@ import { ControlModeToggle, IconPlay, Label, LanguagePicker, Logo, StatCard, Til
 import { load, recordKey } from '../lib/storage';
 import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
 import { track } from '../lib/analytics';
+import type { SavedGame } from '../lib/savedGame';
 
 // Letras soltas de enfeite: [letra, cor, tamanho, esquerda %, topo %, rotação]
 const DECOR: Array<[string, TileColor, number, number, number, number]> = [
@@ -14,12 +15,15 @@ interface HomeScreenProps {
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onPlay: () => void;
+  /** Partida guardada do idioma atual (mostra "Continuar") */
+  saved: SavedGame | null;
+  onContinue: () => void;
   onHelp: () => void;
   onPrivacy: () => void;
   isOnline: boolean;
 }
 
-export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
+export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, onContinue, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
   const { t, n, lang, setLang } = useI18n();
   const bestScore = load(recordKey('bestScore', lang), 0);
   const bestLevel = load(recordKey('bestLevel', lang), 1);
@@ -65,17 +69,46 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, onHelp, o
             <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
           </div>
 
-          <button
-            type="button"
-            onClick={onPlay}
-            className="btn-3d h-[68px] rounded-[20px] bg-tile-green text-white text-2xl font-black tracking-wide flex items-center justify-center gap-2.5"
-          >
-            <IconPlay size={26} />
-            {t('home.play')}
-          </button>
-          <button type="button" onClick={onHelp} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
-            {t('common.howToPlay')}
-          </button>
+          {saved ? (
+            <>
+              {/* Partida guardada: Continuar é o botão principal; "Novo jogo" descarta a guardada */}
+              <button
+                type="button"
+                onClick={onContinue}
+                className="btn-3d h-[68px] rounded-[20px] bg-tile-green text-white flex flex-col items-center justify-center leading-tight"
+              >
+                <span className="flex items-center gap-2.5 text-2xl font-black tracking-wide">
+                  <IconPlay size={24} />
+                  {t('home.continue')}
+                </span>
+                <span className="text-[13px] font-extrabold text-white/85">
+                  {t('home.continueInfo', { level: saved.level, score: saved.score })}
+                </span>
+              </button>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button type="button" onClick={onPlay} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
+                  {t('home.newGame')}
+                </button>
+                <button type="button" onClick={onHelp} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
+                  {t('common.howToPlay')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onPlay}
+                className="btn-3d h-[68px] rounded-[20px] bg-tile-green text-white text-2xl font-black tracking-wide flex items-center justify-center gap-2.5"
+              >
+                <IconPlay size={26} />
+                {t('home.play')}
+              </button>
+              <button type="button" onClick={onHelp} className="h-[52px] rounded-2xl bg-panel text-white text-base font-extrabold">
+                {t('common.howToPlay')}
+              </button>
+            </>
+          )}
           <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint">
             <span>{t('home.version', { version: __APP_VERSION__ })}</span>
             <span aria-hidden="true">·</span>

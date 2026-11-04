@@ -125,7 +125,7 @@ export function LevelIntro({ level, words, requiredWords, onStart }: {
         <div className="w-16 h-16 rounded-full bg-panel flex items-center justify-center text-[32px] font-black text-tile-yellow" aria-live="polite">
           {Math.max(left, 0)}
         </div>
-        <div className="w-full">
+        <div className="w-full flex flex-col">
           <PrimaryButton onClick={onStart}>{t('levelIntro.start')}</PrimaryButton>
         </div>
       </div>

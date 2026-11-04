@@ -15,6 +15,9 @@
     "controls": "CONTROLS",
     "language": "LANGUAGE",
     "play": "PLAY",
+    "continue": "CONTINUE",
+    "continueInfo": "Level {level} · {score} pts",
+    "newGame": "New game",
     "version": "Version {version}",
     "privacy": "Privacy"
   },

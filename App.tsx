@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LetrisGame } from './components/LetrisGame';
 import { HomeScreen } from './components/HomeScreen';
 import { HelpScreen } from './components/HelpScreen';
@@ -16,6 +16,7 @@ import { KEYS, load, save } from './lib/storage';
 import { useI18n } from './lib/i18n';
 import { loadWordLibrary } from './lib/wordBanks';
 import type { WordLibrary } from './components/WordLibrary';
+import { clearSavedGame, loadSavedGame, type SavedGame } from './lib/savedGame';
 
 export default function App() {
   const { isOnline, isStandalone } = usePWA();
@@ -30,6 +31,10 @@ export default function App() {
   const landscape = useLandscapePhone();
   // Banco de palavras da partida (do idioma escolhido)
   const [library, setLibrary] = useState<WordLibrary | null>(null);
+  // Partida guardada a retomar na próxima tela de jogo
+  const [resume, setResume] = useState<SavedGame | null>(null);
+  // Partida guardada do idioma atual, para o "Continuar" da entrada
+  const saved = useMemo(() => (screen === 'home' ? loadSavedGame(lang) : null), [screen, lang]);
 
   const setControlMode = (mode: ControlMode) => {
     if (mode !== controlMode) track('control_mode_change', { control_mode: mode });
@@ -99,14 +104,16 @@ export default function App() {
     loadWordLibrary(lang).catch(() => {});
   }, [lang]);
 
-  const play = async () => {
+  const play = async (game: SavedGame | null = null) => {
     let words: WordLibrary;
     try {
       words = await loadWordLibrary(lang);
     } catch {
       return; // sem banco (offline antes do primeiro carregamento): fica na entrada
     }
-    track('game_start', { control_mode: controlMode });
+    if (!game) clearSavedGame(lang); // JOGAR/Novo jogo descarta a guardada
+    track('game_start', { control_mode: controlMode, resumed: game !== null });
+    setResume(game);
     setLibrary(words);
     setConsentOpen(false);
     setShowInstallPrompt(false);
@@ -120,7 +127,9 @@ export default function App() {
         <HomeScreen
           controlMode={controlMode}
           onControlModeChange={setControlMode}
-          onPlay={play}
+          onPlay={() => play()}
+          saved={saved}
+          onContinue={() => play(saved)}
           onHelp={openHelp}
           onPrivacy={() => setConsentOpen(true)}
           isOnline={isOnline}
@@ -130,6 +139,7 @@ export default function App() {
           key={gameKey}
           library={library}
           blocked={landscape}
+          resume={resume}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onHome={() => setScreen('home')}
