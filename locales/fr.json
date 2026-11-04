@@ -15,6 +15,9 @@
     "controls": "COMMANDES",
     "language": "LANGUE",
     "play": "JOUER",
+    "continue": "CONTINUER",
+    "continueInfo": "Niveau {level} · {score} pts",
+    "newGame": "Nouvelle partie",
     "version": "Version {version}",
     "privacy": "Confidentialité"
   },
@@ -64,9 +67,15 @@
     "newGame": "Nouvelle partie",
     "home": "Retour à l'accueil"
   },
+  "levelIntro": {
+    "title": "Niveau {level}",
+    "subtitle": "Forme {count} de ces mots",
+    "start": "Commencer"
+  },
   "levelSplash": {
     "title": "Objectif atteint !",
-    "subtitle": "Niveau {level} terminé"
+    "subtitle": "Niveau {level} terminé",
+    "noLines": "Sans lignes !"
   },
   "levelComplete": {
     "title": "Niveau {level} terminé !",
@@ -75,6 +84,7 @@
     "points": "POINTS",
     "lines": "LIGNES",
     "bonus": "dont {bonus} de bonus pour le niveau terminé",
+    "noLinesBonus": "et {bonus} de bonus pour n'avoir complété aucune ligne",
     "nextLabel": "Ensuite :",
     "nextLevel": "Niveau {level} · {pool}",
     "nextGoal": "objectif {count} mots",
@@ -138,5 +148,9 @@
   "ads": {
     "label": "PUBLICITÉ",
     "placeholder": "Espace publicitaire"
+  },
+  "rotate": {
+    "title": "Tourne ton téléphone",
+    "text": "LETRIS se joue avec le téléphone à la verticale. Le jeu reste en pause jusqu'à ton retour."
   }
 }

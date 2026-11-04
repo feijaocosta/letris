@@ -6,12 +6,12 @@ export const SPEED = {
   /** Tempo (ms) para a peça descer uma linha no nível 1 */
   initialMs: 1000,
   /** Quanto cada nível acelera (ms a menos por linha) */
-  perLevelMs: 60,
+  perLevelMs: 70,
   /** Dentro do nível: a cada `timeStepMs` jogados, acelera `perStepMs` */
-  timeStepMs: 30_000,
-  perStepMs: 20,
+  timeStepMs: 20_000,
+  perStepMs: 25,
   /** Máximo que o tempo acelera dentro de um nível (zera no nível seguinte) */
-  maxTimeReductionMs: 100,
+  maxTimeReductionMs: 200,
   /** Nunca mais rápido que isto */
   minMs: 250,
 };
@@ -33,6 +33,8 @@ export const SCORING = {
   hardDropPerRow: 1,
   /** Concluir o nível: valor × número do nível */
   levelCompletePerLevel: 300,
+  /** Bater a meta sem fechar nenhuma linha no nível: valor × número do nível */
+  noLinesPerLevel: 300,
   /** Multiplicador do nível: 1 + perLevel × (nível − 1) */
   levelMultiplierPerLevel: 0.2,
   /** Letras que vêm das palavras que faltam na lista (o resto vem de todas as letras do nível) */

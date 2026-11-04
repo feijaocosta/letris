@@ -15,6 +15,9 @@
     "controls": "CONTROLS",
     "language": "LANGUAGE",
     "play": "PLAY",
+    "continue": "CONTINUE",
+    "continueInfo": "Level {level} · {score} pts",
+    "newGame": "New game",
     "version": "Version {version}",
     "privacy": "Privacy"
   },
@@ -64,9 +67,15 @@
     "newGame": "New game",
     "home": "Back to start"
   },
+  "levelIntro": {
+    "title": "Level {level}",
+    "subtitle": "Make {count} of these words",
+    "start": "Start now"
+  },
   "levelSplash": {
     "title": "Goal reached!",
-    "subtitle": "Level {level} complete"
+    "subtitle": "Level {level} complete",
+    "noLines": "No lines!"
   },
   "levelComplete": {
     "title": "Level {level} complete!",
@@ -75,6 +84,7 @@
     "points": "POINTS",
     "lines": "LINES",
     "bonus": "includes a {bonus} bonus for finishing the level",
+    "noLinesBonus": "and a {bonus} bonus for not completing any line",
     "nextLabel": "Next:",
     "nextLevel": "Level {level} · {pool}",
     "nextGoal": "goal {count} words",
@@ -138,5 +148,9 @@
   "ads": {
     "label": "ADVERTISEMENT",
     "placeholder": "Ad space"
+  },
+  "rotate": {
+    "title": "Turn your phone",
+    "text": "LETRIS is played with the phone upright. The game stays paused until you turn it back."
   }
 }

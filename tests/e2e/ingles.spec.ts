@@ -1,4 +1,4 @@
-import { test, expect, state, setBoard, setPiece, setLevelWords, drop, simularKerux, keruxPedidos } from './helpers';
+import { test, expect, skipIntro, state, setBoard, setPiece, setLevelWords, drop, simularKerux, keruxPedidos } from './helpers';
 import en from '../../locales/en.json';
 import enBank from '../../data/words/en.json';
 
@@ -8,7 +8,7 @@ const EN_WORDS = new Set(Object.values(enBank.words).flat());
 test.beforeEach(async ({ page }) => {
   await page.goto('/?lang=en');
   await page.getByRole('button', { name: en.home.play, exact: true }).click();
-  await expect.poll(async () => (await state(page)).piece !== null).toBe(true);
+  await skipIntro(page);
 });
 
 test('?lang=en: partida com palavras e textos em inglês', async ({ page }) => {

@@ -23,7 +23,8 @@ test('fim de nível: comemoração, resumo e próximo nível na hora', async ({ 
   await next.click();
   await expect.poll(async () => (await state(page)).level, { timeout: 1_000 }).toBe(2);
   const s = await state(page);
-  expect(s.phase).toBe('playing');
+  // O nível 2 começa pela tela com as palavras do nível
+  expect(s.phase).toBe('intro');
   expect(s.found).toEqual([]);
   expect(s.board.every(row => row === '..........')).toBe(true);
 });
@@ -34,4 +35,39 @@ test('fim de jogo quando a peça não cabe mais', async ({ page }) => {
   await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
   await drop(page);
   await expect(page.getByRole('button', { name: 'Jogar de novo' })).toBeVisible({ timeout: 5_000 });
+});
+
+// Bônus por formar todas as palavras do nível sem fechar nenhuma linha
+test.describe('bônus sem linhas', () => {
+  const finish = async (page: import('@playwright/test').Page) => {
+    await setBoard(page, ['LU........', 'RIO.......', 'SAL.......', 'TIA.......', 'REI.......']);
+    await setPiece(page, 'A', 2);
+    await drop(page);
+  };
+
+  test('meta sem nenhuma linha: "Sem linhas!" e bônus extra de 300 × nível', async ({ page }) => {
+    await startGame(page);
+    await setLevelWords(page, LIST);
+    const before = (await state(page)).score;
+    await finish(page);
+    await expect(page.getByText('Sem linhas!')).toBeVisible({ timeout: 2_500 });
+    await expect(page.getByRole('button', { name: 'Próximo nível' })).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/por não fechar nenhuma linha/)).toBeVisible();
+    // palavras + 300 (fim de nível) + 300 (sem linhas) + pontos de soltar
+    expect((await state(page)).score - before).toBeGreaterThanOrEqual(600);
+  });
+
+  test('com uma linha fechada no nível, não ganha o bônus', async ({ page }) => {
+    await startGame(page);
+    await setLevelWords(page, LIST);
+    await setBoard(page, ['ZZZZZZZZZ.']);
+    await setPiece(page, 'Z', 9);
+    await drop(page);
+    await expect.poll(async () => (await state(page)).lines).toBe(1);
+    await expect.poll(async () => (await state(page)).piece !== null).toBe(true);
+    await finish(page);
+    await expect(page.getByRole('button', { name: 'Próximo nível' })).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/por não fechar nenhuma linha/)).toHaveCount(0);
+    await expect(page.getByText('Sem linhas!')).toHaveCount(0);
+  });
 });

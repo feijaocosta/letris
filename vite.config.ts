@@ -109,6 +109,7 @@ export default defineConfig({
         theme_color: '#2a1f38',
         background_color: '#2a1f38',
         display: 'standalone',
+        orientation: 'portrait', // app instalado fica em pé (Android; o iPhone ignora)
         start_url: '/',
         scope: '/',
         icons: [

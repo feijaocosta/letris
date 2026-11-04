@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { AdBanner } from './AdBanner';
 import {
   ControlModeToggle, IconStar, Label, Logo, Panel, StatCard, Tile, TILE_COLORS, WordChip,
@@ -85,9 +85,57 @@ export function PauseMenu({ controlMode, onControlModeChange, onResume, onHelp, 
   );
 }
 
+// ---------- Palavras do nível (antes das peças começarem a cair) ----------
+
+/** Segundos para ler as palavras antes de o nível começar sozinho */
+export const LEVEL_INTRO_SECONDS = 5;
+
+export function LevelIntro({ level, words, requiredWords, onStart }: {
+  level: number;
+  words: string[];
+  requiredWords: number;
+  onStart: () => void;
+}) {
+  const { t } = useI18n();
+  const [left, setLeft] = useState(LEVEL_INTRO_SECONDS);
+
+  useEffect(() => {
+    if (left <= 0) {
+      onStart();
+      return;
+    }
+    const timer = setTimeout(() => setLeft(s => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [left]);
+
+  return (
+    <div className="fixed inset-0 z-30 bg-ink/90 safe-area flex items-center justify-center px-5 animate-[fade-in_.2s_ease-out]">
+      <div className="w-full max-w-sm flex flex-col items-center gap-4 text-center">
+        <div>
+          <h1 className="m-0 text-[30px] font-black leading-tight">{t('levelIntro.title', { level })}</h1>
+          <span className="text-[15px] font-bold text-soft">{t('levelIntro.subtitle', { count: requiredWords })}</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {words.map((word, i) => (
+            <span key={word} className="animate-[pop-in_.3s_ease-out_both]" style={{ animationDelay: `${i * 40}ms` }}>
+              <WordChip word={word} found={false} />
+            </span>
+          ))}
+        </div>
+        <div className="w-16 h-16 rounded-full bg-panel flex items-center justify-center text-[32px] font-black text-tile-yellow" aria-live="polite">
+          {Math.max(left, 0)}
+        </div>
+        <div className="w-full flex flex-col">
+          <PrimaryButton onClick={onStart}>{t('levelIntro.start')}</PrimaryButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Comemoração (entre a última palavra e o resumo) ----------
 
-export function LevelSplash({ level, words }: { level: number; words: string[] }) {
+export function LevelSplash({ level, words, noLines }: { level: number; words: string[]; noLines: boolean }) {
   const { t } = useI18n();
   const last = words[words.length - 1];
   return (
@@ -104,6 +152,11 @@ export function LevelSplash({ level, words }: { level: number; words: string[] }
           <h1 className="m-0 text-[34px] font-black leading-tight">{t('levelSplash.title')}</h1>
           <span className="text-base font-bold text-soft">{t('levelSplash.subtitle', { level })}</span>
         </div>
+        {noLines && (
+          <span className="px-3 py-1 rounded-full bg-tile-yellow text-ink text-[15px] font-black animate-[pop-in_.3s_ease-out_both]">
+            {t('levelSplash.noLines')}
+          </span>
+        )}
         <div className="flex flex-wrap justify-center gap-1.5">
           {words.map((word, i) => (
             <span
@@ -129,6 +182,8 @@ interface LevelCompleteProps {
   points: number;
   lines: number;
   levelBonus: number;
+  /** Bônus por bater a meta sem fechar nenhuma linha (0 = não ganhou) */
+  noLinesBonus: number;
   nextLevel: number;
   nextPoolName: string;
   nextRequiredWords: number;
@@ -160,6 +215,12 @@ export function LevelComplete(p: LevelCompleteProps) {
       {p.levelBonus > 0 && (
         <span className="-mt-1.5 text-center text-[13px] font-bold text-soft">
           {rich('levelComplete.bonus', { bonus: <span className="text-tile-yellow font-black">+{n(p.levelBonus)}</span> })}
+          {p.noLinesBonus > 0 && (
+            <>
+              <br />
+              {rich('levelComplete.noLinesBonus', { bonus: <span className="text-tile-yellow font-black">+{n(p.noLinesBonus)}</span> })}
+            </>
+          )}
         </span>
       )}
 

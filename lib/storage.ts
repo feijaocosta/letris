@@ -20,6 +20,14 @@ export function save(key: string, value: unknown): void {
   }
 }
 
+export function remove(key: string): void {
+  try {
+    localStorage.removeItem(PREFIX + key);
+  } catch {
+    // sem armazenamento: nada a apagar
+  }
+}
+
 export const KEYS = {
   controlMode: 'controlMode',
   lang: 'lang',

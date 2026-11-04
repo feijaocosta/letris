@@ -105,6 +105,11 @@ test.describe('pontuação', () => {
     expect(repeated.points).toBeLessThan(fresh.points);
   });
 
+  test('bônus sem linhas vale 300 × nível', () => {
+    expect(ScoreSystem.noLinesBonusPoints(1)).toBe(300);
+    expect(ScoreSystem.noLinesBonusPoints(4)).toBe(1200);
+  });
+
   test('palavras maiores valem mais', () => {
     expect(ScoreSystem.wordValue('SALTO')).toBeGreaterThan(ScoreSystem.wordValue('SAL'));
   });
@@ -125,6 +130,13 @@ test.describe('velocidade (PR #16 e #17)', () => {
     const start = ScoreSystem.calculateFallSpeed(3, 0);
     const late = ScoreSystem.calculateFallSpeed(3, 60 * 60 * 1000);
     expect(start - late).toBe(SPEED.maxTimeReductionMs);
+  });
+
+  test('a aceleração dentro do nível dá para sentir: 20% mais rápido em ~3 min no nível 1', () => {
+    expect(ScoreSystem.calculateFallSpeed(1, 0)).toBe(1000);
+    expect(ScoreSystem.calculateFallSpeed(1, 60_000)).toBeLessThan(950);
+    expect(ScoreSystem.calculateFallSpeed(1, 3 * 60_000)).toBe(800);
+    expect(ScoreSystem.calculateFallSpeed(5, 0)).toBe(720);
   });
 
   test('nunca fica mais rápido que o mínimo', () => {
