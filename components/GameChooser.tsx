@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { IconDown, IconHand, LanguagePicker, Logo, Tile, type TileColor } from './LetrisUI';
+import { IconHand, LanguagePicker, Logo, Tile, type TileColor } from './LetrisUI';
 import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
 import { track } from '../lib/analytics';
 import type { GameMode } from '../lib/storage';
@@ -24,21 +24,31 @@ function MiniBoard({ cells, size = 19 }: { cells: MiniCell[][]; size?: number })
 const _ = null;
 const B: TileColor = 'blue', Y: TileColor = 'yellow', R: TileColor = 'red', O: TileColor = 'orange', G: TileColor = 'green';
 
-/** Clássico: peça caindo (T vermelho) em cima de um tabuleiro empilhado */
+/**
+ * Clássico: o T vermelho desce linha por linha até encostar nos blocos de
+ * baixo e volta para o alto (animação "classic-fall" no globals.css)
+ */
 function ClassicArt() {
+  const size = 19;
+  const pitch = size + 3; // bloco + espaço da grade
   return (
     <div className="relative">
-      <MiniBoard cells={[
-        [_, R, R, R, _],
-        [_, _, R, _, _],
+      <MiniBoard size={size} cells={[
+        [_, _, _, _, _],
+        [_, _, _, _, _],
         [_, _, _, _, _],
         [_, _, _, _, _],
         [B, _, _, G, G],
         [B, Y, _, G, O],
       ]} />
-      <span className="absolute -right-6 top-9 text-tile-yellow animate-[tutorial-drag_1.2s_ease-in-out_infinite]">
-        <IconDown size={26} strokeWidth={3.5} />
-      </span>
+      <div
+        className="absolute grid gap-[3px] animate-[classic-fall_2.4s_infinite]"
+        style={{ left: 6 + pitch, top: 6, gridTemplateColumns: `repeat(3, ${size}px)`, ['--fall' as string]: `${pitch}px` }}
+        aria-hidden="true"
+      >
+        <Tile color="red" size={size} /><Tile color="red" size={size} /><Tile color="red" size={size} />
+        <div /><Tile color="red" size={size} /><div />
+      </div>
     </div>
   );
 }

@@ -263,6 +263,16 @@
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Desenho do Clássico na escolha do jogo: a peça desce uma linha por vez
+   (3 linhas, --fall = altura de uma linha), para ao encostar e volta ao alto */
+@keyframes classic-fall {
+  0%, 18% { transform: translateY(0); }
+  20%, 38% { transform: translateY(var(--fall)); }
+  40%, 58% { transform: translateY(calc(var(--fall) * 2)); }
+  60%, 94% { transform: translateY(calc(var(--fall) * 3)); }
+  96%, 100% { transform: translateY(0); }
+}
+
 /* Gestos animados do tutorial (modo Gestos) */
 @keyframes tutorial-swipe {
   0%, 100% { transform: translateX(-6px); }
