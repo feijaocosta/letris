@@ -1,4 +1,4 @@
-import { test, expect, state } from './helpers';
+import { test, expect, state, chooseGame } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
 import { LOCALES } from '../locales';
@@ -12,7 +12,10 @@ const button = (page: Page, name: string) => page.getByRole('button', { name, ex
 const tap = async (page: Page, name: string, times = 1) => {
   for (let i = 0; i < times; i++) await button(page, name).tap();
 };
-const play = (page: Page) => page.getByRole('button', { name: pt.home.play, exact: true }).click();
+const play = async (page: Page) => {
+  await chooseGame(page);
+  await page.getByRole('button', { name: pt.home.play, exact: true }).click();
+};
 
 test('roteiro completo no modo Botões e "Agora é com você!" começa o nível 1 do zero', async ({ page }) => {
   await page.goto('/');
@@ -84,6 +87,7 @@ test('"Pular" vai direto para o nível 1 e o tutorial não volta', async ({ page
   await expect(page.locator('[data-tutorial-step]')).toHaveCount(0);
 
   await page.goto('/');
+  await chooseGame(page);
   await page.getByRole('button', { name: pt.home.newGame }).click(); // partida guardada do nível 1
   await expect.poll(async () => (await state(page)).phase).toBe('intro');
   await expect(page.locator('[data-tutorial-step]')).toHaveCount(0);
@@ -101,6 +105,7 @@ test.describe('já viu o tutorial', () => {
   test.use({ tutorialSeen: true });
   test('"Ver tutorial" no Como jogar abre o tutorial de novo', async ({ page }) => {
     await page.goto('/');
+    await chooseGame(page);
     await page.getByRole('button', { name: pt.common.howToPlay }).click();
     await page.getByRole('button', { name: pt.help.tutorial }).click();
     await expect.poll(() => step(page)).toBe('move');
@@ -132,6 +137,7 @@ test.describe('modo Gestos', () => {
 for (const [lang, locale] of Object.entries(LOCALES)) {
   test(`em ${lang}: textos do idioma e as palavras do tutorial na lista`, async ({ page }) => {
     await page.goto(`/?lang=${lang}`);
+    await chooseGame(page);
     await page.getByRole('button', { name: locale.home.play, exact: true }).click();
     await expect(page.getByText(locale.tutorial.moveButtons)).toBeVisible();
     await expect(page.getByText(locale.tutorial.skip, { exact: true })).toBeVisible();

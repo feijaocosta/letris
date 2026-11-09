@@ -1,8 +1,6 @@
-import { ControlModeToggle, IconPlay, Label, LanguagePicker, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
-import { load, recordKey } from '../lib/storage';
-import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
-import { track } from '../lib/analytics';
-import type { SavedGame } from '../lib/savedGame';
+import { ControlModeToggle, IconBack, IconPlay, Label, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
+import { load, recordKey, type GameMode } from '../lib/storage';
+import { useI18n } from '../lib/i18n';
 
 // Letras soltas de enfeite: [letra, cor, tamanho, esquerda %, topo %, rotação]
 const DECOR: Array<[string, TileColor, number, number, number, number]> = [
@@ -11,28 +9,26 @@ const DECOR: Array<[string, TileColor, number, number, number, number]> = [
   ['R', 'green', 22, 22, 42, 20], ['N', 'orange', 30, 86, 52, -6], ['T', 'yellow', 34, -2, 54, 8],
 ];
 
+// Tela do jogo escolhido (depois da escolha em GameChooser): recorde e melhor
+// nível do jogo, Botões/Gestos (só no Clássico), JOGAR ou Continuar.
+
 interface HomeScreenProps {
+  gameMode: GameMode;
+  /** Volta para a escolha do jogo */
+  onBack: () => void;
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onPlay: () => void;
-  /** Partida guardada do idioma atual (mostra "Continuar") */
-  saved: SavedGame | null;
+  /** Partida guardada do modo e idioma atuais (mostra "Continuar") */
+  saved: { level: number; score: number } | null;
   onContinue: () => void;
   onHelp: () => void;
-  onPrivacy: () => void;
-  isOnline: boolean;
 }
 
-export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, onContinue, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
-  const { t, n, lang, setLang } = useI18n();
-  const bestScore = load(recordKey('bestScore', lang), 0);
-  const bestLevel = load(recordKey('bestLevel', lang), 1);
-
-  const changeLanguage = (next: Lang) => {
-    if (next === lang) return;
-    track('language_change', { from: lang, to: next });
-    setLang(next);
-  };
+export function HomeScreen({ gameMode, onBack, controlMode, onControlModeChange, onPlay, saved, onContinue, onHelp }: HomeScreenProps) {
+  const { t, n, lang } = useI18n();
+  const bestScore = load(recordKey('bestScore', lang, gameMode), 0);
+  const bestLevel = load(recordKey('bestLevel', lang, gameMode), 1);
 
   return (
     <div className="h-full w-full bg-ink text-white safe-area overflow-hidden">
@@ -44,18 +40,20 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, on
           ))}
         </div>
 
-        {LANGUAGES.length > 1 && (
-          <div className="relative flex justify-end shrink-0 -mr-2">
-            <LanguagePicker value={lang} options={LANGUAGES} onChange={changeLanguage} />
-          </div>
-        )}
+        {/* Volta para a escolha do jogo */}
+        <div className="relative flex items-center gap-2.5 h-11 shrink-0">
+          <button type="button" aria-label={t('common.back')} onClick={onBack}
+            className="w-11 h-11 rounded-full bg-panel flex items-center justify-center">
+            <IconBack size={22} />
+          </button>
+        </div>
 
-        <div className="relative flex-1 min-h-[100px] flex flex-col items-center justify-center gap-3.5">
-          <Logo size={48} gap={6} />
-          <p className="m-0 text-[17px] font-bold text-soft text-center">{t('home.tagline')}</p>
-          {!isOnline && (
-            <span className="px-3 py-1 rounded-full bg-panel text-xs font-extrabold text-soft">{t('home.offline')}</span>
-          )}
+        <div className="relative flex-1 min-h-[100px] [@media(max-height:620px)]:min-h-[64px] flex flex-col items-center justify-center gap-3">
+          <Logo size={40} gap={5} />
+          <h1 className="m-0 text-[28px] font-black leading-tight">{t(gameMode === 'encaixe' ? 'modes.encaixe' : 'modes.classic')}</h1>
+          <p className="m-0 text-[15px] font-bold text-soft text-center [@media(max-height:620px)]:hidden">
+            {t(gameMode === 'encaixe' ? 'modes.encaixeText' : 'modes.classicText')}
+          </p>
         </div>
 
         <div className="relative flex flex-col gap-3.5">
@@ -64,10 +62,13 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, on
             <StatCard label={t('home.bestLevel')} value={bestLevel} />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-center">{t('home.controls')}</Label>
-            <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
-          </div>
+          {/* Botões/Gestos só existem no Clássico; no Encaixe a peça é arrastada */}
+          {gameMode === 'classic' && (
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-center [@media(max-height:620px)]:hidden">{t('home.controls')}</Label>
+              <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
+            </div>
+          )}
 
           {saved ? (
             <>
@@ -109,13 +110,6 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, on
               </button>
             </>
           )}
-          <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint">
-            <span>{t('home.version', { version: __APP_VERSION__ })}</span>
-            <span aria-hidden="true">·</span>
-            <button type="button" onClick={onPrivacy} className="min-h-0 min-w-0 py-1 underline font-extrabold text-soft">
-              {t('home.privacy')}
-            </button>
-          </div>
         </div>
       </div>
     </div>

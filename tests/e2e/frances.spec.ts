@@ -1,4 +1,4 @@
-import { test, expect, skipIntro, state, setBoard, setPiece, setLevelWords, drop } from './helpers';
+import { test, expect, skipIntro, state, setBoard, setPiece, setLevelWords, drop, chooseGame } from './helpers';
 import { LOCALES, BANKS } from '../locales';
 
 // Sprint 6 do multilíngue: o jogo em francês (sem acentos; Œ vira OE)
@@ -7,6 +7,7 @@ const FR_WORDS = new Set(Object.values(BANKS.fr.words).flat());
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?lang=fr');
+  await chooseGame(page);
   await page.getByRole('button', { name: fr.home.play, exact: true }).click();
   await skipIntro(page);
 });

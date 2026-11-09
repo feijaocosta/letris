@@ -46,7 +46,10 @@ export function hasAnyRecord(): boolean {
 
 // Recordes separados por idioma: "bestScore:pt", "bestLevel:en"...
 export type RecordKey = 'bestScore' | 'bestLevel';
-export const recordKey = (record: RecordKey, lang: string) => `${record}:${lang}`;
+export type GameMode = 'classic' | 'encaixe';
+/** Clássico mantém as chaves de antes ("bestScore:pt"); os outros modos levam o nome ("bestScore:encaixe:pt") */
+export const recordKey = (record: RecordKey, lang: string, mode: GameMode = 'classic') =>
+  mode === 'classic' ? `${record}:${lang}` : `${record}:${mode}:${lang}`;
 
 /**
  * Recordes de antes do multilíngue ("bestScore", "bestLevel") eram do jogo em

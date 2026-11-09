@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type Ref } from 'react';
 import type { TetrisPiece } from './TetrisPieces';
 import { tileVars, type TileColor } from './LetrisUI';
 
@@ -15,6 +15,10 @@ interface GameBoardProps {
   /** Linha onde a peça ativa vai parar (contorno tracejado) */
   ghostY?: number | null;
   linesToClear?: number[];
+  /** Grade de casas (modo Encaixe: mede a posição para arrastar peças) */
+  gridRef?: Ref<HTMLDivElement>;
+  /** Centraliza o tabuleiro na altura disponível (Encaixe); o Clássico fica no topo */
+  centered?: boolean;
 }
 
 const pieceCellAt = (piece: TetrisPiece, y: number, row: number, col: number) => {
@@ -23,7 +27,7 @@ const pieceCellAt = (piece: TetrisPiece, y: number, row: number, col: number) =>
   return r >= 0 && r < piece.shape.length && c >= 0 && c < piece.shape[0].length && piece.shape[r][c];
 };
 
-export function GameBoard({ grid, activePiece, ghostY = null, linesToClear = [] }: GameBoardProps) {
+export function GameBoard({ grid, activePiece, ghostY = null, linesToClear = [], gridRef, centered = false }: GameBoardProps) {
   const rows = grid.length;
   const cols = grid[0]?.length ?? 0;
   const areaRef = useRef<HTMLDivElement>(null);
@@ -59,7 +63,8 @@ export function GameBoard({ grid, activePiece, ghostY = null, linesToClear = [] 
     }
 
     if (cell.letter) {
-      const effect = cell.isHighlighted ? 'tile-glow' : linesToClear.includes(row) ? 'tile-flash' : '';
+      // isActive numa casa do tabuleiro = prévia da peça que está sendo arrastada (Encaixe)
+      const effect = cell.isHighlighted ? 'tile-glow' : linesToClear.includes(row) ? 'tile-flash' : cell.isActive ? 'opacity-55' : '';
       return (
         <div key={key} className={`tile min-w-0 min-h-0 ${effect}`} style={tileVars(cell.color ?? 'blue')}>
           {cell.letter}
@@ -77,12 +82,13 @@ export function GameBoard({ grid, activePiece, ghostY = null, linesToClear = [] 
   // O tabuleiro ocupa todo o espaço disponível mantendo a proporção
   // colunas x linhas (10x20).
   return (
-    <div ref={areaRef} className="w-full h-full min-h-0 flex justify-center overflow-hidden">
+    <div ref={areaRef} className={`w-full h-full min-h-0 flex justify-center overflow-hidden${centered ? ' items-center' : ''}`}>
       <div
         className="bg-deep border-2 border-line rounded-2xl p-1"
         style={{ width: boardWidth, height: boardHeight, visibility: boardWidth > 0 ? 'visible' : 'hidden' }}
       >
         <div
+          ref={gridRef}
           className="grid w-full h-full"
           style={{
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,

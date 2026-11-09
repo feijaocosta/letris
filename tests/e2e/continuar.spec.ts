@@ -1,4 +1,4 @@
-import { test, expect, startGame, skipIntro, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
+import { test, expect, startGame, chooseGame, skipIntro, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
 
@@ -23,6 +23,10 @@ test('pausar, fechar e abrir de novo: "Continuar" volta a partida igual, pausada
   const before = await state(page);
 
   await page.reload(); // como o iPhone fechando a página
+  // Volta para a escolha do jogo, com o selo "Em andamento" no Clássico
+  await expect(page.getByTestId('mode-classic')).toContainText(pt.modes.inProgress);
+  await expect(page.getByTestId('mode-encaixe')).not.toContainText(pt.modes.inProgress);
+  await chooseGame(page);
   await expect(continueButton(page)).toBeVisible();
   await expect(continueButton(page)).toContainText(`Nível 1 · ${before.score.toLocaleString('pt-BR')} pts`);
   await expect(page.getByRole('button', { name: pt.home.play, exact: true })).toHaveCount(0);
@@ -55,6 +59,7 @@ test('indo para o segundo plano sem pausar também guarda', async ({ page }) => 
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.reload();
+  await chooseGame(page);
   await continueButton(page).click();
   expect((await state(page)).found).toEqual(['RIO']);
 });
@@ -64,6 +69,7 @@ test('"Novo jogo" na entrada descarta a guardada e começa do zero', async ({ pa
   await formRio(page);
   await page.getByRole('button', { name: pt.game.pause }).click();
   await page.reload();
+  await chooseGame(page);
   await page.getByRole('button', { name: pt.home.newGame }).click();
   await skipIntro(page);
   const s = await state(page);
@@ -78,6 +84,8 @@ test('fim de jogo apaga a partida guardada', async ({ page }) => {
   await drop(page);
   await expect(page.getByRole('button', { name: pt.gameOver.playAgain })).toBeVisible({ timeout: 5_000 });
   await page.reload();
+  await expect(page.getByTestId('mode-classic')).not.toContainText(pt.modes.inProgress);
+  await chooseGame(page);
   await expect(page.getByRole('button', { name: pt.home.play, exact: true })).toBeVisible();
   await expect(continueButton(page)).toHaveCount(0);
 });
@@ -87,8 +95,11 @@ test('a partida guardada é do idioma em que foi jogada', async ({ page }) => {
   await formRio(page);
   await page.getByRole('button', { name: pt.game.pause }).click();
   await page.goto('/?lang=en');
+  await chooseGame(page);
   await expect(page.getByRole('button', { name: 'PLAY', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back' }).click();
   await page.getByRole('radio', { name: 'Português' }).click();
+  await chooseGame(page);
   await expect(continueButton(page)).toBeVisible();
 });
 
@@ -102,10 +113,21 @@ test('saiu no resumo do nível: volta no resumo e segue para o nível 2', async 
   const score = (await state(page)).score;
 
   await page.reload();
+  await chooseGame(page);
   await continueButton(page).click();
   await expect(page.getByRole('button', { name: pt.levelComplete.continue })).toBeVisible();
   expect((await state(page)).score).toBe(score);
   await page.getByRole('button', { name: pt.levelComplete.continue }).click();
   await expect.poll(async () => (await state(page)).level).toBe(2);
   expect((await state(page)).phase).toBe('intro');
+});
+
+test('"Início" no fim de jogo leva para a escolha do jogo', async ({ page }) => {
+  await startGame(page);
+  await setLevelWords(page, LIST);
+  await setBoard(page, Array(19).fill('ZZZZ.ZZZZZ'));
+  await drop(page);
+  await page.getByRole('button', { name: pt.gameOver.home }).click();
+  await expect(page.getByTestId('mode-classic')).toBeVisible();
+  await expect(page.getByTestId('mode-encaixe')).toBeVisible();
 });

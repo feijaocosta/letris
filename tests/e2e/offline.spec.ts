@@ -1,4 +1,4 @@
-import { test, expect, state } from './helpers';
+import { test, expect, state, chooseGame } from './helpers';
 import pt from '../../locales/pt.json';
 
 // Sprint 3 do multilíngue: o banco de palavras é carregado à parte (um
@@ -12,6 +12,7 @@ test('depois da primeira visita, o jogo abre e começa sem internet', async ({ p
 
   await context.setOffline(true);
   await page.reload();
+  await chooseGame(page);
   await page.getByRole('button', { name: pt.home.play, exact: true }).click();
   await expect(page.getByRole('button', { name: pt.game.pause }), 'a partida começou offline').toBeVisible();
   await expect.poll(async () => (await state(page)).piece !== null).toBe(true);

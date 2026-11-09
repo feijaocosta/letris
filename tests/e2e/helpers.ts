@@ -68,8 +68,14 @@ export { expect };
 /** Abre o jogo, toca em JOGAR e espera a primeira peça. */
 export async function startGame(page: Page) {
   await page.goto('/');
+  await chooseGame(page, 'classic');
   await page.getByRole('button', { name: /JOGAR/ }).click();
   await skipIntro(page);
+}
+
+/** Na tela de escolha (primeira tela), toca no cartão do jogo (vale em qualquer idioma) */
+export async function chooseGame(page: Page, mode: 'classic' | 'encaixe' = 'classic') {
+  await page.getByTestId(`mode-${mode}`).click();
 }
 
 /**

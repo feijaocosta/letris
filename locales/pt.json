@@ -170,5 +170,18 @@
     "doneTitle": "Agora é com você!",
     "doneText": "Forme as palavras da lista em cada nível. As peças vão ficando mais rápidas.",
     "doneStart": "Começar o nível 1"
+  },
+  "modes": {
+    "label": "MODO",
+    "classic": "Clássico",
+    "encaixe": "Encaixe",
+    "classicText": "As peças caem. Encaixe e forme palavras.",
+    "encaixeText": "Arraste as peças para o tabuleiro e forme palavras.",
+    "inProgress": "Em andamento"
+  },
+  "encaixe": {
+    "tray": "Peças",
+    "rotate": "Girar peça",
+    "gameOverSubtitle": "Não cabe mais nenhuma peça no nível {level}"
   }
 }

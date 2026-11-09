@@ -1,4 +1,4 @@
-import { test, expect, startGame, state } from './helpers';
+import { test, expect, startGame, state, chooseGame } from './helpers';
 import pt from '../../locales/pt.json';
 
 // O jogo é em pé: com o celular deitado aparece o aviso e a partida pausa
@@ -25,7 +25,7 @@ test.describe('computador', () => {
   test.use({ hasTouch: false, isMobile: false, viewport: { width: 1280, height: 720 } });
   test('tela larga de computador não mostra o aviso', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('button', { name: pt.home.play, exact: true })).toBeVisible();
+    await expect(page.getByTestId('mode-classic')).toBeVisible();
     await expect(page.getByRole('heading', { name: pt.rotate.title })).toHaveCount(0);
   });
 });
