@@ -1,4 +1,4 @@
-import { test, expect, skipIntro, state, setBoard, setPiece, setLevelWords, drop } from './helpers';
+import { test, expect, skipIntro, state, setBoard, setPiece, setLevelWords, drop, chooseGame } from './helpers';
 import { LOCALES, BANKS } from '../locales';
 
 // Sprint 5 do multilíngue: o jogo em espanhol, com Ñ como letra própria
@@ -7,6 +7,7 @@ const ES_WORDS = new Set(Object.values(BANKS.es.words).flat());
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?lang=es');
+  await chooseGame(page);
   await page.getByRole('button', { name: es.home.play, exact: true }).click();
   await skipIntro(page);
 });

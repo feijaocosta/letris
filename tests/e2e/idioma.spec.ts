@@ -1,4 +1,4 @@
-import { test, expect, startGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
+import { test, expect, startGame, chooseGame, state, setBoard, setPiece, setLevelWords, drop, LIST } from './helpers';
 import pt from '../../locales/pt.json';
 import en from '../../locales/en.json';
 import { LOCALES } from '../locales';
@@ -71,8 +71,11 @@ test('recordes separados por idioma', async ({ page }) => {
     localStorage.setItem('letris:bestScore:en', '567');
   });
   await page.goto('/');
+  await chooseGame(page);
   await expect(page.getByText('1.234')).toBeVisible();
+  await page.getByRole('button', { name: pt.common.back }).click();
   await page.getByRole('radio', { name: 'English' }).click();
+  await chooseGame(page);
   await expect(page.getByText('567', { exact: true })).toBeVisible();
   await expect(page.getByText('1,234')).toHaveCount(0);
 });
@@ -85,6 +88,7 @@ test('recorde antigo (de antes dos idiomas) continua aparecendo, agora como do p
     localStorage.setItem('letris:bestLevel', '3');
   });
   await page.goto('/');
+  await chooseGame(page);
   await expect(page.getByText('1.234')).toBeVisible();
   expect(await stored(page, 'bestScore:pt')).toBe('1234');
   expect(await stored(page, 'bestLevel:pt')).toBe('3');
@@ -115,6 +119,7 @@ test.describe('métricas', () => {
   test('trocar o idioma registra language_change e os eventos seguintes saem no idioma novo', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('radio', { name: 'English' }).click();
+    await chooseGame(page);
     await page.getByRole('button', { name: en.home.play, exact: true }).click();
     await expect(page.getByRole('button', { name: en.game.pause })).toBeVisible();
     const events = await page.evaluate(() => (window.dataLayer ?? []).map(a => Array.from(a as ArrayLike<unknown>))
@@ -157,6 +162,6 @@ test.describe('política de privacidade', () => {
     await page.getByRole('link', { name: 'Português' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Política de privacidade');
     await page.getByRole('link', { name: /Voltar ao jogo/ }).click();
-    await expect(page.getByRole('button', { name: pt.home.play, exact: true })).toBeVisible();
+    await expect(page.getByTestId('mode-classic')).toBeVisible();
   });
 });

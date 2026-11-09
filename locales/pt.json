@@ -174,7 +174,10 @@
   "modes": {
     "label": "MODO",
     "classic": "Clássico",
-    "encaixe": "Encaixe"
+    "encaixe": "Encaixe",
+    "classicText": "As peças caem. Encaixe e forme palavras.",
+    "encaixeText": "Arraste as peças para o tabuleiro e forme palavras.",
+    "inProgress": "Em andamento"
   },
   "encaixe": {
     "tray": "Peças",

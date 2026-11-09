@@ -174,7 +174,10 @@
   "modes": {
     "label": "MODE",
     "classic": "Classique",
-    "encaixe": "Encastre"
+    "encaixe": "Encastre",
+    "classicText": "Les pièces tombent. Place-les et forme des mots.",
+    "encaixeText": "Glisse les pièces sur le plateau et forme des mots.",
+    "inProgress": "En cours"
   },
   "encaixe": {
     "tray": "Pièces",

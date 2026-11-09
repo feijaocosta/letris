@@ -31,8 +31,6 @@ export function remove(key: string): void {
 export const KEYS = {
   controlMode: 'controlMode',
   lang: 'lang',
-  /** Modo escolhido na entrada (Clássico ou Encaixe) */
-  gameMode: 'gameMode',
   /** Tutorial visto (ou pulado): não aparece mais sozinho */
   tutorialDone: 'tutorialDone',
 } as const;

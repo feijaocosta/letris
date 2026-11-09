@@ -1,4 +1,4 @@
-import { test, expect, skipIntro, startGame, setLevelWords, type GameState } from './helpers';
+import { test, expect, skipIntro, startGame, setLevelWords, type GameState, chooseGame } from './helpers';
 import type { Page } from '@playwright/test';
 import { LOCALES } from '../locales';
 
@@ -61,6 +61,13 @@ for (const size of SIZES) {
     await expect(privacy).toBeVisible();
     const box = (await privacy.boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+    // Tela de cada jogo: até o último botão
+    for (const mode of ['classic', 'encaixe'] as const) {
+      await chooseGame(page, mode);
+      const help = (await page.getByRole('button', { name: 'Como jogar' }).boundingBox())!;
+      expect(help.y + help.height, `tela do ${mode}`).toBeLessThanOrEqual(size.height);
+      await page.getByRole('button', { name: 'Voltar' }).click();
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(size.width);
   });
 }
@@ -74,6 +81,7 @@ for (const [lang, locale] of Object.entries(LOCALES)) {
     const privacy = page.getByRole('button', { name: locale.home.privacy });
     const box = (await privacy.boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(560);
+    await chooseGame(page);
     await page.getByRole('button', { name: locale.home.play, exact: true }).click();
     await skipIntro(page);
     checkLayout(await measure(page));

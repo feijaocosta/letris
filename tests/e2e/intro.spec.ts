@@ -1,9 +1,11 @@
-import { test, expect, state } from './helpers';
+import { test, expect, state, chooseGame } from './helpers';
 import pt from '../../locales/pt.json';
 
 // Antes das peças caírem, a lista de palavras do nível aparece por 5 s
-const play = (page: import('@playwright/test').Page) =>
-  page.getByRole('button', { name: pt.home.play, exact: true }).click();
+const play = async (page: import('@playwright/test').Page) => {
+  await chooseGame(page);
+  await page.getByRole('button', { name: pt.home.play, exact: true }).click();
+};
 
 test('mostra as palavras do nível e as peças não caem enquanto isso', async ({ page }) => {
   await page.clock.install();

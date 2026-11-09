@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LetrisGame } from './components/LetrisGame';
 import { HomeScreen } from './components/HomeScreen';
+import { GameChooser } from './components/GameChooser';
 import { HelpScreen } from './components/HelpScreen';
 import { UpdateBanner } from './components/UpdateBanner';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
@@ -24,7 +25,8 @@ import { ENCAIXE } from './config/encaixe';
 
 export default function App() {
   const { isOnline, isStandalone } = usePWA();
-  const [screen, setScreen] = useState<'home' | 'game'>('home');
+  // Ao abrir: sempre a escolha do jogo (choose) → tela do jogo (home) → partida (game)
+  const [screen, setScreen] = useState<'choose' | 'home' | 'game'>('choose');
   const [gameKey, setGameKey] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -40,7 +42,7 @@ export default function App() {
   // A próxima partida começa pelo tutorial
   const [withTutorial, setWithTutorial] = useState(false);
   // Modo de jogo escolhido na entrada (Clássico ou Encaixe), salvo no aparelho
-  const [gameMode, setGameModeState] = useState<GameMode>(() => load(KEYS.gameMode, 'classic'));
+  const [gameMode, setGameMode] = useState<GameMode>('classic');
   const [resumeEncaixe, setResumeEncaixe] = useState<SavedEncaixe | null>(null);
   // Partida guardada do modo e idioma atuais, para o "Continuar" da entrada
   const saved = useMemo(() => {
@@ -48,10 +50,16 @@ export default function App() {
     return gameMode === 'encaixe' ? loadSavedEncaixe(lang, ENCAIXE.rows, ENCAIXE.cols) : loadSavedGame(lang);
   }, [screen, lang, gameMode]);
 
-  const setGameMode = (mode: GameMode) => {
-    if (mode !== gameMode) track('game_mode_change', { mode });
-    setGameModeState(mode);
-    save(KEYS.gameMode, mode);
+  // Partidas pela metade, para o selo "Em andamento" na escolha do jogo
+  const inProgress = useMemo(() => ({
+    classic: screen === 'choose' && loadSavedGame(lang) !== null,
+    encaixe: screen === 'choose' && loadSavedEncaixe(lang, ENCAIXE.rows, ENCAIXE.cols) !== null,
+  }), [screen, lang]);
+
+  const chooseGame = (mode: GameMode) => {
+    track('game_mode_select', { mode });
+    setGameMode(mode);
+    setScreen('home');
   };
 
   const setControlMode = (mode: ControlMode) => {
@@ -66,7 +74,7 @@ export default function App() {
   };
 
   const openHelp = () => {
-    track('help_open', { from: screen === 'home' ? 'entrada' : 'jogo' });
+    track('help_open', { from: screen === 'game' ? 'jogo' : 'entrada' });
     setHelpOpen(true);
   };
 
@@ -83,7 +91,7 @@ export default function App() {
   // Convite para instalar: só na tela de entrada, nunca no meio da partida,
   // e depois de o jogador responder sobre os cookies
   useEffect(() => {
-    if (screen !== 'home' || isStandalone || consent === null || import.meta.env.DEV) return;
+    if (screen !== 'choose' || isStandalone || consent === null || import.meta.env.DEV) return;
     const timer = setTimeout(() => setShowInstallPrompt(true), 4000);
     return () => clearTimeout(timer);
   }, [screen, isStandalone, consent]);
@@ -153,18 +161,23 @@ export default function App() {
 
   return (
     <>
-      {screen === 'home' ? (
+      {screen === 'choose' ? (
+        <GameChooser
+          onChoose={chooseGame}
+          inProgress={inProgress}
+          onPrivacy={() => setConsentOpen(true)}
+          isOnline={isOnline}
+        />
+      ) : screen === 'home' ? (
         <HomeScreen
           gameMode={gameMode}
-          onGameModeChange={setGameMode}
+          onBack={() => setScreen('choose')}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onPlay={() => play()}
           saved={saved}
           onContinue={() => play(saved)}
           onHelp={openHelp}
-          onPrivacy={() => setConsentOpen(true)}
-          isOnline={isOnline}
         />
       ) : library && gameMode === 'encaixe' ? (
         <EncaixeGame
@@ -172,7 +185,7 @@ export default function App() {
           library={library}
           blocked={landscape}
           resume={resumeEncaixe}
-          onHome={() => setScreen('home')}
+          onHome={() => setScreen('choose')}
           onHelp={openHelp}
         />
       ) : library && (
@@ -184,7 +197,7 @@ export default function App() {
           tutorial={withTutorial}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
-          onHome={() => setScreen('home')}
+          onHome={() => setScreen('choose')}
           onHelp={openHelp}
         />
       )}
@@ -197,11 +210,11 @@ export default function App() {
         />
       )}
 
-      {consentOpen && screen === 'home' && !helpOpen && (
+      {consentOpen && screen === 'choose' && !helpOpen && (
         <ConsentBanner onAccept={() => chooseConsent('granted')} onDecline={() => chooseConsent('denied')} />
       )}
 
-      {showInstallPrompt && screen === 'home' && !consentOpen && (
+      {showInstallPrompt && screen === 'choose' && !consentOpen && (
         <PWAInstallPrompt
           onInstall={() => setShowInstallPrompt(false)}
           onDismiss={() => setShowInstallPrompt(false)}

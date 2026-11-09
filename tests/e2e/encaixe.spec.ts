@@ -1,4 +1,4 @@
-import { test, expect, state, setBoard, setLevelWords, LIST } from './helpers';
+import { test, expect, chooseGame, state, setBoard, setLevelWords, LIST } from './helpers';
 import type { Page } from '@playwright/test';
 import pt from '../../locales/pt.json';
 
@@ -11,7 +11,7 @@ const place = (page: Page, slot: number, row: number, col: number) =>
 
 async function startEncaixe(page: Page) {
   await page.goto('/');
-  await page.getByRole('radio', { name: pt.modes.encaixe }).click();
+  await chooseGame(page, 'encaixe');
   await page.getByRole('button', { name: pt.home.play, exact: true }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__letris?.state().mode)).toBe('encaixe');
   await page.evaluate(() => (window as any).__letris.skipIntro());
@@ -140,8 +140,10 @@ test('partida guardada do Encaixe: pausar, recarregar e continuar igual', async 
   await page.getByRole('button', { name: pt.game.pause }).click();
   const before = await state(page);
   await page.reload();
-  // o modo escolhido fica salvo
-  await expect(page.getByRole('radio', { name: pt.modes.encaixe })).toHaveAttribute('aria-checked', 'true');
+  // abre na escolha, com o selo "Em andamento" só no Encaixe
+  await expect(page.getByTestId('mode-encaixe')).toContainText(pt.modes.inProgress);
+  await expect(page.getByTestId('mode-classic')).not.toContainText(pt.modes.inProgress);
+  await chooseGame(page, 'encaixe');
   await page.getByRole('button', { name: new RegExp(pt.home.continue) }).click();
   await expect(page.getByRole('button', { name: pt.pause.resume })).toBeVisible();
   const after = await state(page);
@@ -151,12 +153,21 @@ test('partida guardada do Encaixe: pausar, recarregar e continuar igual', async 
 });
 
 test.describe('entrada', () => {
-  test('no Encaixe o seletor Botões/Gestos some; no Clássico aparece', async ({ page }) => {
+  test('no Encaixe o seletor Botões/Gestos some; no Clássico aparece; ← volta para a escolha', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('radio', { name: pt.modes.encaixe }).click();
+    await chooseGame(page, 'encaixe');
+    await expect(page.getByRole('heading', { name: pt.modes.encaixe })).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: pt.controls.label })).toHaveCount(0);
-    await page.getByRole('radio', { name: pt.modes.classic }).click();
+    await page.getByRole('button', { name: pt.common.back }).click();
+    await chooseGame(page, 'classic');
+    await expect(page.getByRole('heading', { name: pt.modes.classic })).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: pt.controls.label })).toBeVisible();
+  });
+
+  test('"Voltar ao início" na pausa leva para a escolha do jogo', async ({ page }) => {
+    await page.getByRole('button', { name: pt.game.pause }).click();
+    await page.getByRole('button', { name: pt.pause.home }).click();
+    await expect(page.getByTestId('mode-encaixe')).toBeVisible();
   });
 
   for (const size of [{ width: 390, height: 844 }, { width: 390, height: 660 }, { width: 375, height: 560 }]) {

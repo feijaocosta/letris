@@ -174,7 +174,10 @@
   "modes": {
     "label": "MODE",
     "classic": "Classic",
-    "encaixe": "Fit"
+    "encaixe": "Fit",
+    "classicText": "Pieces fall. Fit them and make words.",
+    "encaixeText": "Drag the pieces onto the board and make words.",
+    "inProgress": "In progress"
   },
   "encaixe": {
     "tray": "Pieces",
