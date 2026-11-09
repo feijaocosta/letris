@@ -10,8 +10,9 @@ export const ENCAIXE = {
   traySize: 3,
   /** Pontos por bloco encaixado (no Clássico, soltar dá pontos por linha que cai) */
   pointsPerBlock: 1,
-  /** Girar a peça (tocando nela na bandeja). Desligado para testar sem */
-  allowRotate: false,
+  /** Casa da bandeja com o botão de girar (0, 1 ou 2; null = sem girar).
+   *  Só essa peça gira; as outras ficam como saíram */
+  rotateSlot: 1 as number | null,
   /** Quanto a peça arrastada fica acima do dedo (px), para o dedo não cobrir */
   dragLift: 56,
   /** Duração do brilho antes de palavras/linhas/colunas sumirem (ms) */

@@ -181,6 +181,7 @@
   },
   "encaixe": {
     "tray": "Peças",
+    "rotate": "Girar peça",
     "gameOverSubtitle": "Não cabe mais nenhuma peça no nível {level}"
   }
 }

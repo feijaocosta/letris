@@ -181,6 +181,7 @@
   },
   "encaixe": {
     "tray": "Pièces",
+    "rotate": "Tourner la pièce",
     "gameOverSubtitle": "Plus aucune pièce ne rentre au niveau {level}"
   }
 }

@@ -64,6 +64,18 @@ export function canPlace(grid: Cell[][], piece: TrayPiece, row: number, col: num
   return true;
 }
 
+/** Gira 90° no sentido horário; cada letra acompanha o seu bloco */
+export function rotatePiece(piece: TrayPiece): TrayPiece {
+  const h = piece.shape.length;
+  const w = piece.shape[0].length;
+  const turn = <T,>(m: T[][]) => Array.from({ length: w }, (_, r) => Array.from({ length: h }, (_, c) => m[h - 1 - c][r]));
+  return { ...piece, shape: turn(piece.shape), letters: turn(piece.letters) };
+}
+
+/** As 4 posições da peça (girando) */
+export const rotations = (piece: TrayPiece): TrayPiece[] =>
+  [piece, rotatePiece(piece), rotatePiece(rotatePiece(piece)), rotatePiece(rotatePiece(rotatePiece(piece)))];
+
 /** Cabe em algum lugar do tabuleiro? (sem nenhum lugar para as 3 = fim de jogo) */
 export function fitsAnywhere(grid: Cell[][], piece: TrayPiece): boolean {
   for (let row = 0; row < grid.length; row++) {

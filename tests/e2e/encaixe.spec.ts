@@ -99,6 +99,19 @@ test('coluna completa some', async ({ page }) => {
   await expect.poll(async () => (await state(page)).board.every(r => r === '........')).toBe(true);
 });
 
+test('botão de girar só na peça do meio: gira e a peça girada encaixa', async ({ page }) => {
+  await setTray(page, [['AB'], ['SOL', '.A.'], ['CD']]);
+  await expect(page.getByTestId('encaixe-rotate')).toHaveCount(1);
+  await expect(page.getByTestId('encaixe-slot-1').getByTestId('encaixe-rotate')).toBeVisible();
+  await page.getByRole('button', { name: pt.encaixe.rotate }).click();
+  expect((await state(page)).tray).toEqual([['AB'], ['.S', 'AO', '.L'], ['CD']]);
+  // tocar no botão não começa a arrastar nem muda as outras peças
+  await expect(page.getByTestId('encaixe-slot-1').locator('.opacity-20')).toHaveCount(0);
+  expect(await place(page, 1, 7, 0)).toBe(true);
+  const board = (await state(page)).board;
+  expect(board.slice(7)).toEqual(['.S......', 'AO......', '.L......']);
+});
+
 // Xadrez: nenhuma casa vazia tem vizinha vazia, então só peça de 1 bloco cabe
 const CHECKER = Array.from({ length: 10 }, (_, i) => (i % 2 ? '.Z.Z.Z.Z' : 'Z.Z.Z.Z.'));
 
@@ -111,6 +124,17 @@ test('fim de jogo quando nenhuma peça da bandeja cabe', async ({ page }) => {
   // recorde do Encaixe, separado do Clássico
   expect(await page.evaluate(() => localStorage.getItem('letris:bestLevel:encaixe:pt'))).toBe('1');
   expect(await page.evaluate(() => localStorage.getItem('letris:bestLevel:pt'))).toBeNull();
+});
+
+test('a peça do meio só trava o jogo se não couber em nenhuma posição', async ({ page }) => {
+  // Só cabe peça em pé: a coluna 0 livre de cima a baixo, o resto cheio
+  await setBoard(page, Array.from({ length: 10 }, () => '.ZZZZZZZ'));
+  await setTray(page, [['AB'], ['CD'], ['EF']]);
+  await page.evaluate(() => (window as any).__letris.checkGameOver());
+  await expect(page.getByRole('button', { name: pt.gameOver.playAgain })).toHaveCount(0);
+  // a do meio deitada não cabe, mas em pé cabe; as dos lados não giram
+  await page.getByRole('button', { name: pt.encaixe.rotate }).click();
+  expect(await place(page, 1, 0, 0)).toBe(true);
 });
 
 test('enquanto uma peça cabe, o jogo continua', async ({ page }) => {

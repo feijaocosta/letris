@@ -4,11 +4,11 @@ import { GameBoard, type Cell } from './GameBoard';
 import { ScoreSystem, type ScoreLabel, type ScoredWord } from './ScoreSystem';
 import type { WordLibrary } from './WordLibrary';
 import { GameOver, LevelComplete, LevelIntro, LevelSplash, PauseMenu } from './GameOverlays';
-import { IconPause, Label, Logo, Tile, WordChip } from './LetrisUI';
+import { IconPause, IconRotate, Label, Logo, Tile, WordChip } from './LetrisUI';
 import { ENCAIXE } from '../config/encaixe';
 import {
   blockCount, canPlace, clearCells, emptyGrid, findClear, fitsAnywhere, highlightCells, pieceFromRows,
-  placePiece, randomTrayPiece, type TrayPiece,
+  placePiece, randomTrayPiece, rotatePiece, rotations, type TrayPiece,
 } from '../lib/encaixe';
 import { adBreakNext } from '../lib/ads';
 import { track } from '../lib/analytics';
@@ -197,7 +197,10 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
   const checkGameOver = (board: Cell[][], pieces: Array<TrayPiece | null>) => {
     if (phaseRef.current !== 'playing') return;
     const remaining = pieces.filter((p): p is TrayPiece => p !== null);
-    if (remaining.length > 0 && !remaining.some(p => fitsAnywhere(board, p))) setIsGameOver(true);
+    // A peça que gira só trava o jogo se não couber em nenhuma posição
+    const fits = (p: TrayPiece, slot: number) =>
+      slot === ENCAIXE.rotateSlot ? rotations(p).some(r => fitsAnywhere(board, r)) : fitsAnywhere(board, p);
+    if (remaining.length > 0 && !pieces.some((p, slot) => p !== null && fits(p, slot))) setIsGameOver(true);
   };
 
   /** Palavras da lista, linhas e colunas completas: brilham e somem juntas */
@@ -252,6 +255,15 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     updateGrid(board);
     resolve(board);
     return true;
+  };
+
+  /** Botão de girar (só na casa `ENCAIXE.rotateSlot` da bandeja) */
+  const rotate = (slot: number) => {
+    const piece = trayRef.current[slot];
+    if (slot !== ENCAIXE.rotateSlot || !piece || !canAct || drag) return;
+    const nextTray = [...trayRef.current];
+    nextTray[slot] = rotatePiece(piece);
+    updateTray(nextTray);
   };
 
   // ---------- Arrastar ----------
@@ -566,23 +578,42 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
         </div>
 
         {/* Bandeja: arraste uma peça até o tabuleiro */}
-        <div className="grid grid-cols-3 gap-2 h-[104px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
+        <div className="grid grid-cols-3 grid-rows-1 gap-2 h-[128px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
           {tray.map((piece, slot) => (
             <div
               key={piece?.id ?? `vazio-${slot}`}
               data-testid={`encaixe-slot-${slot}`}
               onPointerDown={e => startDrag(slot, e)}
-              className={`rounded-2xl bg-panel/60 flex items-center justify-center touch-none ${piece && canAct ? 'cursor-grab' : ''}`}
+              className={`min-h-0 overflow-hidden rounded-2xl bg-panel/60 flex flex-col items-center justify-center gap-1.5 py-2 touch-none ${piece && canAct ? 'cursor-grab' : ''}`}
             >
               {piece && (
-                <div
-                  className={`grid gap-0.5 transition-opacity ${drag?.slot === slot ? 'opacity-20' : ''} ${canAct && !fitsAnywhere(grid, piece) ? 'opacity-40' : ''}`}
-                  style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 24px)` }}
-                >
-                  {piece.shape.flatMap((row, r) => row.map((filled, c) => filled
-                    ? <Tile key={`${r}-${c}`} letter={piece.letters[r][c]} color={piece.color} size={24} />
-                    : <div key={`${r}-${c}`} className="w-6 h-6" />))}
+                <div className="flex-1 min-h-0 flex items-center justify-center">
+                  <div
+                    className={`grid gap-0.5 transition-opacity ${drag?.slot === slot ? 'opacity-20' : ''} ${canAct && !fitsAnywhere(grid, piece) ? 'opacity-40' : ''}`}
+                    style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 24px)` }}
+                  >
+                    {piece.shape.flatMap((row, r) => row.map((filled, c) => filled
+                      ? <Tile key={`${r}-${c}`} letter={piece.letters[r][c]} color={piece.color} size={24} />
+                      : <div key={`${r}-${c}`} className="w-6 h-6" />))}
+                  </div>
                 </div>
+              )}
+              {slot === ENCAIXE.rotateSlot && piece && (
+                <button
+                  type="button"
+                  aria-label={t('encaixe.rotate')}
+                  data-testid="encaixe-rotate"
+                  disabled={!canAct}
+                  onPointerDown={e => {
+                    // Só no pointerdown (como os botões do Clássico) e sem começar a arrastar
+                    e.stopPropagation();
+                    e.preventDefault();
+                    rotate(slot);
+                  }}
+                  className="shrink-0 h-7 px-4 rounded-full bg-white/90 text-ink shadow flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50"
+                >
+                  <IconRotate size={18} />
+                </button>
               )}
             </div>
           ))}

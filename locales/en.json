@@ -181,6 +181,7 @@
   },
   "encaixe": {
     "tray": "Pieces",
+    "rotate": "Rotate piece",
     "gameOverSubtitle": "No piece fits anymore on level {level}"
   }
 }

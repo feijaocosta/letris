@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   canPlace, clearCells, emptyGrid, findClear, fitsAnywhere, pieceFromRows, placePiece, randomTrayPiece,
+  rotatePiece, rotations,
 } from '../../lib/encaixe';
 import { ENCAIXE, ENCAIXE_SHAPES } from '../../config/encaixe';
 
@@ -80,6 +81,18 @@ test('peças sorteadas: formatos válidos e uma letra por bloco', () => {
   for (const s of ENCAIXE_SHAPES) expect(new Set(s.rows.map(r => r.length)).size, s.rows.join('/')).toBe(1);
 });
 
-test('sem girar por enquanto (chave desligada)', () => {
-  expect(ENCAIXE.allowRotate).toBe(false);
+const rowsOf = (p: ReturnType<typeof pieceFromRows>) =>
+  p.shape.map((row, r) => row.map((f, c) => (f ? p.letters[r][c] : '.')).join(''));
+
+test('girar: 90° no sentido horário, cada letra no seu bloco, 4 giros voltam ao início', () => {
+  const piece = pieceFromRows(['SOL', '.A.']);
+  expect(rowsOf(rotatePiece(piece))).toEqual(['.S', 'AO', '.L']);
+  expect(rowsOf(rotatePiece(rotatePiece(piece)))).toEqual(['.A.', 'LOS']);
+  expect(rowsOf(rotations(piece)[3])).toEqual(['L.', 'OA', 'S.']);
+  expect(rowsOf(rotatePiece(rotations(piece)[3]))).toEqual(rowsOf(piece));
+  expect(rotatePiece(piece).id).toBe(piece.id);
+});
+
+test('só a casa do meio da bandeja gira', () => {
+  expect(ENCAIXE.rotateSlot).toBe(1);
 });
