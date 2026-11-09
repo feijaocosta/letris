@@ -11,9 +11,9 @@ import type { GameMode } from '../lib/storage';
 type MiniCell = TileColor | null;
 
 /** Tabuleirinho de blocos (sem letras) para as ilustrações */
-function MiniBoard({ cells, size = 13 }: { cells: MiniCell[][]; size?: number }) {
+function MiniBoard({ cells, size = 19 }: { cells: MiniCell[][]; size?: number }) {
   return (
-    <div className="grid gap-[2px] bg-deep rounded-lg p-1" style={{ gridTemplateColumns: `repeat(${cells[0].length}, ${size}px)` }}>
+    <div className="grid gap-[3px] bg-deep rounded-xl p-1.5" style={{ gridTemplateColumns: `repeat(${cells[0].length}, ${size}px)` }}>
       {cells.flatMap((row, r) => row.map((c, i) => c
         ? <Tile key={`${r}-${i}`} color={c} size={size} />
         : <div key={`${r}-${i}`} className="rounded-[3px] bg-white/5" style={{ width: size, height: size }} />))}
@@ -36,8 +36,8 @@ function ClassicArt() {
         [B, _, _, G, G],
         [B, Y, _, G, O],
       ]} />
-      <span className="absolute -right-3 top-6 text-tile-yellow animate-[tutorial-drag_1.2s_ease-in-out_infinite]">
-        <IconDown size={22} strokeWidth={3.5} />
+      <span className="absolute -right-6 top-9 text-tile-yellow animate-[tutorial-drag_1.2s_ease-in-out_infinite]">
+        <IconDown size={26} strokeWidth={3.5} />
       </span>
     </div>
   );
@@ -54,12 +54,12 @@ function EncaixeArt() {
         [G, _, _, R, R],
         [G, G, _, R, O],
       ]} />
-      <div className="absolute left-[22px] top-[30px] flex gap-[2px] drop-shadow-lg animate-[tutorial-swipe_1.4s_ease-in-out_infinite]">
-        <Tile color="orange" size={13} />
-        <Tile color="orange" size={13} />
+      <div className="absolute left-[32px] top-[46px] flex gap-[3px] drop-shadow-lg animate-[tutorial-swipe_1.4s_ease-in-out_infinite]">
+        <Tile color="orange" size={19} />
+        <Tile color="orange" size={19} />
       </div>
-      <span className="absolute -right-2 -bottom-3 text-tile-yellow">
-        <IconHand size={22} />
+      <span className="absolute -right-3 -bottom-4 text-tile-yellow">
+        <IconHand size={28} />
       </span>
     </div>
   );
@@ -78,16 +78,15 @@ function ModeCard({ id, art, title, text, badge, onClick }: {
       type="button"
       data-testid={id}
       onClick={onClick}
-      className="btn-3d relative w-full rounded-3xl bg-panel px-4 py-4 flex items-center gap-4 text-left"
+      className="btn-3d relative w-full h-full rounded-3xl bg-panel px-3 pt-5 pb-4 flex flex-col items-center gap-3 text-center"
     >
-      <span className="shrink-0 w-[96px] flex justify-center">{art}</span>
-      <span className="flex flex-col gap-1 min-w-0">
-        <span className="text-[22px] font-black leading-tight text-white">{title}</span>
-        <span className="text-[13px] font-bold leading-snug text-soft">{text}</span>
-        {badge && (
-          <span className="self-start mt-0.5 px-2 py-0.5 rounded-full bg-tile-yellow text-ink text-[11px] font-black">{badge}</span>
-        )}
-      </span>
+      {badge && (
+        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-tile-yellow text-ink text-[11px] font-black">{badge}</span>
+      )}
+      {/* Altura fixa: os títulos dos dois cartões ficam alinhados */}
+      <span className="h-[150px] [@media(max-height:620px)]:h-[108px] flex items-center justify-center [@media(max-height:620px)]:scale-75">{art}</span>
+      <span className="text-[22px] font-black leading-tight text-white">{title}</span>
+      <span className="text-[13px] font-bold leading-snug text-soft">{text}</span>
     </button>
   );
 }
@@ -118,7 +117,9 @@ export function GameChooser({ onChoose, inProgress, onPrivacy, isOnline }: GameC
           </div>
         )}
 
-        <div className="flex-1 min-h-[90px] flex flex-col items-center justify-center gap-3">
+        {/* Logo e cartões centralizados na altura disponível */}
+        <div className="flex-1 min-h-0 flex flex-col justify-center gap-6 [@media(max-height:620px)]:gap-3">
+        <div className="flex flex-col items-center justify-center gap-3">
           <Logo size={44} gap={5} />
           <p className="m-0 text-[16px] font-bold text-soft text-center [@media(max-height:620px)]:hidden">{t('home.tagline')}</p>
           {!isOnline && (
@@ -126,7 +127,7 @@ export function GameChooser({ onChoose, inProgress, onPrivacy, isOnline }: GameC
           )}
         </div>
 
-        <div className="flex flex-col gap-3" role="group" aria-label={t('modes.label')}>
+        <div className="grid grid-cols-2 gap-3" role="group" aria-label={t('modes.label')}>
           <ModeCard
             id="mode-classic"
             art={<ClassicArt />}
@@ -143,6 +144,7 @@ export function GameChooser({ onChoose, inProgress, onPrivacy, isOnline }: GameC
             badge={inProgress.encaixe ? t('modes.inProgress') : null}
             onClick={() => onChoose('encaixe')}
           />
+        </div>
         </div>
 
         <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint pt-1">
