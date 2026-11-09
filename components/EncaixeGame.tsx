@@ -719,16 +719,16 @@ export function EncaixeGame({ library, blocked = false, resume = null, tutorial 
         </div>
 
         {/* Bandeja: arraste uma peça até o tabuleiro */}
-        <div className="grid grid-cols-3 grid-rows-1 gap-2 h-[128px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
+        <div className="grid grid-cols-3 grid-rows-1 gap-2 h-[124px] mb-[24px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
           {tray.map((piece, slot) => (
             <div
               key={piece?.id ?? `vazio-${slot}`}
               data-testid={`encaixe-slot-${slot}`}
               onPointerDown={e => startDrag(slot, e)}
-              className={`min-h-0 overflow-hidden rounded-2xl bg-panel/60 flex flex-col items-center justify-center gap-1.5 py-2 touch-none ${piece && canAct ? 'cursor-grab' : ''}${piece && tutorialStep && tutorialStep !== 'rotate' ? ' tutorial-highlight' : ''}`}
+              className={`relative min-h-0 rounded-2xl bg-panel/60 flex items-center justify-center touch-none ${piece && canAct ? 'cursor-grab' : ''}${piece && tutorialStep && tutorialStep !== 'rotate' ? ' tutorial-highlight' : ''}`}
             >
               {piece && (
-                <div className="flex-1 min-h-0 flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <div
                     className={`grid gap-0.5 transition-opacity ${drag?.slot === slot ? 'opacity-20' : ''} ${canAct && !fitsAnywhere(grid, piece) ? 'opacity-40' : ''}`}
                     style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 24px)` }}
@@ -751,7 +751,8 @@ export function EncaixeGame({ library, blocked = false, resume = null, tutorial 
                     e.preventDefault();
                     rotate(slot);
                   }}
-                  className={`shrink-0 h-7 px-4 rounded-full bg-white/90 text-ink shadow flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50${tutorialStep === 'rotate' ? ' tutorial-highlight' : ''}`}
+                  // Na borda de baixo, quase todo para fora: a casa fica inteira para a peça (#31)
+                  className={`absolute left-1/2 -translate-x-1/2 -bottom-[22px] z-10 h-8 min-h-0 min-w-0 px-5 rounded-full bg-white text-ink shadow ring-4 ring-ink flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50${tutorialStep === 'rotate' ? ' tutorial-highlight' : ''}`}
                 >
                   <IconRotate size={18} />
                 </button>

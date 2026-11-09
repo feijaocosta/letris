@@ -112,6 +112,24 @@ test('botão de girar só na peça do meio: gira e a peça girada encaixa', asyn
   expect(board.slice(7)).toEqual(['.S......', 'AO......', '.L......']);
 });
 
+test('PR #31: o botão de girar não cobre a peça, nem a de 4 blocos em pé', async ({ page }) => {
+  for (const pieceRows of [['S', 'S', 'L', 'O'], ['SSLO']]) {
+    await setTray(page, [['AB'], pieceRows, ['CD']]);
+    const overlaps = await page.evaluate(() => {
+      const slot = document.querySelector('[data-testid="encaixe-slot-1"]')!;
+      const button = slot.querySelector('[data-testid="encaixe-rotate"]')!.getBoundingClientRect();
+      const tiles = Array.from(slot.querySelectorAll('.grid > *')).map(el => el.getBoundingClientRect());
+      const slotBox = slot.getBoundingClientRect();
+      return {
+        tiles: tiles.length,
+        hit: tiles.some(t => t.bottom > button.top && t.top < button.bottom && t.right > button.left && t.left < button.right),
+        inside: tiles.every(t => t.top >= slotBox.top && t.bottom <= slotBox.bottom && t.left >= slotBox.left && t.right <= slotBox.right),
+      };
+    });
+    expect(overlaps).toEqual({ tiles: 4, hit: false, inside: true });
+  }
+});
+
 // Xadrez: nenhuma casa vazia tem vizinha vazia, então só peça de 1 bloco cabe
 const CHECKER = Array.from({ length: 10 }, (_, i) => (i % 2 ? '.Z.Z.Z.Z' : 'Z.Z.Z.Z.'));
 

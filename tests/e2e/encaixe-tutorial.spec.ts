@@ -166,6 +166,7 @@ for (const [lang, locale] of Object.entries(LOCALES)) {
     await playEncaixe(page, `/?lang=${lang}`, locale.home.play);
     await expect(page.getByText(locale.tutorial.encaixeDrag)).toBeVisible();
     expect((await state(page)).levelWords).toEqual([first, second]);
+    await expect.poll(() => step(page)).toBe('drag');
     await place(page, 0, 0, 0);
     await expect.poll(() => step(page)).toBe('rotate');
     await expect(page.getByText(locale.tutorial.encaixeRotate)).toBeVisible();
@@ -187,6 +188,7 @@ test.describe('métricas', () => {
   test.use({ consent: 'granted' });
   test('tutorial_start, tutorial_step, tutorial_complete com mode encaixe e sem word_formed', async ({ page }) => {
     await playEncaixe(page);
+    await expect.poll(() => step(page)).toBe('drag');
     await place(page, 0, 0, 0);
     await expect.poll(() => step(page)).toBe('rotate');
     await page.getByRole('button', { name: pt.encaixe.rotate }).click();
