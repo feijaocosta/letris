@@ -33,12 +33,19 @@ export const KEYS = {
   lang: 'lang',
   /** Tutorial visto (ou pulado): não aparece mais sozinho */
   tutorialDone: 'tutorialDone',
+  /** O mesmo, no modo Encaixe */
+  encaixeTutorialDone: 'tutorialDone:encaixe',
 } as const;
 
-/** Já jogou alguma vez (tem recorde em algum idioma)? */
-export function hasAnyRecord(): boolean {
+/** Já jogou este modo alguma vez (tem recorde dele em algum idioma)? */
+export function hasAnyRecord(mode: GameMode = 'classic'): boolean {
+  // Clássico: "bestScore:pt"; Encaixe: "bestScore:encaixe:pt"
+  const isMode = (key: string) => {
+    const parts = key.slice(PREFIX.length).split(':');
+    return parts[0] === 'bestScore' && (mode === 'classic' ? parts.length === 2 : parts[1] === mode);
+  };
   try {
-    return Object.keys(localStorage).some(k => k.startsWith(`${PREFIX}bestScore`) && Number(localStorage.getItem(k)) > 0);
+    return Object.keys(localStorage).some(k => k.startsWith(PREFIX) && isMode(k) && Number(localStorage.getItem(k)) > 0);
   } catch {
     return false;
   }

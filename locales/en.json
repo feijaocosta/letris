@@ -122,7 +122,14 @@
     "gesturesAlso": "They also work in buttons mode",
     "keyboard": "On a keyboard: arrows, space to drop and P to pause.",
     "close": "Got it!",
-    "tutorial": "Watch the tutorial"
+    "tutorial": "Watch the tutorial",
+    "encaixeLinesTitle": "Complete rows and columns",
+    "encaixeLinesText": "A full row or column clears and scores extra points. Nothing falls here: everything else stays put.",
+    "encaixeControlsTitle": "How to move",
+    "encaixeDrag": "Drag a piece from the tray onto the board.",
+    "encaixeCancel": "Drop it outside the board to put it back.",
+    "encaixeRotate": "Only the middle piece rotates: tap the button below it.",
+    "encaixeEnd": "The game ends when no piece in the tray fits."
   },
   "consent": {
     "label": "Privacy and cookies",
@@ -169,7 +176,13 @@
     "goal": "Make {word} to reach the level goal.",
     "doneTitle": "Now it's your turn!",
     "doneText": "Make the words on the list in each level. The pieces get faster as you go.",
-    "doneStart": "Start level 1"
+    "doneStart": "Start level 1",
+    "encaixeDrag": "Drag the piece from the tray and drop it anywhere on the board.",
+    "encaixeRotate": "Only the middle piece rotates: tap the button below it.",
+    "encaixeWord": "Drag the {letter} next to {start} to make {word}.",
+    "encaixeLine": "Now complete the row. A full row or column clears and scores points, but the goal is to make the words: rows just free up space.",
+    "encaixeGoal": "Words count vertically too. Drop the {letter} below {start} to make {word} and reach the goal.",
+    "encaixeDoneText": "Make the words on the list in each level. The game ends when no piece fits anymore."
   },
   "modes": {
     "label": "MODE",

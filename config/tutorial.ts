@@ -28,3 +28,12 @@ export const TUTORIAL_WORDS: Record<Lang, [string, string]> = {
 
 /** Letras da linha quase cheia do passo "line" (não formam palavra da lista) */
 export const TUTORIAL_LINE_FILLER = 'XWZKXWZKX';
+
+// ---------- Tutorial do Encaixe ----------
+// Mesmo jeito do Clássico: tabuleiro e bandeja fixos em cada passo, com as
+// mesmas palavras (TUTORIAL_WORDS). A lógica fica em EncaixeGame.
+
+export type EncaixeTutorialStep = 'drag' | 'rotate' | 'word' | 'line' | 'goal' | 'done';
+
+/** Ordem dos passos ('done' é o "Agora é com você!") */
+export const ENCAIXE_TUTORIAL_STEPS: EncaixeTutorialStep[] = ['drag', 'rotate', 'word', 'line', 'goal', 'done'];

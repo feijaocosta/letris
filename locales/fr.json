@@ -122,7 +122,14 @@
     "gesturesAlso": "Ils marchent aussi en mode boutons",
     "keyboard": "Au clavier : flèches, espace pour lâcher et P pour la pause.",
     "close": "Compris !",
-    "tutorial": "Voir le tutoriel"
+    "tutorial": "Voir le tutoriel",
+    "encaixeLinesTitle": "Complète lignes et colonnes",
+    "encaixeLinesText": "Une ligne ou une colonne pleine disparaît et rapporte des points en plus. Ici rien ne tombe : le reste ne bouge pas.",
+    "encaixeControlsTitle": "Comment jouer",
+    "encaixeDrag": "Fais glisser une pièce du bas vers le plateau.",
+    "encaixeCancel": "Lâche-la hors du plateau pour la remettre.",
+    "encaixeRotate": "Seule la pièce du milieu tourne : touche le bouton en dessous.",
+    "encaixeEnd": "La partie se termine quand aucune pièce du bas ne rentre."
   },
   "consent": {
     "label": "Confidentialité et cookies",
@@ -169,7 +176,13 @@
     "goal": "Forme {word} pour atteindre l'objectif du niveau.",
     "doneTitle": "À toi de jouer !",
     "doneText": "Forme les mots de la liste à chaque niveau. Les pièces vont de plus en plus vite.",
-    "doneStart": "Commencer le niveau 1"
+    "doneStart": "Commencer le niveau 1",
+    "encaixeDrag": "Fais glisser la pièce du bas et pose-la n'importe où sur le plateau.",
+    "encaixeRotate": "Seule la pièce du milieu tourne : touche le bouton en dessous.",
+    "encaixeWord": "Fais glisser le {letter} à côté de {start} pour former {word}.",
+    "encaixeLine": "Maintenant, complète la ligne. Une ligne ou une colonne pleine disparaît et rapporte des points, mais le but est de former les mots : elle sert à faire de la place.",
+    "encaixeGoal": "Les mots comptent aussi à la verticale. Pose le {letter} sous {start} pour former {word} et atteindre l'objectif.",
+    "encaixeDoneText": "Forme les mots de la liste à chaque niveau. La partie se termine quand plus aucune pièce ne rentre."
   },
   "modes": {
     "label": "MODE",

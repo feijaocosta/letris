@@ -122,7 +122,14 @@
     "gesturesAlso": "Funcionam também no modo botões",
     "keyboard": "No teclado: setas, espaço para soltar e P para pausar.",
     "close": "Entendi!",
-    "tutorial": "Ver tutorial"
+    "tutorial": "Ver tutorial",
+    "encaixeLinesTitle": "Complete linhas e colunas",
+    "encaixeLinesText": "Linha ou coluna cheia some e dá pontos extras. Aqui nada desce: o resto fica no lugar.",
+    "encaixeControlsTitle": "Como mexer",
+    "encaixeDrag": "Arraste uma peça da bandeja até o tabuleiro.",
+    "encaixeCancel": "Solte fora do tabuleiro para devolver a peça.",
+    "encaixeRotate": "Só a peça do meio gira: toque no botão embaixo dela.",
+    "encaixeEnd": "O jogo acaba quando nenhuma peça da bandeja cabe."
   },
   "consent": {
     "label": "Privacidade e cookies",
@@ -169,7 +176,13 @@
     "goal": "Forme {word} para bater a meta do nível.",
     "doneTitle": "Agora é com você!",
     "doneText": "Forme as palavras da lista em cada nível. As peças vão ficando mais rápidas.",
-    "doneStart": "Começar o nível 1"
+    "doneStart": "Começar o nível 1",
+    "encaixeDrag": "Arraste a peça da bandeja e solte em qualquer lugar do tabuleiro.",
+    "encaixeRotate": "Só a peça do meio gira: toque no botão embaixo dela.",
+    "encaixeWord": "Arraste o {letter} para o lado de {start} e forme {word}.",
+    "encaixeLine": "Agora complete a linha. Linha ou coluna cheia some e dá pontos, mas o objetivo é formar as palavras: ela serve para abrir espaço.",
+    "encaixeGoal": "Na vertical também vale. Solte o {letter} embaixo de {start} e forme {word} para bater a meta.",
+    "encaixeDoneText": "Forme as palavras da lista em cada nível. O jogo acaba quando nenhuma peça couber mais."
   },
   "modes": {
     "label": "MODO",

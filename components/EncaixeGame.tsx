@@ -12,9 +12,11 @@ import {
 } from '../lib/encaixe';
 import { adBreakNext } from '../lib/ads';
 import { track } from '../lib/analytics';
-import { load, recordKey, save } from '../lib/storage';
+import { KEYS, load, recordKey, save } from '../lib/storage';
 import { clearSavedEncaixe, saveEncaixe, type SavedEncaixe } from '../lib/savedGame';
 import { useI18n, type MessageKey } from '../lib/i18n';
+import { ENCAIXE_TUTORIAL_STEPS, TUTORIAL_LINE_FILLER, TUTORIAL_WORDS, type EncaixeTutorialStep } from '../config/tutorial';
+import { EncaixeCoach, TutorialDone } from './TutorialCoach';
 
 // Modo Encaixe: arrastar peças da bandeja e soltar onde quiser no tabuleiro
 // (sem gravidade). Linha ou coluna completa some; palavras da lista do nível
@@ -36,11 +38,13 @@ interface EncaixeGameProps {
   /** Celular deitado (aviso "Gire o celular" por cima): o jogo pausa */
   blocked?: boolean;
   resume?: SavedEncaixe | null;
+  /** Começa pelo tutorial (primeira partida do Encaixe ou "Ver tutorial") */
+  tutorial?: boolean;
   onHome: () => void;
   onHelp: () => void;
 }
 
-export function EncaixeGame({ library, blocked = false, resume = null, onHome, onHelp }: EncaixeGameProps) {
+export function EncaixeGame({ library, blocked = false, resume = null, tutorial = false, onHome, onHelp }: EncaixeGameProps) {
   const { t, n, lang } = useI18n();
   const bestScoreKey = recordKey('bestScore', lang, 'encaixe');
   const bestLevelKey = recordKey('bestLevel', lang, 'encaixe');
@@ -64,6 +68,12 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
   const [isResolving, setIsResolving] = useState(false);
   const [adBusy, setAdBusy] = useState(false);
   const [drag, setDrag] = useState<Drag | null>(null);
+  // Tutorial: passo atual (null = partida normal), se está repetindo o passo
+  // e quantas peças já foram encaixadas nele (para conferir depois de limpar)
+  const [tutorialStep, setTutorialStep] = useState<EncaixeTutorialStep | null>(null);
+  const [tutorialRetry, setTutorialRetry] = useState(false);
+  const [tutorialPlaced, setTutorialPlaced] = useState(0);
+  const tutorialRef = useRef<{ step: EncaixeTutorialStep | null; done: boolean }>({ step: null, done: false });
 
   const gridRef = useRef(grid);
   const trayRef = useRef(tray);
@@ -132,6 +142,9 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
   const startNewGame = () => {
     clearSavedEncaixe(lang);
     clearTimers();
+    tutorialRef.current = { step: null, done: false };
+    setTutorialStep(null);
+    setTutorialRetry(false);
     usedWordsRef.current = new Set();
     setupLevel(1);
     updateGrid(emptyGrid());
@@ -185,6 +198,7 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
 
   useEffect(() => {
     if (resume) restoreGame(resume);
+    else if (tutorial) startTutorial();
     else startNewGame();
     return () => {
       clearTimers();
@@ -195,7 +209,7 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
   // Sem lugar para nenhuma peça da bandeja: fim de jogo (só jogando; no fim
   // de nível o tabuleiro vai ser limpo)
   const checkGameOver = (board: Cell[][], pieces: Array<TrayPiece | null>) => {
-    if (phaseRef.current !== 'playing') return;
+    if (phaseRef.current !== 'playing' || tutorialRef.current.step !== null) return;
     const remaining = pieces.filter((p): p is TrayPiece => p !== null);
     // A peça que gira só trava o jogo se não couber em nenhuma posição
     const fits = (p: TrayPiece, slot: number) =>
@@ -215,7 +229,8 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     const scored: ScoredWord[] = clear.words.map(({ word }) => {
       const result = { word, repeated: formedInLevelRef.current.has(word) };
       formedInLevelRef.current.add(word);
-      track('word_formed', { length: word.length, repeated: result.repeated, level: levelRef.current, mode: 'encaixe' });
+      if (tutorialRef.current.step !== null) tutorialEvent({ word });
+      else track('word_formed', { length: word.length, repeated: result.repeated, level: levelRef.current, mode: 'encaixe' });
       return result;
     });
     if (clear.words.length > 0) {
@@ -226,6 +241,7 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     }
     const lines = clear.rows.length + clear.cols.length;
     if (lines > 0) setLinesCleared(prev => prev + lines);
+    if (lines > 0) tutorialEvent('line');
 
     const result = ScoreSystem.scoreClear(scored, lines, levelRef.current, false);
     setScore(prev => prev + result.points);
@@ -248,12 +264,15 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     if (!piece || !canAct || !canPlace(gridRef.current, piece, row, col)) return false;
     const board = placePiece(gridRef.current, piece, row, col);
     setScore(prev => prev + blockCount(piece) * ENCAIXE.pointsPerBlock);
-    // A bandeja é reposta peça a peça
+    // A bandeja é reposta peça a peça (no tutorial, cada passo traz as suas)
+    const inTutorial = tutorialRef.current.step !== null;
     const nextTray = [...trayRef.current];
-    nextTray[slot] = newPiece();
+    nextTray[slot] = inTutorial ? null : newPiece();
     updateTray(nextTray);
     updateGrid(board);
+    if (inTutorial) tutorialEvent('place');
     resolve(board);
+    if (inTutorial) setTutorialPlaced(count => count + 1);
     return true;
   };
 
@@ -264,6 +283,7 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     const nextTray = [...trayRef.current];
     nextTray[slot] = rotatePiece(piece);
     updateTray(nextTray);
+    tutorialEvent('rotate');
   };
 
   // ---------- Arrastar ----------
@@ -363,9 +383,9 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
-  const requiredWords = library.getRequiredWordsForLevel(level);
+  const requiredWords = tutorialStep !== null ? TUTORIAL_WORDS[lang].length : library.getRequiredWordsForLevel(level);
   useEffect(() => {
-    if (levelPhase === 'playing' && foundWordsList.length >= requiredWords) {
+    if (levelPhase === 'playing' && tutorialStep === null && foundWordsList.length >= requiredWords) {
       const noLines = linesCleared - levelStart.lines === 0 ? ScoreSystem.noLinesBonusPoints(level) : 0;
       const bonus = ScoreSystem.levelCompletePoints(level);
       setScore(prev => prev + bonus + noLines);
@@ -434,9 +454,117 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     startNewGame();
   };
 
+  // ---------- Tutorial (primeira partida do Encaixe) ----------
+  // Roteiro com tabuleiro e bandeja fixos (config/tutorial.ts). Cada passo
+  // espera a ação certa; peça no lugar errado repete o passo. No fim, "Agora
+  // é com você!" limpa o tabuleiro e começa o nível 1.
+  const tutorialWords = TUTORIAL_WORDS[lang];
+
+  const tutorialBoard = (step: EncaixeTutorialStep): Cell[][] => {
+    const board = emptyGrid();
+    const bottom = ENCAIXE.rows - 1;
+    const put = (row: number, col: number, letter: string, color: Cell['color']) => {
+      board[row][col] = { letter, color, isActive: false, isHighlighted: false };
+    };
+    const [first, second] = tutorialWords;
+    // 1ª palavra na horizontal (falta a última letra, à direita)
+    if (step === 'word') { put(bottom, 2, first[0], 'green'); put(bottom, 3, first[1], 'green'); }
+    // linha com uma casa vazia no fim
+    if (step === 'line') Array.from(TUTORIAL_LINE_FILLER).slice(0, ENCAIXE.cols - 1).forEach((l, col) => put(bottom, col, l, 'blue'));
+    // 2ª palavra na vertical (falta a última letra, embaixo)
+    if (step === 'goal') { put(bottom - 2, 5, second[0], 'green'); put(bottom - 1, 5, second[1], 'green'); }
+    return board;
+  };
+
+  const tutorialTray = (step: EncaixeTutorialStep): Array<TrayPiece | null> => {
+    const [first, second] = tutorialWords;
+    const piece = (letters: string) => pieceFromRows([letters], 'orange');
+    if (step === 'drag') return [piece(TUTORIAL_LINE_FILLER.slice(0, 2)), null, null];
+    if (step === 'rotate') return [null, piece(TUTORIAL_LINE_FILLER.slice(0, 3)), null];
+    if (step === 'word') return [piece(first[2]), null, null];
+    if (step === 'line') return [piece(TUTORIAL_LINE_FILLER[ENCAIXE.cols - 1]), null, null];
+    if (step === 'goal') return [piece(second[2]), null, null];
+    return [null, null, null];
+  };
+
+  const enterTutorialStep = (step: EncaixeTutorialStep, retry = false) => {
+    clearTimers();
+    tutorialRef.current = { step, done: false };
+    setTutorialStep(step);
+    setTutorialRetry(retry);
+    setIsResolving(false);
+    setDrag(null);
+    updateGrid(tutorialBoard(step));
+    updateTray(tutorialTray(step));
+    if (!retry) track(step === 'done' ? 'tutorial_complete' : 'tutorial_step', { step, mode: 'encaixe' });
+    if (step === 'done') save(KEYS.encaixeTutorialDone, true);
+  };
+
+  const advanceTutorial = (from: EncaixeTutorialStep) => {
+    if (tutorialRef.current.step !== from) return; // já avançou
+    const next = ENCAIXE_TUTORIAL_STEPS[ENCAIXE_TUTORIAL_STEPS.indexOf(from) + 1];
+    if (next) enterTutorialStep(next);
+  };
+
+  function startTutorial() {
+    clearSavedEncaixe(lang);
+    clearTimers();
+    usedWordsRef.current = new Set();
+    levelWordsRef.current = [...tutorialWords];
+    setLevelWords([...tutorialWords]);
+    validWordsRef.current = new Set(tutorialWords);
+    foundTargetsRef.current = new Set();
+    formedInLevelRef.current = new Set();
+    setScore(0);
+    setLevel(1);
+    setLinesCleared(0);
+    setIsGameOver(false);
+    setIsPaused(false);
+    setFoundWordsList([]);
+    setGameWords([]);
+    setPopup(null);
+    setLevelPhase('playing');
+    setLevelStart({ score: 0, lines: 0 });
+    playedMsRef.current = 0;
+    gamePlayedMsRef.current = 0;
+    runningSinceRef.current = null;
+    track('tutorial_start', { mode: 'encaixe' });
+    enterTutorialStep(ENCAIXE_TUTORIAL_STEPS[0]);
+  }
+
+  const skipTutorial = () => {
+    track('tutorial_skip', { step: tutorialRef.current.step ?? '', mode: 'encaixe' });
+    save(KEYS.encaixeTutorialDone, true);
+    startNewGame();
+  };
+
+  // O que conta como "fez o passo"
+  function tutorialEvent(event: 'place' | 'rotate' | 'line' | { word: string }) {
+    const progress = tutorialRef.current;
+    if (!progress.step || progress.done) return;
+    const step = progress.step;
+    if (step === 'drag' && event === 'place') progress.done = true;
+    else if (step === 'rotate' && event === 'rotate') {
+      progress.done = true;
+      timersRef.current.push(setTimeout(() => advanceTutorial('rotate'), 500));
+    } else if (step === 'word' && typeof event === 'object' && event.word === tutorialWords[0]) progress.done = true;
+    else if (step === 'line' && event === 'line') progress.done = true;
+    else if (step === 'goal' && typeof event === 'object' && event.word === tutorialWords[1]) progress.done = true;
+  }
+
+  // Peça encaixada e tabuleiro parado: passa para o próximo passo, ou repete
+  // o passo se a peça ficou no lugar errado
+  useEffect(() => {
+    const step = tutorialRef.current.step;
+    if (tutorialPlaced === 0 || !step || step === 'done' || isResolving) return;
+    const done = tutorialRef.current.done;
+    const timer = setTimeout(() => (done ? advanceTutorial(step) : enterTutorialStep(step, true)), done ? 300 : 500);
+    timersRef.current.push(timer);
+  }, [tutorialPlaced, isResolving]);
+
   // ---------- Partida guardada ----------
   const snapshot = (): Omit<SavedEncaixe, 'v' | 'savedAt'> | null => {
-    if (isGameOver || levelWordsRef.current.length === 0) return null;
+    if (isGameOver || levelWordsRef.current.length === 0 || tutorialRef.current.step !== null) return null;
     const phase = levelPhase === 'intro' || levelPhase === 'summary' ? levelPhase
       : levelPhase === 'playing' && !isResolving ? 'playing' : null;
     if (!phase) return null;
@@ -487,6 +615,7 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
     (window as unknown as { __letris: unknown }).__letris = {
       state: () => ({
         mode: 'encaixe', level, score, lines: linesCleared, phase: levelPhase, paused: isPaused, gameOver: isGameOver,
+        tutorial: tutorialStep,
         levelWords, found: foundWordsList, piece: null,
         board: gridRef.current.map(row => row.map(cell => cell.letter ?? '.').join('')),
         tray: trayRef.current.map(p => p && p.shape.map((row, r) => row.map((f, c) => (f ? p.letters[r][c] : '.')).join(''))),
@@ -558,6 +687,18 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
         {/* Tabuleiro */}
         <div className="relative flex-1 min-h-0 touch-none">
           <GameBoard grid={displayGrid} activePiece={null} gridRef={boardGridRef} centered />
+          {tutorialStep && tutorialStep !== 'done' && (
+            <EncaixeCoach
+              step={tutorialStep}
+              retry={tutorialRetry}
+              vars={{
+                word: tutorialWords[tutorialStep === 'goal' ? 1 : 0],
+                letter: tutorialWords[tutorialStep === 'goal' ? 1 : 0][2],
+                start: tutorialWords[tutorialStep === 'goal' ? 1 : 0].slice(0, 2),
+              }}
+              onSkip={skipTutorial}
+            />
+          )}
           {popup && (
             <div key={popup.id} className="pointer-events-none absolute inset-x-0 top-1/3 flex flex-col items-center gap-1">
               <span className="px-4 py-1.5 rounded-full bg-tile-yellow text-ink text-xl font-black shadow-lg">
@@ -578,16 +719,16 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
         </div>
 
         {/* Bandeja: arraste uma peça até o tabuleiro */}
-        <div className="grid grid-cols-3 grid-rows-1 gap-2 h-[128px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
+        <div className="grid grid-cols-3 grid-rows-1 gap-2 h-[124px] mb-[24px] shrink-0 select-none" aria-label={t('encaixe.tray')} data-testid="encaixe-tray">
           {tray.map((piece, slot) => (
             <div
               key={piece?.id ?? `vazio-${slot}`}
               data-testid={`encaixe-slot-${slot}`}
               onPointerDown={e => startDrag(slot, e)}
-              className={`min-h-0 overflow-hidden rounded-2xl bg-panel/60 flex flex-col items-center justify-center gap-1.5 py-2 touch-none ${piece && canAct ? 'cursor-grab' : ''}`}
+              className={`relative min-h-0 rounded-2xl bg-panel/60 flex items-center justify-center touch-none ${piece && canAct ? 'cursor-grab' : ''}${piece && tutorialStep && tutorialStep !== 'rotate' ? ' tutorial-highlight' : ''}`}
             >
               {piece && (
-                <div className="flex-1 min-h-0 flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <div
                     className={`grid gap-0.5 transition-opacity ${drag?.slot === slot ? 'opacity-20' : ''} ${canAct && !fitsAnywhere(grid, piece) ? 'opacity-40' : ''}`}
                     style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, 24px)` }}
@@ -610,7 +751,8 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
                     e.preventDefault();
                     rotate(slot);
                   }}
-                  className="shrink-0 h-7 px-4 rounded-full bg-white/90 text-ink shadow flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50"
+                  // Na borda de baixo, quase todo para fora: a casa fica inteira para a peça (#31)
+                  className={`absolute left-1/2 -translate-x-1/2 -bottom-[22px] z-10 h-8 min-h-0 min-w-0 px-5 rounded-full bg-white text-ink shadow ring-4 ring-ink flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50${tutorialStep === 'rotate' ? ' tutorial-highlight' : ''}`}
                 >
                   <IconRotate size={18} />
                 </button>
@@ -674,6 +816,8 @@ export function EncaixeGame({ library, blocked = false, resume = null, onHome, o
           newLetters={newLetters}
           onContinue={continueToNextLevel}
         />
+      ) : tutorialStep === 'done' ? (
+        <TutorialDone onStart={startNewGame} text="tutorial.encaixeDoneText" />
       ) : isPaused ? (
         <PauseMenu
           onResume={() => setIsPaused(false)}

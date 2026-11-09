@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { useI18n, type MessageKey } from '../lib/i18n';
-import { TUTORIAL_STEPS, type TutorialStep } from '../config/tutorial';
+import { ENCAIXE_TUTORIAL_STEPS, TUTORIAL_STEPS, type EncaixeTutorialStep, type TutorialStep } from '../config/tutorial';
 import { IconSwipe, IconSwipeDown, IconTap, Logo, type ControlMode } from './LetrisUI';
 
-// Balão do tutorial, por cima do meio do tabuleiro (as peças nascem em cima
-// e as jogadas preparadas ficam embaixo). No modo Gestos, um ícone animado
-// mostra o gesto do passo.
+// Balão do tutorial, por cima do tabuleiro. No Clássico fica no meio (as
+// peças nascem em cima e as jogadas preparadas ficam embaixo) e, no modo
+// Gestos, um ícone animado mostra o gesto do passo. O Encaixe usa o mesmo
+// balão com os seus passos (EncaixeCoach).
 
 const TEXT: Record<Exclude<TutorialStep, 'done'>, MessageKey | Record<ControlMode, MessageKey>> = {
   move: { buttons: 'tutorial.moveButtons', gestures: 'tutorial.moveGestures' },
@@ -32,15 +33,68 @@ interface TutorialCoachProps {
 }
 
 export function TutorialCoach({ step, controlMode, vars, retry, onSkip }: TutorialCoachProps) {
-  const { t } = useI18n();
   const text = TEXT[step];
-  const key = typeof text === 'string' ? text : text[controlMode];
-  const index = TUTORIAL_STEPS.indexOf(step) + 1;
-  const total = TUTORIAL_STEPS.length - 1;
-  const gesture = controlMode === 'gestures' ? GESTURE[step] : null;
-
   return (
-    <div className="pointer-events-none absolute inset-x-1 top-[28%] flex justify-center" data-tutorial-step={step}>
+    <CoachBalloon
+      step={step}
+      index={TUTORIAL_STEPS.indexOf(step) + 1}
+      total={TUTORIAL_STEPS.length - 1}
+      text={typeof text === 'string' ? text : text[controlMode]}
+      vars={vars}
+      gesture={controlMode === 'gestures' ? GESTURE[step] : null}
+      retry={retry}
+      onSkip={onSkip}
+      className="top-[28%]"
+    />
+  );
+}
+
+const ENCAIXE_TEXT: Record<Exclude<EncaixeTutorialStep, 'done'>, MessageKey> = {
+  drag: 'tutorial.encaixeDrag',
+  rotate: 'tutorial.encaixeRotate',
+  word: 'tutorial.encaixeWord',
+  line: 'tutorial.encaixeLine',
+  goal: 'tutorial.encaixeGoal',
+};
+
+/** Balão do tutorial do Encaixe: no alto do tabuleiro (as jogadas ficam embaixo) */
+export function EncaixeCoach({ step, vars, retry, onSkip }: {
+  step: Exclude<EncaixeTutorialStep, 'done'>;
+  vars: Record<string, string>;
+  retry: boolean;
+  onSkip: () => void;
+}) {
+  return (
+    <CoachBalloon
+      step={step}
+      index={ENCAIXE_TUTORIAL_STEPS.indexOf(step) + 1}
+      total={ENCAIXE_TUTORIAL_STEPS.length - 1}
+      text={ENCAIXE_TEXT[step]}
+      vars={vars}
+      retry={retry}
+      onSkip={onSkip}
+      className="top-2"
+    />
+  );
+}
+
+interface CoachBalloonProps {
+  step: string;
+  index: number;
+  total: number;
+  text: MessageKey;
+  vars: Record<string, string>;
+  gesture?: ReactNode;
+  retry: boolean;
+  onSkip: () => void;
+  /** Posição no tabuleiro (top-*) */
+  className: string;
+}
+
+function CoachBalloon({ step, index, total, text: key, vars, gesture, retry, onSkip, className }: CoachBalloonProps) {
+  const { t } = useI18n();
+  return (
+    <div className={`pointer-events-none absolute inset-x-1 ${className} flex justify-center`} data-tutorial-step={step}>
       <div
         className="pointer-events-none w-full max-w-[300px] bg-ink/95 border-2 border-tile-yellow rounded-2xl px-3.5 py-3 flex flex-col gap-2 shadow-xl animate-[pop-in_.25s_ease-out_both]"
         role="status"
@@ -65,14 +119,14 @@ export function TutorialCoach({ step, controlMode, vars, retry, onSkip }: Tutori
 }
 
 /** "Agora é com você!": depois dele o tabuleiro é limpo e começa o nível 1 */
-export function TutorialDone({ onStart }: { onStart: () => void }) {
+export function TutorialDone({ onStart, text = 'tutorial.doneText' }: { onStart: () => void; text?: MessageKey }) {
   const { t } = useI18n();
   return (
     <div className="fixed inset-0 z-30 bg-ink/90 safe-area flex items-center justify-center px-6 animate-[fade-in_.25s_ease-out]">
       <div className="w-full max-w-sm flex flex-col items-center gap-4 text-center animate-[pop-in_.35s_ease-out_both]">
         <Logo size={30} gap={4} />
         <h1 className="m-0 text-[30px] font-black leading-tight">{t('tutorial.doneTitle')}</h1>
-        <p className="m-0 text-base font-bold text-soft">{t('tutorial.doneText')}</p>
+        <p className="m-0 text-base font-bold text-soft">{t(text)}</p>
         <button
           type="button"
           onClick={onStart}
