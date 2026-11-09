@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useI18n } from '../lib/i18n';
+import type { GameMode } from '../lib/storage';
 
 // Peças visuais compartilhadas pelas telas: blocos de letra, logo, cartões,
 // seletor de controle e ícones (SVG inline, sem emoji).
@@ -104,6 +105,32 @@ export function ControlModeToggle({ value, onChange, compact = false }: {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// Seletor do modo de jogo na entrada: Clássico (peças caindo) ou Encaixe
+// (arrastar peças para o tabuleiro)
+export function GameModeToggle({ value, onChange }: {
+  value: GameMode;
+  onChange: (mode: GameMode) => void;
+}) {
+  const { t } = useI18n();
+  const options: Array<[GameMode, string]> = [['classic', t('modes.classic')], ['encaixe', t('modes.encaixe')]];
+  return (
+    <div className="grid grid-cols-2 gap-1.5 bg-deep rounded-2xl p-1.5" role="radiogroup" aria-label={t('modes.label')}>
+      {options.map(([mode, label]) => (
+        <button
+          key={mode}
+          type="button"
+          role="radio"
+          aria-checked={value === mode}
+          onClick={() => onChange(mode)}
+          className={`h-10 rounded-xl text-[15px] font-black ${value === mode ? 'bg-tile-blue text-white' : 'text-chip'}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

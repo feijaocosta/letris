@@ -1,8 +1,7 @@
-import { ControlModeToggle, IconPlay, Label, LanguagePicker, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
-import { load, recordKey } from '../lib/storage';
+import { ControlModeToggle, GameModeToggle, IconPlay, Label, LanguagePicker, Logo, StatCard, Tile, type ControlMode, type TileColor } from './LetrisUI';
+import { load, recordKey, type GameMode } from '../lib/storage';
 import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
 import { track } from '../lib/analytics';
-import type { SavedGame } from '../lib/savedGame';
 
 // Letras soltas de enfeite: [letra, cor, tamanho, esquerda %, topo %, rotação]
 const DECOR: Array<[string, TileColor, number, number, number, number]> = [
@@ -12,21 +11,23 @@ const DECOR: Array<[string, TileColor, number, number, number, number]> = [
 ];
 
 interface HomeScreenProps {
+  gameMode: GameMode;
+  onGameModeChange: (mode: GameMode) => void;
   controlMode: ControlMode;
   onControlModeChange: (mode: ControlMode) => void;
   onPlay: () => void;
-  /** Partida guardada do idioma atual (mostra "Continuar") */
-  saved: SavedGame | null;
+  /** Partida guardada do modo e idioma atuais (mostra "Continuar") */
+  saved: { level: number; score: number } | null;
   onContinue: () => void;
   onHelp: () => void;
   onPrivacy: () => void;
   isOnline: boolean;
 }
 
-export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, onContinue, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
+export function HomeScreen({ gameMode, onGameModeChange, controlMode, onControlModeChange, onPlay, saved, onContinue, onHelp, onPrivacy, isOnline }: HomeScreenProps) {
   const { t, n, lang, setLang } = useI18n();
-  const bestScore = load(recordKey('bestScore', lang), 0);
-  const bestLevel = load(recordKey('bestLevel', lang), 1);
+  const bestScore = load(recordKey('bestScore', lang, gameMode), 0);
+  const bestLevel = load(recordKey('bestLevel', lang, gameMode), 1);
 
   const changeLanguage = (next: Lang) => {
     if (next === lang) return;
@@ -50,24 +51,30 @@ export function HomeScreen({ controlMode, onControlModeChange, onPlay, saved, on
           </div>
         )}
 
-        <div className="relative flex-1 min-h-[100px] flex flex-col items-center justify-center gap-3.5">
+        {/* Telas baixas (até 620 px): sem a frase e sem o rótulo dos controles, para caber o seletor de modo */}
+        <div className="relative flex-1 min-h-[100px] [@media(max-height:620px)]:min-h-[64px] flex flex-col items-center justify-center gap-3.5">
           <Logo size={48} gap={6} />
-          <p className="m-0 text-[17px] font-bold text-soft text-center">{t('home.tagline')}</p>
+          <p className="m-0 text-[17px] font-bold text-soft text-center [@media(max-height:620px)]:hidden">{t('home.tagline')}</p>
           {!isOnline && (
             <span className="px-3 py-1 rounded-full bg-panel text-xs font-extrabold text-soft">{t('home.offline')}</span>
           )}
         </div>
 
         <div className="relative flex flex-col gap-3.5">
+          <GameModeToggle value={gameMode} onChange={onGameModeChange} />
+
           <div className="grid grid-cols-2 gap-2.5">
             <StatCard label={t('home.bestScore')} value={n(bestScore)} />
             <StatCard label={t('home.bestLevel')} value={bestLevel} />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-center">{t('home.controls')}</Label>
-            <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
-          </div>
+          {/* Botões/Gestos só existem no Clássico; no Encaixe a peça é arrastada */}
+          {gameMode === 'classic' && (
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-center [@media(max-height:620px)]:hidden">{t('home.controls')}</Label>
+              <ControlModeToggle value={controlMode} onChange={onControlModeChange} compact />
+            </div>
+          )}
 
           {saved ? (
             <>

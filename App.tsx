@@ -12,11 +12,15 @@ import { RotateNotice } from './components/RotateNotice';
 import { initAds } from './lib/ads';
 import { track } from './lib/analytics';
 import { applyConsent, getConsent, setConsent, type Consent } from './lib/consent';
-import { KEYS, hasAnyRecord, load, save } from './lib/storage';
+import { KEYS, hasAnyRecord, load, save, type GameMode } from './lib/storage';
 import { useI18n } from './lib/i18n';
 import { loadWordLibrary } from './lib/wordBanks';
 import type { WordLibrary } from './components/WordLibrary';
-import { clearSavedGame, loadSavedGame, type SavedGame } from './lib/savedGame';
+import {
+  clearSavedEncaixe, clearSavedGame, loadSavedEncaixe, loadSavedGame, type SavedEncaixe, type SavedGame,
+} from './lib/savedGame';
+import { EncaixeGame } from './components/EncaixeGame';
+import { ENCAIXE } from './config/encaixe';
 
 export default function App() {
   const { isOnline, isStandalone } = usePWA();
@@ -35,8 +39,20 @@ export default function App() {
   const [resume, setResume] = useState<SavedGame | null>(null);
   // A próxima partida começa pelo tutorial
   const [withTutorial, setWithTutorial] = useState(false);
-  // Partida guardada do idioma atual, para o "Continuar" da entrada
-  const saved = useMemo(() => (screen === 'home' ? loadSavedGame(lang) : null), [screen, lang]);
+  // Modo de jogo escolhido na entrada (Clássico ou Encaixe), salvo no aparelho
+  const [gameMode, setGameModeState] = useState<GameMode>(() => load(KEYS.gameMode, 'classic'));
+  const [resumeEncaixe, setResumeEncaixe] = useState<SavedEncaixe | null>(null);
+  // Partida guardada do modo e idioma atuais, para o "Continuar" da entrada
+  const saved = useMemo(() => {
+    if (screen !== 'home') return null;
+    return gameMode === 'encaixe' ? loadSavedEncaixe(lang, ENCAIXE.rows, ENCAIXE.cols) : loadSavedGame(lang);
+  }, [screen, lang, gameMode]);
+
+  const setGameMode = (mode: GameMode) => {
+    if (mode !== gameMode) track('game_mode_change', { mode });
+    setGameModeState(mode);
+    save(KEYS.gameMode, mode);
+  };
 
   const setControlMode = (mode: ControlMode) => {
     if (mode !== controlMode) track('control_mode_change', { control_mode: mode });
@@ -111,17 +127,23 @@ export default function App() {
    * tutorial aparece sozinho só na primeira vez de quem nunca jogou (sem
    * recorde); "Ver tutorial" no Como jogar força.
    */
-  const play = async (game: SavedGame | null = null, forceTutorial = false) => {
+  const play = async (game: SavedGame | SavedEncaixe | null = null, forceTutorial = false) => {
     let words: WordLibrary;
     try {
       words = await loadWordLibrary(lang);
     } catch {
       return; // sem banco (offline antes do primeiro carregamento): fica na entrada
     }
-    if (!game) clearSavedGame(lang); // JOGAR/Novo jogo descarta a guardada
-    track('game_start', { control_mode: controlMode, resumed: game !== null });
-    setResume(game);
-    setWithTutorial(!game && (forceTutorial || (!load(KEYS.tutorialDone, false) && !hasAnyRecord())));
+    // JOGAR/Novo jogo descarta a guardada do modo
+    if (!game) (gameMode === 'encaixe' ? clearSavedEncaixe : clearSavedGame)(lang);
+    track('game_start', { control_mode: controlMode, resumed: game !== null, mode: gameMode });
+    if (gameMode === 'encaixe') {
+      setResumeEncaixe(game as SavedEncaixe | null);
+      setWithTutorial(false); // o tutorial é do Clássico
+    } else {
+      setResume(game as SavedGame | null);
+      setWithTutorial(!game && (forceTutorial || (!load(KEYS.tutorialDone, false) && !hasAnyRecord())));
+    }
     setLibrary(words);
     setConsentOpen(false);
     setShowInstallPrompt(false);
@@ -133,6 +155,8 @@ export default function App() {
     <>
       {screen === 'home' ? (
         <HomeScreen
+          gameMode={gameMode}
+          onGameModeChange={setGameMode}
           controlMode={controlMode}
           onControlModeChange={setControlMode}
           onPlay={() => play()}
@@ -141,6 +165,15 @@ export default function App() {
           onHelp={openHelp}
           onPrivacy={() => setConsentOpen(true)}
           isOnline={isOnline}
+        />
+      ) : library && gameMode === 'encaixe' ? (
+        <EncaixeGame
+          key={gameKey}
+          library={library}
+          blocked={landscape}
+          resume={resumeEncaixe}
+          onHome={() => setScreen('home')}
+          onHelp={openHelp}
         />
       ) : library && (
         <LetrisGame
@@ -160,7 +193,7 @@ export default function App() {
         <HelpScreen
           onClose={() => setHelpOpen(false)}
           // Só na entrada: no meio de uma partida o tutorial a abandonaria
-          onTutorial={screen === 'home' ? () => { setHelpOpen(false); play(null, true); } : undefined}
+          onTutorial={screen === 'home' && gameMode === 'classic' ? () => { setHelpOpen(false); play(null, true); } : undefined}
         />
       )}
 
