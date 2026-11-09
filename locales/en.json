@@ -170,5 +170,14 @@
     "doneTitle": "Now it's your turn!",
     "doneText": "Make the words on the list in each level. The pieces get faster as you go.",
     "doneStart": "Start level 1"
+  },
+  "modes": {
+    "label": "MODE",
+    "classic": "Classic",
+    "encaixe": "Fit"
+  },
+  "encaixe": {
+    "tray": "Pieces",
+    "gameOverSubtitle": "No piece fits anymore on level {level}"
   }
 }

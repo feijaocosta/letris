@@ -44,8 +44,9 @@ function SecondaryButton({ children, onClick }: { children: ReactNode; onClick: 
 // ---------- Pausa ----------
 
 interface PauseMenuProps {
-  controlMode: ControlMode;
-  onControlModeChange: (mode: ControlMode) => void;
+  /** Sem modo de controle (Encaixe só tem arrastar): o seletor some */
+  controlMode?: ControlMode;
+  onControlModeChange?: (mode: ControlMode) => void;
   onResume: () => void;
   onHelp: () => void;
   onRestart: () => void;
@@ -61,13 +62,15 @@ export function PauseMenu({ controlMode, onControlModeChange, onResume, onHelp, 
         <div className="flex justify-center"><Logo size={30} gap={4} /></div>
         <h2 className="m-0 text-center text-[26px] font-black">{t('pause.title')}</h2>
 
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs">{t('pause.howToPlayQuestion')}</Label>
-          <ControlModeToggle value={controlMode} onChange={onControlModeChange} />
-          <span className="text-[13px] font-semibold text-soft text-center">
-            {t('pause.controlsHint')}
-          </span>
-        </div>
+        {controlMode && onControlModeChange && (
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs">{t('pause.howToPlayQuestion')}</Label>
+            <ControlModeToggle value={controlMode} onChange={onControlModeChange} />
+            <span className="text-[13px] font-semibold text-soft text-center">
+              {t('pause.controlsHint')}
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2.5">
           <PrimaryButton onClick={onResume}>{t('pause.resume')}</PrimaryButton>
@@ -260,15 +263,17 @@ interface GameOverProps {
   busy: boolean;
   onRestart: () => void;
   onHome: () => void;
+  /** Frase abaixo do título (padrão: as peças chegaram ao topo) */
+  subtitle?: string;
 }
 
-export function GameOver({ score, level, words, isNewRecord, busy, onRestart, onHome }: GameOverProps) {
+export function GameOver({ score, level, words, isNewRecord, busy, onRestart, onHome, subtitle }: GameOverProps) {
   const { t, n } = useI18n();
   return (
     <Screen>
       <div className="flex flex-col items-center gap-1 pt-2">
         <h1 className="m-0 text-[28px] font-black">{t('gameOver.title')}</h1>
-        <span className="text-[15px] font-bold text-soft">{t('gameOver.subtitle', { level })}</span>
+        <span className="text-[15px] font-bold text-soft">{subtitle ?? t('gameOver.subtitle', { level })}</span>
       </div>
 
       <Panel className="p-4 flex flex-col items-center gap-1">

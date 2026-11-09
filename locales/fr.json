@@ -170,5 +170,14 @@
     "doneTitle": "À toi de jouer !",
     "doneText": "Forme les mots de la liste à chaque niveau. Les pièces vont de plus en plus vite.",
     "doneStart": "Commencer le niveau 1"
+  },
+  "modes": {
+    "label": "MODE",
+    "classic": "Classique",
+    "encaixe": "Encastre"
+  },
+  "encaixe": {
+    "tray": "Pièces",
+    "gameOverSubtitle": "Plus aucune pièce ne rentre au niveau {level}"
   }
 }

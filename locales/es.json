@@ -170,5 +170,14 @@
     "doneTitle": "¡Ahora te toca a ti!",
     "doneText": "Forma las palabras de la lista en cada nivel. Las piezas van cada vez más rápido.",
     "doneStart": "Empezar el nivel 1"
+  },
+  "modes": {
+    "label": "MODO",
+    "classic": "Clásico",
+    "encaixe": "Encaje"
+  },
+  "encaixe": {
+    "tray": "Piezas",
+    "gameOverSubtitle": "Ya no cabe ninguna pieza en el nivel {level}"
   }
 }
