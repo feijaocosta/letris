@@ -122,7 +122,14 @@
     "gesturesAlso": "También funcionan en el modo botones",
     "keyboard": "Con teclado: flechas, espacio para soltar y P para pausar.",
     "close": "¡Entendido!",
-    "tutorial": "Ver el tutorial"
+    "tutorial": "Ver el tutorial",
+    "encaixeLinesTitle": "Completa filas y columnas",
+    "encaixeLinesText": "Una fila o columna llena desaparece y da puntos extra. Aquí nada baja: lo demás se queda en su sitio.",
+    "encaixeControlsTitle": "Cómo mover",
+    "encaixeDrag": "Arrastra una pieza de la bandeja al tablero.",
+    "encaixeCancel": "Suéltala fuera del tablero para devolverla.",
+    "encaixeRotate": "Solo gira la pieza del medio: toca el botón que está debajo.",
+    "encaixeEnd": "El juego termina cuando ninguna pieza de la bandeja cabe."
   },
   "consent": {
     "label": "Privacidad y cookies",
@@ -169,7 +176,13 @@
     "goal": "Forma {word} para cumplir la meta del nivel.",
     "doneTitle": "¡Ahora te toca a ti!",
     "doneText": "Forma las palabras de la lista en cada nivel. Las piezas van cada vez más rápido.",
-    "doneStart": "Empezar el nivel 1"
+    "doneStart": "Empezar el nivel 1",
+    "encaixeDrag": "Arrastra la pieza de la bandeja y suéltala en cualquier lugar del tablero.",
+    "encaixeRotate": "Solo gira la pieza del medio: toca el botón que está debajo.",
+    "encaixeWord": "Arrastra la {letter} junto a {start} y forma {word}.",
+    "encaixeLine": "Ahora completa la fila. Una fila o columna llena desaparece y da puntos, pero el objetivo es formar las palabras: sirve para abrir espacio.",
+    "encaixeGoal": "En vertical también vale. Suelta la {letter} debajo de {start} y forma {word} para cumplir la meta.",
+    "encaixeDoneText": "Forma las palabras de la lista en cada nivel. El juego termina cuando ya no cabe ninguna pieza."
   },
   "modes": {
     "label": "MODO",

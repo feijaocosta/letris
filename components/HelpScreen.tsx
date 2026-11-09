@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { IconBack, Panel, Tile } from './LetrisUI';
+import { IconBack, IconRotate, Panel, Tile } from './LetrisUI';
 import { useI18n } from '../lib/i18n';
+import type { GameMode } from '../lib/storage';
 
 function HelpCard({ visual, title, children }: { visual: ReactNode; title: string; children: ReactNode }) {
   return (
@@ -14,8 +15,16 @@ function HelpCard({ visual, title, children }: { visual: ReactNode; title: strin
   );
 }
 
-export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTutorial?: () => void }) {
+interface HelpScreenProps {
+  /** Cada modo explica as suas regras e controles */
+  gameMode?: GameMode;
+  onClose: () => void;
+  onTutorial?: () => void;
+}
+
+export function HelpScreen({ gameMode = 'classic', onClose, onTutorial }: HelpScreenProps) {
   const { t } = useI18n();
+  const encaixe = gameMode === 'encaixe';
   return (
     <div className="fixed inset-0 z-40 bg-ink text-white safe-area">
       <div className="h-full w-full overflow-y-auto">
@@ -35,6 +44,26 @@ export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTut
             {t('help.wordsText')}
           </HelpCard>
 
+          {encaixe ? (
+            <HelpCard
+              title={t('help.encaixeLinesTitle')}
+              visual={
+                // Uma linha e uma coluna cheias brilhando
+                <div className="grid grid-cols-4 gap-0.5">
+                  {[
+                    [null, 'green', null, null],
+                    [null, 'green', 'blue', null],
+                    ['red', 'green', 'yellow', 'blue'],
+                    [null, 'green', null, 'orange'],
+                  ].flatMap((row, r) => row.map((c, i) => c
+                    ? <Tile key={`${r}-${i}`} color={c as 'green'} size={14} className={r === 2 || i === 1 ? 'tile-flash' : ''} />
+                    : <div key={`${r}-${i}`} className="w-3.5 h-3.5" />))}
+                </div>
+              }
+            >
+              {t('help.encaixeLinesText')}
+            </HelpCard>
+          ) : (
           <HelpCard
             title={t('help.linesTitle')}
             visual={
@@ -48,6 +77,7 @@ export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTut
           >
             {t('help.linesText')}
           </HelpCard>
+          )}
 
           <HelpCard
             title={t('help.goalTitle')}
@@ -64,6 +94,29 @@ export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTut
             {t('help.goalText')}
           </HelpCard>
 
+          {encaixe ? (
+            <Panel className="p-3.5 flex flex-col gap-2">
+              <span className="text-base font-black">{t('help.encaixeControlsTitle')}</span>
+              <ul className="m-0 p-0 list-none flex flex-col gap-2 text-[13px] font-bold text-chip">
+                {([
+                  ['help.encaixeDrag', null],
+                  ['help.encaixeCancel', null],
+                  ['help.encaixeRotate', <IconRotate key="girar" size={13} />],
+                  ['help.encaixeEnd', null],
+                ] as const).map(([key, icon]) => (
+                  <li key={key} className="flex items-center gap-2.5">
+                    {/* O botão de girar aparece igual ao do jogo; os outros itens levam um ponto */}
+                    <span className="shrink-0 w-8 flex justify-center">
+                      {icon
+                        ? <span className="h-5 px-2 rounded-full bg-white/90 text-ink flex items-center">{icon}</span>
+                        : <span className="w-1.5 h-1.5 rounded-full bg-tile-yellow" />}
+                    </span>
+                    <span className="leading-snug">{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          ) : (
           <Panel className="p-3.5 flex flex-col gap-2.5">
             <span className="text-base font-black">{t('help.controlsTitle')}</span>
             <div className="grid grid-cols-2 gap-3 text-[13px] font-bold text-chip">
@@ -84,6 +137,7 @@ export function HelpScreen({ onClose, onTutorial }: { onClose: () => void; onTut
             </div>
             <span className="text-xs font-semibold text-soft">{t('help.keyboard')}</span>
           </Panel>
+          )}
 
           <div className="flex-1" />
           {onTutorial && (

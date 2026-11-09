@@ -145,13 +145,11 @@ export default function App() {
     // JOGAR/Novo jogo descarta a guardada do modo
     if (!game) (gameMode === 'encaixe' ? clearSavedEncaixe : clearSavedGame)(lang);
     track('game_start', { control_mode: controlMode, resumed: game !== null, mode: gameMode });
-    if (gameMode === 'encaixe') {
-      setResumeEncaixe(game as SavedEncaixe | null);
-      setWithTutorial(false); // o tutorial é do Clássico
-    } else {
-      setResume(game as SavedGame | null);
-      setWithTutorial(!game && (forceTutorial || (!load(KEYS.tutorialDone, false) && !hasAnyRecord())));
-    }
+    // Cada modo tem o seu tutorial e a sua marca de "visto"
+    const seenKey = gameMode === 'encaixe' ? KEYS.encaixeTutorialDone : KEYS.tutorialDone;
+    setWithTutorial(!game && (forceTutorial || (!load(seenKey, false) && !hasAnyRecord(gameMode))));
+    if (gameMode === 'encaixe') setResumeEncaixe(game as SavedEncaixe | null);
+    else setResume(game as SavedGame | null);
     setLibrary(words);
     setConsentOpen(false);
     setShowInstallPrompt(false);
@@ -185,6 +183,7 @@ export default function App() {
           library={library}
           blocked={landscape}
           resume={resumeEncaixe}
+          tutorial={withTutorial}
           onHome={() => setScreen('choose')}
           onHelp={openHelp}
         />
@@ -204,9 +203,10 @@ export default function App() {
 
       {helpOpen && (
         <HelpScreen
+          gameMode={gameMode}
           onClose={() => setHelpOpen(false)}
           // Só na entrada: no meio de uma partida o tutorial a abandonaria
-          onTutorial={screen === 'home' && gameMode === 'classic' ? () => { setHelpOpen(false); play(null, true); } : undefined}
+          onTutorial={screen === 'home' ? () => { setHelpOpen(false); play(null, true); } : undefined}
         />
       )}
 

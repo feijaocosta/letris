@@ -26,7 +26,7 @@ type Fixtures = { externalRequests: string[] };
 export const test = base.extend<Options & Fixtures>({
   consent: ['denied', { option: true }],
   controlMode: ['buttons', { option: true }],
-  // O tutorial da primeira partida já visto (os testes dele usam false)
+  // Os tutoriais da primeira partida (Clássico e Encaixe) já vistos (os testes deles usam false)
   tutorialSeen: [true, { option: true }],
   // auto: o bloqueio vale em TODO teste, mesmo nos que não usam a lista.
   // Sem isso (PR #26), os testes acessavam a internet de verdade: na CI
@@ -53,7 +53,10 @@ export const test = base.extend<Options & Fixtures>({
         sessionStorage.setItem('letris:test-init', '1');
         if (consent) localStorage.setItem('letris:consent', JSON.stringify(consent));
         localStorage.setItem('letris:controlMode', JSON.stringify(controlMode));
-        if (tutorialSeen) localStorage.setItem('letris:tutorialDone', 'true');
+        if (tutorialSeen) {
+          localStorage.setItem('letris:tutorialDone', 'true');
+          localStorage.setItem('letris:tutorialDone:encaixe', 'true');
+        }
       } catch {
         // sem armazenamento nesta página
       }
