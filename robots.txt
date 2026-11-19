@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://letris.kingdomapps.net/sitemap.xml
