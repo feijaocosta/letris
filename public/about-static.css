@@ -1,0 +1,10 @@
+/* Texto sobre o jogo no index.html: aparece até o jogo abrir e para quem
+   lê a página sem JavaScript (robôs de busca e do AdSense) */
+.about-static { position: fixed; inset: 0; overflow-y: auto; background: #2a1f38; color: #fff; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; line-height: 1.55; }
+.about-static main { max-width: 680px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 40px); }
+.about-static h1 { font-size: 28px; margin: 8px 0; }
+.about-static h2 { font-size: 19px; margin: 24px 0 6px; color: #f5b301; }
+.about-static p, .about-static li { color: #cdbfe0; font-size: 16px; }
+.about-static ul { padding-left: 22px; list-style: disc; }
+.about-static li { margin-bottom: 8px; }
+.about-static a { color: #f5b301; font-weight: 700; }

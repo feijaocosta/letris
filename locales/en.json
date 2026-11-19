@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "LETRIS - Tetris with Words"
+    "title": "LETRIS - Fit pieces and make words"
   },
   "common": {
     "back": "Back",
@@ -19,7 +19,8 @@
     "continueInfo": "Level {level} · {score} pts",
     "newGame": "New game",
     "version": "Version {version}",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "about": "About Letris"
   },
   "controls": {
     "label": "Controls",

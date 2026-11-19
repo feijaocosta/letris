@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "LETRIS - Tetris con Palabras"
+    "title": "LETRIS - Encaja piezas y forma palabras"
   },
   "common": {
     "back": "Volver",
@@ -19,7 +19,8 @@
     "continueInfo": "Nivel {level} · {score} pts",
     "newGame": "Nueva partida",
     "version": "Versión {version}",
-    "privacy": "Privacidad"
+    "privacy": "Privacidad",
+    "about": "Sobre Letris"
   },
   "controls": {
     "label": "Controles",
