@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "LETRIS - Tetris avec des mots"
+    "title": "LETRIS - Place les pièces et forme des mots"
   },
   "common": {
     "back": "Retour",
@@ -19,7 +19,8 @@
     "continueInfo": "Niveau {level} · {score} pts",
     "newGame": "Nouvelle partie",
     "version": "Version {version}",
-    "privacy": "Confidentialité"
+    "privacy": "Confidentialité",
+    "about": "À propos de Letris"
   },
   "controls": {
     "label": "Commandes",

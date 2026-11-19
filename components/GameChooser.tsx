@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { IconHand, LanguagePicker, Logo, Tile, type TileColor } from './LetrisUI';
 import { LANGUAGES, useI18n, type Lang } from '../lib/i18n';
 import { track } from '../lib/analytics';
+import { ABOUT_URL } from '../config/site';
 import type { GameMode } from '../lib/storage';
 
 // Primeira tela: escolha do jogo (Clássico ou Encaixe), com uma ilustração de
@@ -157,12 +158,19 @@ export function GameChooser({ onChoose, inProgress, onPrivacy, isOnline }: GameC
         </div>
         </div>
 
-        <div className="flex justify-center items-center gap-2 text-xs font-semibold text-faint pt-1">
+        {/* Rodapé: links numa linha e a versão embaixo (cabe em 375 px nos 4 idiomas) */}
+        <div className="flex flex-col items-center gap-0.5 text-xs font-semibold text-faint pt-1">
+          <div className="flex justify-center items-center gap-2 whitespace-nowrap">
+            <button type="button" onClick={onPrivacy} className="min-h-0 min-w-0 py-1 underline font-extrabold text-soft">
+              {t('home.privacy')}
+            </button>
+            <span aria-hidden="true">·</span>
+            {/* Link de verdade (<a href>) para a página do jogo no site da Kingdom Apps */}
+            <a href={ABOUT_URL} target="_blank" rel="noopener" className="py-1 underline font-extrabold text-soft">
+              {t('home.about')}
+            </a>
+          </div>
           <span>{t('home.version', { version: __APP_VERSION__ })}</span>
-          <span aria-hidden="true">·</span>
-          <button type="button" onClick={onPrivacy} className="min-h-0 min-w-0 py-1 underline font-extrabold text-soft">
-            {t('home.privacy')}
-          </button>
         </div>
       </div>
     </div>

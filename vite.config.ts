@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ADS, KERUX_HOSTS, adsEnabled } from './config/ads'
 import { analyticsEnabled } from './config/analytics'
+import { SITE_URL } from './config/site'
+import languages from './config/languages.json'
 
 // Content-Security-Policy aplicada só no build de produção: em `vite dev`
 // o Vite injeta scripts inline (HMR/React Refresh) que ela bloquearia.
@@ -84,6 +86,29 @@ const adsTxt = (): Plugin => ({
   },
 })
 
+// robots.txt e sitemap.xml para os robôs de busca e do AdSense: a página do
+// jogo e as políticas de privacidade de cada idioma (config/languages.json),
+// com a data do build como última mudança.
+const searchFiles = (): Plugin => ({
+  name: 'letris-search-files',
+  apply: 'build',
+  generateBundle() {
+    const today = new Date().toISOString().slice(0, 10)
+    const pages = ['', ...languages.languages.map(language => language.privacyPage)]
+    const urls = pages.map(page => `  <url><loc>${SITE_URL}${page}</loc><lastmod>${today}</lastmod></url>`)
+    this.emitFile({
+      type: 'asset',
+      fileName: 'sitemap.xml',
+      source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`,
+    })
+    this.emitFile({
+      type: 'asset',
+      fileName: 'robots.txt',
+      source: `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`,
+    })
+  },
+})
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -91,6 +116,7 @@ export default defineConfig({
     securityMetaTags(),
     versionFile(),
     adsTxt(),
+    searchFiles(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script', // registro único, via script externo gerado pelo plugin
@@ -98,7 +124,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,webmanifest,woff2}'],
         // version.json precisa vir sempre da rede
         globIgnores: ['**/version.json', '**/ads.txt'],
-        navigateFallbackDenylist: [/version\.json/, /ads\.txt/],
+        // Arquivos para robôs: abertos no navegador, não podem virar o jogo
+        navigateFallbackDenylist: [/version\.json/, /ads\.txt/, /robots\.txt/, /sitemap\.xml/],
       },
       manifest: {
         // Um manifest só para todos os idiomas: nome igual em todos e

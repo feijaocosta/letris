@@ -11,11 +11,56 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Letris" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>LETRIS - Tetris com Palavras</title>
-
+    <title>LETRIS - Encaixe peças e forme palavras</title>
+    <meta name="description" content="Jogo grátis de encaixar peças com letras e formar as palavras da lista. Dois modos (Clássico e Encaixe), em português, inglês, espanhol e francês. Sem cadastro, funciona no celular e offline." />
+    <link rel="canonical" href="https://letris.kingdomapps.net/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LETRIS" />
+    <meta property="og:url" content="https://letris.kingdomapps.net/" />
+    <meta property="og:title" content="LETRIS - Encaixe peças e forme palavras" />
+    <meta property="og:description" content="Encaixe as peças com letras e forme as palavras da lista para passar de nível. Grátis, sem cadastro, em 4 idiomas." />
+    <meta property="og:image" content="https://letris.kingdomapps.net/pwa-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Ícone do LETRIS: blocos coloridos formando a palavra LETRIS" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="es_ES" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta name="twitter:card" content="summary" />
+    <!-- Estilo só do texto sobre o jogo (aparece até o jogo abrir) -->
+    <link rel="stylesheet" href="/about-static.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="about-static">
+        <main>
+          <h1>LETRIS: encaixe as peças e forme palavras</h1>
+          <p>LETRIS junta o encaixe de peças com um caça-palavras. Cada peça traz letras, e você monta no tabuleiro as palavras da lista do nível, na horizontal ou na vertical. Palavra formada some do tabuleiro e dá pontos. Forme as palavras pedidas para passar de nível: cada nível traz letras e palavras novas.</p>
+
+          <h2>Dois modos de jogo</h2>
+          <ul>
+            <li><strong>Clássico:</strong> as peças caem num tabuleiro de 10 × 20 e ficam mais rápidas a cada nível. Linha completa também some e dá pontos extras, e ajuda a abrir espaço.</li>
+            <li><strong>Encaixe:</strong> sem queda. Você arrasta as peças da bandeja para um tabuleiro de 8 × 10 e solta onde quiser. Linha ou coluna cheia some. Só a peça do meio gira. O jogo acaba quando nenhuma peça da bandeja cabe mais.</li>
+          </ul>
+
+          <h2>Como jogar</h2>
+          <ul>
+            <li>No Clássico, use os botões ← e → para mover, o amarelo para girar, ↓ para acelerar e o vermelho para soltar a peça. Também dá para jogar com gestos: deslize para os lados, toque para girar e arraste para baixo para acelerar. No computador: setas, espaço para soltar e P para pausar.</li>
+            <li>No Encaixe, arraste uma peça da bandeja até o tabuleiro. Solte fora do tabuleiro para devolver a peça.</li>
+            <li>Só valem as palavras da lista do nível, com 3 letras ou mais. Palavras maiores valem mais pontos, e formar várias na mesma jogada vale ainda mais.</li>
+          </ul>
+
+          <h2>Quatro idiomas</h2>
+          <p>Jogue em português, inglês, espanhol ou francês. Cada idioma tem o seu banco de palavras e os seus recordes. No espanhol, o Ñ é uma letra própria.</p>
+
+          <h2>Grátis, sem cadastro e offline</h2>
+          <p>O LETRIS é gratuito e não pede conta. Os recordes ficam salvos só no seu aparelho. Depois da primeira visita, o jogo funciona sem internet, e dá para instalar no celular pela opção "Adicionar à tela inicial" do navegador.</p>
+
+          <p><a href="https://kingdomapps.net/letris/">Saiba mais sobre o LETRIS</a> · <a href="/privacidade.html">Política de privacidade</a></p>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
